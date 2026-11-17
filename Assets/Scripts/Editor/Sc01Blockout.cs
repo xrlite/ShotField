@@ -2,6 +2,7 @@
 using ShotField.Constraints;
 using ShotField.Core;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace ShotField.EditorTools
@@ -35,6 +36,14 @@ namespace ShotField.EditorTools
             BuildLighting(root.transform);
             BuildDirector(root.transform);
             return root;
+        }
+
+        public static void BuildAndSaveScene()
+        {
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            BuildIntoScene();
+            EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene(), "Assets/Scenes/SC01_Blockout.unity");
+            Debug.Log("[SC01] 场景已更新并保存至 Assets/Scenes/SC01_Blockout.unity");
         }
 
         private static void BuildRoom(Transform room)
