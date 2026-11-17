@@ -124,20 +124,36 @@ namespace ShotField.EditorTools
 
         private static void BuildDirector(Transform room)
         {
+            // 1. 头显观察机位（MainCamera：负责 VR 空间眼部渲染与 6DoF 跟踪）
+            var hmd = new GameObject("XR_Headset");
+            hmd.transform.SetParent(room, false);
+            hmd.transform.position = new Vector3(0.5f, 1.4f, 0.6f);
+            hmd.transform.LookAt(new Vector3(1.5f, 0.45f, 2.15f));
+            var hmdCam = hmd.AddComponent<Camera>();
+            hmdCam.tag = "MainCamera";
+            hmdCam.nearClipPlane = 0.05f;
+            hmdCam.farClipPlane = 100f;
+            hmd.AddComponent<AudioListener>();
+
+            var poseDriver = hmd.AddComponent<UnityEngine.InputSystem.XR.TrackedPoseDriver>();
+            poseDriver.trackingType = UnityEngine.InputSystem.XR.TrackedPoseDriver.TrackingType.RotationAndPosition;
+            poseDriver.positionInput = new UnityEngine.InputSystem.InputActionProperty(
+                new UnityEngine.InputSystem.InputAction("Position", binding: "<XRHMD>/centerEyePosition"));
+            poseDriver.rotationInput = new UnityEngine.InputSystem.InputActionProperty(
+                new UnityEngine.InputSystem.InputAction("Rotation", binding: "<XRHMD>/centerEyeRotation"));
+
+            // 2. 导演电影机位（Director：片场机位，由工作台/护照驱动，离线渲染至监视器）
             var director = new GameObject("Director");
             director.transform.SetParent(room, false);
             var library = director.AddComponent<ShotLibrary>();
             var camera = director.AddComponent<Camera>();
-            camera.tag = "MainCamera";
+            camera.enabled = false; // 严守单活动主相机，避免抢占 VR 视口
             library.ShotCamera = camera;
-            camera.fieldOfView = 40f;
+            camera.fieldOfView = 45f;
             camera.aspect = ShotCameraState.DefaultAspect;
             camera.nearClipPlane = 0.05f;
             director.transform.position = new Vector3(2.35f, 0.55f, 1.2f);
             director.transform.LookAt(new Vector3(1.5f, 0.52f, 2.15f));
-
-            var poseDriver = director.AddComponent<UnityEngine.InputSystem.XR.TrackedPoseDriver>();
-            poseDriver.trackingType = UnityEngine.InputSystem.XR.TrackedPoseDriver.TrackingType.RotationAndPosition;
 
             var visibility = director.AddComponent<VisibilityConstraint>();
             visibility.ruleName = "信封正面不可见";

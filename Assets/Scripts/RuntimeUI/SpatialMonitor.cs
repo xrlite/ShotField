@@ -21,8 +21,13 @@ namespace ShotField.RuntimeUI
         private RenderTexture renderTexture;
         private Camera monitorCam;
         private bool isPortrait = false;
+        private Vector3 lastPos;
+        private Quaternion lastRot;
+        private float lastFov;
+        private bool isDirty = true;
 
         public bool IsPortrait => isPortrait;
+        public void RequestRender() => isDirty = true;
 
         void Awake()
         {
@@ -32,7 +37,23 @@ namespace ShotField.RuntimeUI
 
         void LateUpdate()
         {
-            RenderFeed();
+            if (sourceCamera != null)
+            {
+                if (sourceCamera.transform.position != lastPos ||
+                    sourceCamera.transform.rotation != lastRot ||
+                    !Mathf.Approximately(sourceCamera.fieldOfView, lastFov))
+                {
+                    isDirty = true;
+                    lastPos = sourceCamera.transform.position;
+                    lastRot = sourceCamera.transform.rotation;
+                    lastFov = sourceCamera.fieldOfView;
+                }
+            }
+            if (isDirty)
+            {
+                RenderFeed();
+                isDirty = false;
+            }
         }
 
         void OnDestroy()
@@ -58,6 +79,7 @@ namespace ShotField.RuntimeUI
             {
                 sourceCamera.aspect = isPortrait ? ShotCameraState.PortraitAspect : ShotCameraState.DefaultAspect;
             }
+            isDirty = true;
 
             if (viewportFrame != null)
             {

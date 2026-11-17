@@ -28,14 +28,11 @@ namespace ShotField.RuntimeUI
         public Image axisPill;
 
         [Header("空间按钮")]
-        public Button prevBtn;
-        public Button nextBtn;
-        public Button newShotBtn;
-        public Button toggleAspectBtn;
-        public Button savePassportBtn;
+        public Button prevBtn, nextBtn, newShotBtn, toggleAspectBtn, savePassportBtn, captureViewBtn;
 
         private static readonly Color PassGreen = new Color(0.32f, 0.77f, 0.10f, 0.95f);
         private static readonly Color FailRed = new Color(1.00f, 0.30f, 0.31f, 0.95f);
+        private static readonly Color PendingAmber = new Color(1.00f, 0.75f, 0.10f, 0.95f);
         private static readonly Color NeutralMuted = new Color(0.20f, 0.22f, 0.25f, 0.85f);
 
         private int currentShotIndex = 0;
@@ -43,14 +40,35 @@ namespace ShotField.RuntimeUI
         void Start()
         {
             if (library == null) library = Object.FindAnyObjectByType<ShotLibrary>();
-
             if (prevBtn != null) prevBtn.onClick.AddListener(PreviousShot);
             if (nextBtn != null) nextBtn.onClick.AddListener(NextShot);
             if (newShotBtn != null) newShotBtn.onClick.AddListener(CreateNewShot);
+            if (captureViewBtn != null) captureViewBtn.onClick.AddListener(CaptureCurrentViewToShot);
             if (toggleAspectBtn != null && monitor != null) toggleAspectBtn.onClick.AddListener(monitor.ToggleAspect);
             if (savePassportBtn != null) savePassportBtn.onClick.AddListener(SavePassport);
-
             RefreshUI();
+        }
+
+        void Update()
+        {
+            if (UnityEngine.InputSystem.Keyboard.current != null &&
+                UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
+            {
+                CaptureCurrentViewToShot();
+            }
+        }
+
+        public void CaptureCurrentViewToShot()
+        {
+            if (library == null) return;
+            var mainCam = Camera.main;
+            if (mainCam != null && library.ShotCamera != null && mainCam != library.ShotCamera)
+            {
+                library.ShotCamera.transform.position = mainCam.transform.position;
+                library.ShotCamera.transform.rotation = mainCam.transform.rotation;
+            }
+            CreateNewShot();
+            ShowNotify("[扳机捕获] 机位已同步至当前视线");
         }
 
         public void RefreshUI()
@@ -134,32 +152,32 @@ namespace ShotField.RuntimeUI
         {
             shot.lastCheck.Clear();
             var visRule = Object.FindAnyObjectByType<VisibilityConstraint>();
-            if (visRule != null)
-            {
-                var res = visRule.Evaluate(shot, null);
-                shot.lastCheck.Add(res);
-                if (visibilityStatusText != null)
-                {
-                    bool pass = res.status == CheckStatus.Pass;
-                    visibilityStatusText.text = pass ? "信封正面不可见 [安全]" : "信封正面泄漏 [违规报警!]";
-                    if (visibilityPill != null) visibilityPill.color = pass ? PassGreen : FailRed;
-                }
-            }
+            ConstraintResult visRes = null;
+            if (visRule != null) { visRes = visRule.Evaluate(shot, null); shot.lastCheck.Add(visRes); }
+            UpdatePill(visibilityPill, visibilityStatusText, visRes?.status, "信封正面不可见 [安全]", "信封正面泄漏 [违规报警!]", "信封遮挡 [待确认]", "信封规则 [未配置]");
 
             var axisRule = Object.FindAnyObjectByType<AxisConstraint>();
+            ConstraintResult axisRes = null;
             if (axisRule != null)
             {
                 var prev = currentShotIndex > 0 ? library.Shots[currentShotIndex - 1] : null;
-                var res = axisRule.Evaluate(shot, prev);
-                shot.lastCheck.Add(res);
-                if (axisStatusText != null)
-                {
-                    bool pass = res.status == CheckStatus.Pass;
-                    axisStatusText.text = pass ? "轴线连续性 [正常]" : "发生 180° 越轴 [违规!]";
-                    if (axisPill != null) axisPill.color = pass ? PassGreen : FailRed;
-                }
+                axisRes = axisRule.Evaluate(shot, prev);
+                shot.lastCheck.Add(axisRes);
             }
+            UpdatePill(axisPill, axisStatusText, axisRes?.status, "轴线连续性 [正常]", "发生 180° 越轴 [违规!]", "轴线关系 [待确认]", "轴线规则 [未配置]");
             shot.checkedAt = System.DateTimeOffset.UtcNow.ToString("O");
+        }
+
+        private void UpdatePill(Image pill, Text text, CheckStatus? status, string pass, string fail, string pend, string none)
+        {
+            if (text == null) return;
+            if (!status.HasValue) { text.text = none; if (pill != null) pill.color = NeutralMuted; return; }
+            switch (status.Value)
+            {
+                case CheckStatus.Pass: text.text = pass; if (pill != null) pill.color = PassGreen; break;
+                case CheckStatus.Violation: text.text = fail; if (pill != null) pill.color = FailRed; break;
+                case CheckStatus.Pending: text.text = pend; if (pill != null) pill.color = PendingAmber; break;
+            }
         }
 
         private void ShowNotify(string msg)

@@ -36,6 +36,9 @@ namespace ShotField.EditorTools
             var wbGo = SpatialWorkbenchBuilder.BuildWorkbench();
 
             Assert("SC01. 场景根节点与 PXR_Manager 挂载", root.GetComponent<ByteDance.PICO.XR.PXR_Manager>() != null);
+            var hmdGo = GameObject.Find("XR_Headset");
+            var tpd = hmdGo != null ? hmdGo.GetComponent<UnityEngine.InputSystem.XR.TrackedPoseDriver>() : null;
+            Assert("SC01. XR_Headset 头显观察机位存在且挂载 TrackedPoseDriver", tpd != null);
             var canvas = wbGo.GetComponent<Canvas>();
             Assert("SC01. 空间 3D 工作台画布存在且为 WorldSpace", canvas != null && canvas.renderMode == RenderMode.WorldSpace);
             var es = UnityEngine.Object.FindAnyObjectByType<UnityEngine.EventSystems.EventSystem>();

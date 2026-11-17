@@ -59,12 +59,13 @@ namespace ShotField.EditorTools
             wb.library = GameObject.Find("Director")?.GetComponent<ShotLibrary>();
 
             // 3. 窗口 B：镜头时间轴与控制条（底部）
-            var controlPanel = CreatePanel(canvasGo.transform, "WindowB_Controls", PicoCard, new Vector2(0f, -150f), new Vector2(660f, 90f));
-            wb.prevBtn = CreateButton(controlPanel.transform, "PrevBtn", "◀ 上一镜", new Vector2(-220f, 0f));
-            wb.nextBtn = CreateButton(controlPanel.transform, "NextBtn", "下一镜 ▶", new Vector2(-110f, 0f));
-            wb.newShotBtn = CreateButton(controlPanel.transform, "NewBtn", "➕ 新机位", new Vector2(20f, 0f), PicoAccent);
-            wb.toggleAspectBtn = CreateButton(controlPanel.transform, "AspectBtn", "📐 16:9/9:16", new Vector2(140f, 0f));
-            wb.savePassportBtn = CreateButton(controlPanel.transform, "SaveBtn", "💾 存护照", new Vector2(245f, 0f));
+            var controlPanel = CreatePanel(canvasGo.transform, "WindowB_Controls", PicoCard, new Vector2(0f, -150f), new Vector2(760f, 90f));
+            wb.prevBtn = CreateButton(controlPanel.transform, "PrevBtn", "◀ 上一镜", new Vector2(-280f, 0f));
+            wb.nextBtn = CreateButton(controlPanel.transform, "NextBtn", "下一镜 ▶", new Vector2(-170f, 0f));
+            wb.captureViewBtn = CreateButton(controlPanel.transform, "CaptureBtn", "🎯 扳机抓位", new Vector2(-55f, 0f), PicoAccent);
+            wb.newShotBtn = CreateButton(controlPanel.transform, "NewBtn", "➕ 新机位", new Vector2(55f, 0f));
+            wb.toggleAspectBtn = CreateButton(controlPanel.transform, "AspectBtn", "📐 画幅", new Vector2(165f, 0f));
+            wb.savePassportBtn = CreateButton(controlPanel.transform, "SaveBtn", "💾 存护照", new Vector2(275f, 0f));
 
             // 4. 窗口 C：约束质检抬头卡片（右侧浮窗）
             var hudPanel = CreatePanel(canvasGo.transform, "WindowC_HUD", PicoCard, new Vector2(440f, 80f), new Vector2(200f, 220f));

@@ -4,7 +4,8 @@
   "references": [
     "ShotField.Core",
     "ShotField.Constraints",
-    "UnityEngine.UI"
+    "UnityEngine.UI",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
