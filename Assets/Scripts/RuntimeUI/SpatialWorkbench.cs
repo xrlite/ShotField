@@ -36,10 +36,14 @@ namespace ShotField.RuntimeUI
         private static readonly Color NeutralMuted = new Color(0.20f, 0.22f, 0.25f, 0.85f);
 
         private int currentShotIndex = 0;
+        private VisibilityConstraint cachedVisRule;
+        private AxisConstraint cachedAxisRule;
 
         void Start()
         {
             if (library == null) library = Object.FindAnyObjectByType<ShotLibrary>();
+            cachedVisRule = Object.FindAnyObjectByType<VisibilityConstraint>();
+            cachedAxisRule = Object.FindAnyObjectByType<AxisConstraint>();
             if (prevBtn != null) prevBtn.onClick.AddListener(PreviousShot);
             if (nextBtn != null) nextBtn.onClick.AddListener(NextShot);
             if (newShotBtn != null) newShotBtn.onClick.AddListener(CreateNewShot);
@@ -151,17 +155,17 @@ namespace ShotField.RuntimeUI
         private void EvaluateConstraints(ShotData shot)
         {
             shot.lastCheck.Clear();
-            var visRule = Object.FindAnyObjectByType<VisibilityConstraint>();
+            if (cachedVisRule == null) cachedVisRule = Object.FindAnyObjectByType<VisibilityConstraint>();
             ConstraintResult visRes = null;
-            if (visRule != null) { visRes = visRule.Evaluate(shot, null); shot.lastCheck.Add(visRes); }
+            if (cachedVisRule != null) { visRes = cachedVisRule.Evaluate(shot, null); shot.lastCheck.Add(visRes); }
             UpdatePill(visibilityPill, visibilityStatusText, visRes?.status, "信封正面不可见 [安全]", "信封正面泄漏 [违规报警!]", "信封遮挡 [待确认]", "信封规则 [未配置]");
 
-            var axisRule = Object.FindAnyObjectByType<AxisConstraint>();
+            if (cachedAxisRule == null) cachedAxisRule = Object.FindAnyObjectByType<AxisConstraint>();
             ConstraintResult axisRes = null;
-            if (axisRule != null)
+            if (cachedAxisRule != null)
             {
                 var prev = currentShotIndex > 0 ? library.Shots[currentShotIndex - 1] : null;
-                axisRes = axisRule.Evaluate(shot, prev);
+                axisRes = cachedAxisRule.Evaluate(shot, prev);
                 shot.lastCheck.Add(axisRes);
             }
             UpdatePill(axisPill, axisStatusText, axisRes?.status, "轴线连续性 [正常]", "发生 180° 越轴 [违规!]", "轴线关系 [待确认]", "轴线规则 [未配置]");

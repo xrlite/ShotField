@@ -56,6 +56,20 @@ namespace ShotField.RuntimeUI
             }
         }
 
+        void OnEnable()
+        {
+            if (renderTexture == null)
+            {
+                SetupRenderTexture(isPortrait);
+                isDirty = true;
+            }
+        }
+
+        void OnDisable()
+        {
+            ReleaseRenderTexture();
+        }
+
         void OnDestroy()
         {
             ReleaseRenderTexture();
@@ -103,13 +117,13 @@ namespace ShotField.RuntimeUI
             ReleaseRenderTexture();
             EnsureMonitorCamera();
 
-            int w = portrait ? 720 : 1280;
-            int h = portrait ? 1280 : 720;
+            int w = portrait ? 360 : 640;
+            int h = portrait ? 640 : 360;
 
-            renderTexture = new RenderTexture(w, h, 24, RenderTextureFormat.ARGB32)
+            renderTexture = new RenderTexture(w, h, 16, RenderTextureFormat.ARGB32)
             {
                 name = "SpatialDirector_RT",
-                antiAliasing = 2
+                antiAliasing = 1
             };
             renderTexture.Create();
 
