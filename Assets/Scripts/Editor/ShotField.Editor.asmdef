@@ -2,7 +2,8 @@
   "name": "ShotField.Editor",
   "references": [
     "ShotField.Core",
-    "ShotField.Constraints"
+    "ShotField.Constraints",
+    "ShotField.RuntimeUI"
   ],
   "includePlatforms": [
     "Editor"

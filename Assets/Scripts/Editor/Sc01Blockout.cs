@@ -42,6 +42,7 @@ namespace ShotField.EditorTools
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             BuildIntoScene();
+            SpatialWorkbenchBuilder.BuildWorkbench();
             EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene(), "Assets/Scenes/SC01_Blockout.unity");
             Debug.Log("[SC01] 场景已更新并保存至 Assets/Scenes/SC01_Blockout.unity");
         }
