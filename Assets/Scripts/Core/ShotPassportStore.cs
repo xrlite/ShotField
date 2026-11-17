@@ -8,7 +8,9 @@ namespace ShotField.Core
 {
     public static class ShotPassportStore
     {
-        public static string ProjectFolder => Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Passports"));
+        public static string ProjectFolder => Application.isEditor
+            ? Path.GetFullPath(Path.Combine(Application.dataPath, "..", "Passports"))
+            : Path.Combine(Application.persistentDataPath, "Passports");
 
         public static string Save(ShotPassportDto passport, string folder)
         {

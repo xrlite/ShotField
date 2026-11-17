@@ -103,45 +103,63 @@ namespace ShotField.RuntimeUI
         {
             if (library == null || library.Count == 0) return;
             var shot = library.Shots[currentShotIndex];
-
-            // 收集当前场景中的所有约束规范
-            var rules = Object.FindObjectsByType<ShotConstraint>(FindObjectsInactive.Exclude);
-            var specs = new ConstraintSpec[rules.Length];
-            for (int i = 0; i < rules.Length; i++) specs[i] = rules[i].ToSpec();
-
-            // 若已有历史版本，递增 revision，捍卫不可篡改的历史版本链
-            var shotDir = System.IO.Path.Combine(ShotPassportStore.ProjectFolder, shot.shotId);
-            while (System.IO.File.Exists(System.IO.Path.Combine(shotDir, $"rev{shot.revision:D3}.json")))
+            try
             {
-                shot.revision++;
-            }
+                EvaluateConstraints(shot);
 
-            var dto = ShotPassportDto.FromShot(shot, library.SceneId, specs);
-            var path = ShotPassportStore.Save(dto, ShotPassportStore.ProjectFolder);
-            ShowNotify($"护照已保存: rev{dto.revision:D3}");
-            Debug.Log($"[镜场 ShotField] 护照已存至: {path}");
+                var rules = Object.FindObjectsByType<ShotConstraint>(FindObjectsInactive.Exclude);
+                var specs = new ConstraintSpec[rules.Length];
+                for (int i = 0; i < rules.Length; i++) specs[i] = rules[i].ToSpec();
+                shot.recordedConstraints = specs;
+
+                var shotDir = System.IO.Path.Combine(ShotPassportStore.ProjectFolder, shot.shotId);
+                while (System.IO.File.Exists(System.IO.Path.Combine(shotDir, $"rev{shot.revision:D3}.json")))
+                {
+                    shot.revision++;
+                }
+
+                var dto = ShotPassportDto.FromShot(shot, library.SceneId, specs);
+                var path = ShotPassportStore.Save(dto, ShotPassportStore.ProjectFolder);
+                ShowNotify($"护照已保存: rev{dto.revision:D3}");
+                Debug.Log($"[镜场 ShotField] 护照已存至: {path}");
+            }
+            catch (System.Exception ex)
+            {
+                ShowNotify($"保存失败: {ex.Message}");
+                Debug.LogError($"[镜场 ShotField] 护照保存异常: {ex}");
+            }
         }
 
         private void EvaluateConstraints(ShotData shot)
         {
+            shot.lastCheck.Clear();
             var visRule = Object.FindAnyObjectByType<VisibilityConstraint>();
-            if (visRule != null && visibilityStatusText != null)
+            if (visRule != null)
             {
                 var res = visRule.Evaluate(shot, null);
-                bool pass = res.status == CheckStatus.Pass;
-                visibilityStatusText.text = pass ? "信封正面不可见 [安全]" : "信封正面泄漏 [违规报警!]";
-                if (visibilityPill != null) visibilityPill.color = pass ? PassGreen : FailRed;
+                shot.lastCheck.Add(res);
+                if (visibilityStatusText != null)
+                {
+                    bool pass = res.status == CheckStatus.Pass;
+                    visibilityStatusText.text = pass ? "信封正面不可见 [安全]" : "信封正面泄漏 [违规报警!]";
+                    if (visibilityPill != null) visibilityPill.color = pass ? PassGreen : FailRed;
+                }
             }
 
             var axisRule = Object.FindAnyObjectByType<AxisConstraint>();
-            if (axisRule != null && axisStatusText != null)
+            if (axisRule != null)
             {
                 var prev = currentShotIndex > 0 ? library.Shots[currentShotIndex - 1] : null;
                 var res = axisRule.Evaluate(shot, prev);
-                bool pass = res.status == CheckStatus.Pass;
-                axisStatusText.text = pass ? "轴线连续性 [正常]" : "发生 180° 越轴 [违规!]";
-                if (axisPill != null) axisPill.color = pass ? PassGreen : FailRed;
+                shot.lastCheck.Add(res);
+                if (axisStatusText != null)
+                {
+                    bool pass = res.status == CheckStatus.Pass;
+                    axisStatusText.text = pass ? "轴线连续性 [正常]" : "发生 180° 越轴 [违规!]";
+                    if (axisPill != null) axisPill.color = pass ? PassGreen : FailRed;
+                }
             }
+            shot.checkedAt = System.DateTimeOffset.UtcNow.ToString("O");
         }
 
         private void ShowNotify(string msg)

@@ -44,14 +44,7 @@ namespace ShotField.Core
             for (int i = 0; i < actors.Count; i++)
             {
                 var a = actors[i];
-                copy.actors.Add(new ActorState
-                {
-                    actorId = a.actorId,
-                    position = a.position,
-                    rotation = a.rotation,
-                    scale = a.scale,
-                    active = a.active
-                });
+                copy.actors.Add(new ActorState { actorId = a.actorId, position = a.position, rotation = a.rotation, scale = a.scale, active = a.active });
             }
             return copy;
         }
@@ -115,11 +108,8 @@ namespace ShotField.Core
             cam.farClipPlane = farClip;
         }
 
-        public Matrix4x4 ViewMatrix
-        {
-            get { return Matrix4x4.Scale(new Vector3(1f, 1f, -1f)) *
-                    Matrix4x4.TRS(position, CameraRotation, Vector3.one).inverse; }
-        }
+        public Matrix4x4 ViewMatrix => Matrix4x4.Scale(new Vector3(1f, 1f, -1f)) *
+            Matrix4x4.TRS(position, CameraRotation, Vector3.one).inverse;
 
         public Matrix4x4 ProjectionMatrix() =>
             Matrix4x4.Perspective(fieldOfView, NormalizeAspect(aspect), nearClip, farClip);
@@ -137,20 +127,14 @@ namespace ShotField.Core
         public string detail = "";
         public string targetId = "";
 
-        public static ConstraintResult Pass(string rule, string detail, string target)
-        {
-            return new ConstraintResult { ruleName = rule, status = CheckStatus.Pass, detail = detail, targetId = target };
-        }
+        public static ConstraintResult Pass(string rule, string detail, string target) =>
+            new ConstraintResult { ruleName = rule, status = CheckStatus.Pass, detail = detail, targetId = target };
 
-        public static ConstraintResult Violation(string rule, string detail, string target)
-        {
-            return new ConstraintResult { ruleName = rule, status = CheckStatus.Violation, detail = detail, targetId = target };
-        }
+        public static ConstraintResult Violation(string rule, string detail, string target) =>
+            new ConstraintResult { ruleName = rule, status = CheckStatus.Violation, detail = detail, targetId = target };
 
-        public static ConstraintResult Pending(string rule, string detail, string target)
-        {
-            return new ConstraintResult { ruleName = rule, status = CheckStatus.Pending, detail = detail, targetId = target };
-        }
+        public static ConstraintResult Pending(string rule, string detail, string target) =>
+            new ConstraintResult { ruleName = rule, status = CheckStatus.Pending, detail = detail, targetId = target };
     }
 
     /// <summary>一个镜头 = 一份场景快照 + 一份独立机位 + 意图与审批记录。这就是镜头护照的代码形态。</summary>

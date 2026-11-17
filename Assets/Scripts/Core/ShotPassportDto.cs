@@ -43,11 +43,7 @@ namespace ShotField.Core
         }
 
         [Serializable]
-        public class PropFields
-        {
-            public string id, state;
-            public float[] pos;
-        }
+        public class PropFields { public string id, state; public float[] pos; }
 
         [Serializable]
         public class CheckSummary
@@ -151,16 +147,13 @@ namespace ShotField.Core
             };
         }
 
-        private ApprovalStatus ReadApproval()
+        private ApprovalStatus ReadApproval() => approval_status switch
         {
-            switch (approval_status)
-            {
-                case "draft": return ApprovalStatus.Draft;
-                case "pending": return ApprovalStatus.Reviewed;
-                case "approved": return approvalLocked ? ApprovalStatus.Locked : ApprovalStatus.Approved;
-                default: throw new FormatException("无法加载审批状态 " + approval_status);
-            }
-        }
+            "draft" => ApprovalStatus.Draft,
+            "pending" => ApprovalStatus.Reviewed,
+            "approved" => approvalLocked ? ApprovalStatus.Locked : ApprovalStatus.Approved,
+            _ => throw new FormatException("无法加载审批状态 " + approval_status)
+        };
 
         public static ConstraintSpec[] CopySpecs(ConstraintSpec[] specs) =>
             specs == null ? null : Array.ConvertAll(specs, spec => spec.Copy());
@@ -197,10 +190,8 @@ namespace ShotField.Core
 
         private static float[] Pack(Vector3 v) => new[] { v.x, v.y, v.z };
 
-        private static Vector3 Unpack(float[] v)
-        {
-            if (v == null || v.Length != 3) throw new FormatException("机位坐标须有三个分量。");
-            return new Vector3(v[0], v[1], v[2]);
-        }
+        private static Vector3 Unpack(float[] v) => (v == null || v.Length != 3)
+            ? throw new FormatException("机位坐标须有三个分量。")
+            : new Vector3(v[0], v[1], v[2]);
     }
 }

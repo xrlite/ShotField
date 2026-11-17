@@ -80,6 +80,7 @@ namespace ShotField.EditorTools
             s01.recordedConstraints = specs;
             s01.lastCheck.Clear();
             s01.lastCheck.Add(r1);
+            s01.checkedAt = DateTimeOffset.UtcNow.ToString("O");
 
             // 保存 rev001
             var dto1 = ShotPassportDto.FromShot(s01, lib.SceneId, specs);
@@ -98,17 +99,18 @@ namespace ShotField.EditorTools
             catch (InvalidOperationException) { overwriteBlocked = true; }
             Assert("PASSPORT_IMMUTABLE. 同版本重复保存被严格拦截 (防历史篡改)", overwriteBlocked);
 
-            // 从磁盘读回 rev001，深度恢复机位并核验规则一致性
+            // 从磁盘读回 rev001，深度恢复机位并核验规则一致性与质检摘要
             var loadedDto = ShotPassportStore.Load(path1);
             var reloadedShot = loadedDto.ToShot();
             lib.ApplyShot(reloadedShot);
             var reEval = vis.Evaluate(reloadedShot, null);
             bool reloadOk = (loadedDto.shot_id == dto1.shot_id) &&
                             (loadedDto.revision == 1) &&
+                            (loadedDto.check_summary != null && loadedDto.check_summary.pass == 1) &&
                             (loadedDto.constraints != null && loadedDto.constraints.Length == specs.Length) &&
                             (reEval.status == CheckStatus.Pass) &&
                             Vector3.Distance(cam.transform.position, s01.camera.position) < 0.001f;
-            Assert("PASSPORT_RELOAD. 读回后机位物理恢复与规则求值完全一致", reloadOk);
+            Assert("PASSPORT_RELOAD. 读回后机位物理恢复、质检摘要与规则求值完全一致", reloadOk);
 
             // 5. 汇总并落盘证据
             Log($"=== 结果: 通过 {passCount} 项, 失败 {failCount} 项 ===");

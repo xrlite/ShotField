@@ -17,9 +17,19 @@ public static class BuildAndroid
     const string PackageId = "com.haoyunlai.shotfield";
     const string ProductName = "ShotField";
     const string OutApk = "F:/pico/05_验证记录/2026-11/G2/ShotField_G2.apk";
+    const string OutApkRev1 = "F:/pico/05_验证记录/2026-11/G2/ShotField_G2_rev1.apk";
 
     /// <summary>只做构建：IL2CPP + ARM64。PICO SDK 6.2.0 强制要求这两项。</summary>
     public static void BuildIl2Cpp()
+    {
+        string targetPath = System.Environment.GetEnvironmentVariable("SHOTFIELD_OUT_APK");
+        if (string.IsNullOrEmpty(targetPath)) targetPath = OutApkRev1;
+        BuildToPath(targetPath);
+    }
+
+    public static void BuildIl2CppRev1() => BuildToPath(OutApkRev1);
+
+    public static void BuildToPath(string path)
     {
         PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
         PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
@@ -32,7 +42,7 @@ public static class BuildAndroid
         };
         EditorBuildSettings.scenes = scenes;
 
-        DoBuild(OutApk, "IL2CPP-ARM64");
+        DoBuild(path, "IL2CPP-ARM64");
     }
 
     /// <summary>打印当前关键设置，不做任何修改，用来排查「构建出来了但包名不对」这类问题。</summary>
