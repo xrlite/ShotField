@@ -130,11 +130,14 @@ namespace ShotField.EditorTools
             catch (System.Exception e)
             {
                 Debug.LogError("[SMOKE] 结果文件写入失败：" + e);
-                EditorApplication.Exit(1);
+                if (Application.isBatchMode) EditorApplication.Exit(1);
                 return;
             }
 
-            EditorApplication.Exit(fail == 0 ? 0 : 1);
+            if (Application.isBatchMode)
+            {
+                EditorApplication.Exit(fail == 0 ? 0 : 1);
+            }
         }
 
         private static ConstraintResult EvalFirst(string ruleName, ShotData shot, ShotData prev)

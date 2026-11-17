@@ -1,5 +1,6 @@
 #if UNITY_EDITOR
 using UnityEngine;
+using UnityEditor.SceneManagement;
 using ShotField.Core;
 using ShotField.Constraints;
 
@@ -9,12 +10,7 @@ namespace ShotField.EditorTools
     {
         internal static void Build(System.Action<string> line)
         {
-            var existing = Object.FindObjectsByType<SemanticMarker>(FindObjectsInactive.Exclude);
-            if (existing.Length > 0)
-            {
-                line("场景里已有标记对象，直接复用");
-                return;
-            }
+            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
 
             var floor = GameObject.CreatePrimitive(PrimitiveType.Plane);
             floor.name = "Floor";
