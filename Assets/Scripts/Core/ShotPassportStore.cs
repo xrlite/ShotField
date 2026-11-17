@@ -16,11 +16,14 @@ namespace ShotField.Core
             ValidateId(passport.shot_id);
             var directory = Path.Combine(folder, passport.shot_id);
             var path = Path.Combine(directory, $"rev{passport.revision:D3}.json");
+            if (File.Exists(path))
+            {
+                throw new InvalidOperationException($"版本 {Path.GetFileName(path)} 已存在，历史护照不可覆写。请增加 revision。");
+            }
             Directory.CreateDirectory(directory);
             var json = JsonUtility.ToJson(passport, true);
             var staging = Path.Combine(directory, Guid.NewGuid().ToString("N") + ".tmp");
             File.WriteAllText(staging, json, new UTF8Encoding(false));
-            if (File.Exists(path)) File.Delete(path);
             File.Move(staging, path);
             return path;
         }

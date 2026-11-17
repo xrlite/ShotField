@@ -103,7 +103,20 @@ namespace ShotField.RuntimeUI
         {
             if (library == null || library.Count == 0) return;
             var shot = library.Shots[currentShotIndex];
-            var dto = ShotPassportDto.FromShot(shot, library.SceneId, null);
+
+            // 收集当前场景中的所有约束规范
+            var rules = Object.FindObjectsByType<ShotConstraint>(FindObjectsInactive.Exclude);
+            var specs = new ConstraintSpec[rules.Length];
+            for (int i = 0; i < rules.Length; i++) specs[i] = rules[i].ToSpec();
+
+            // 若已有历史版本，递增 revision，捍卫不可篡改的历史版本链
+            var shotDir = System.IO.Path.Combine(ShotPassportStore.ProjectFolder, shot.shotId);
+            while (System.IO.File.Exists(System.IO.Path.Combine(shotDir, $"rev{shot.revision:D3}.json")))
+            {
+                shot.revision++;
+            }
+
+            var dto = ShotPassportDto.FromShot(shot, library.SceneId, specs);
             var path = ShotPassportStore.Save(dto, ShotPassportStore.ProjectFolder);
             ShowNotify($"护照已保存: rev{dto.revision:D3}");
             Debug.Log($"[镜场 ShotField] 护照已存至: {path}");

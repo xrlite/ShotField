@@ -71,22 +71,50 @@ namespace ShotField.EditorTools
             bool aspect9x16 = monitor.IsPortrait && Mathf.Approximately(cam.aspect, ShotCameraState.PortraitAspect);
             Assert("ASPECT. 16:9 与 9:16 画幅双向切换一致", aspect16x9 && aspect9x16);
 
-            // 4. 护照重启读回
-            var dto = ShotPassportDto.FromShot(s01, lib.SceneId, null);
-            var path = ShotPassportStore.Save(dto, ShotPassportStore.ProjectFolder);
-            var loaded = ShotPassportStore.Load(path);
-            bool passportOk = (loaded.shot_id == dto.shot_id) &&
-                              (loaded.revision == dto.revision) &&
-                              Mathf.Approximately(loaded.camera.fov, dto.camera.fov) &&
-                              (loaded.camera.pos[0] == dto.camera.pos[0]);
-            Assert("PASSPORT_RELOAD. 护照落盘与重启读回 100% 一致", passportOk);
+            // 4. 护照历史保护与重启深度读回核验
+            var outDir = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../05_验证记录/2026-11"));
+            var verifyFolder = Path.Combine(outDir, "PassportVerify-" + Guid.NewGuid().ToString("N"));
+            var rules = UnityEngine.Object.FindObjectsByType<ShotConstraint>(FindObjectsInactive.Exclude);
+            var specs = new ConstraintSpec[rules.Length];
+            for (int i = 0; i < rules.Length; i++) specs[i] = rules[i].ToSpec();
+            s01.recordedConstraints = specs;
+            s01.lastCheck.Clear();
+            s01.lastCheck.Add(r1);
+
+            // 保存 rev001
+            var dto1 = ShotPassportDto.FromShot(s01, lib.SceneId, specs);
+            var path1 = ShotPassportStore.Save(dto1, verifyFolder);
+
+            // 递增版本保存 rev002，验证版本链并存、历史不可篡改
+            s01.revision = 2;
+            var dto2 = ShotPassportDto.FromShot(s01, lib.SceneId, specs);
+            var path2 = ShotPassportStore.Save(dto2, verifyFolder);
+            bool historyPreserved = File.Exists(path1) && File.Exists(path2);
+            Assert("PASSPORT_HISTORY. 不可变版本链 (rev001 与 rev002 并存未被覆写)", historyPreserved);
+
+            // 尝试同版本重复保存，断言必须抛出异常阻断
+            bool overwriteBlocked = false;
+            try { ShotPassportStore.Save(dto1, verifyFolder); }
+            catch (InvalidOperationException) { overwriteBlocked = true; }
+            Assert("PASSPORT_IMMUTABLE. 同版本重复保存被严格拦截 (防历史篡改)", overwriteBlocked);
+
+            // 从磁盘读回 rev001，深度恢复机位并核验规则一致性
+            var loadedDto = ShotPassportStore.Load(path1);
+            var reloadedShot = loadedDto.ToShot();
+            lib.ApplyShot(reloadedShot);
+            var reEval = vis.Evaluate(reloadedShot, null);
+            bool reloadOk = (loadedDto.shot_id == dto1.shot_id) &&
+                            (loadedDto.revision == 1) &&
+                            (loadedDto.constraints != null && loadedDto.constraints.Length == specs.Length) &&
+                            (reEval.status == CheckStatus.Pass) &&
+                            Vector3.Distance(cam.transform.position, s01.camera.position) < 0.001f;
+            Assert("PASSPORT_RELOAD. 读回后机位物理恢复与规则求值完全一致", reloadOk);
 
             // 5. 汇总并落盘证据
             Log($"=== 结果: 通过 {passCount} 项, 失败 {failCount} 项 ===");
             string resultTag = failCount == 0 ? "SC01-VERIFY-RESULT=PASS" : "SC01-VERIFY-RESULT=FAIL";
             Log(resultTag);
 
-            var outDir = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../05_验证记录/2026-11"));
             Directory.CreateDirectory(outDir);
             var outFile = Path.Combine(outDir, "sc01_verification_result.txt");
             File.WriteAllText(outFile, sb.ToString(), new UTF8Encoding(false));
