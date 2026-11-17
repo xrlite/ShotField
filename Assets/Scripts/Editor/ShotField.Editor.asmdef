@@ -3,7 +3,9 @@
   "references": [
     "ShotField.Core",
     "ShotField.Constraints",
-    "ShotField.RuntimeUI"
+    "ShotField.RuntimeUI",
+    "UnityEngine.UI",
+    "Unity.InputSystem"
   ],
   "includePlatforms": [
     "Editor"

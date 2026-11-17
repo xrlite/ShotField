@@ -2,6 +2,8 @@
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
+using UnityEngine.InputSystem.UI;
 using ShotField.RuntimeUI;
 using ShotField.Core;
 
@@ -20,6 +22,8 @@ namespace ShotField.EditorTools
         [MenuItem("镜场 ShotField/构建空间 3D 浮动监视器与工作台")]
         public static GameObject BuildWorkbench()
         {
+            EnsureEventSystem();
+
             var old = GameObject.Find("Spatial_Workbench_Canvas");
             if (old != null) Object.DestroyImmediate(old);
 
@@ -120,6 +124,18 @@ namespace ShotField.EditorTools
             rt.anchoredPosition = pos;
             rt.sizeDelta = new Vector2(280f, 40f);
             return txt;
+        }
+
+        public static void EnsureEventSystem()
+        {
+            if (Object.FindAnyObjectByType<EventSystem>() == null)
+            {
+                var esGo = new GameObject("EventSystem");
+                esGo.AddComponent<EventSystem>();
+                esGo.AddComponent<InputSystemUIInputModule>();
+                Undo.RegisterCreatedObjectUndo(esGo, "创建 EventSystem");
+                Debug.Log("[镜场 ShotField] 已自动补充 EventSystem 与 InputSystemUIInputModule");
+            }
         }
     }
 }

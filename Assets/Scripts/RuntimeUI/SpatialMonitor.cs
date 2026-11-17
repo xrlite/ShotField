@@ -6,9 +6,8 @@ namespace ShotField.RuntimeUI
 {
     /// <summary>
     /// 空间 3D 悬浮监视器（Spatial 3D Monitor）。
-    /// 将 Director 相机捕获的画面实时投射到 3D 悬浮视口中，
-    /// 支持 16:9 电影画幅与 9:16 短剧竖屏画幅一键切换。
-    /// 遵循 PICO 空间多窗口交互规范。
+    /// 将摄影机画面投射到 3D 悬浮视口中，支持 16:9 电影画幅与 9:16 短剧画幅切换。
+    /// 遵循 PICO 空间多窗口交互规范，采用离线从属相机按需渲染，杜绝主视口黑屏与多活动相机冲突。
     /// </summary>
     public class SpatialMonitor : MonoBehaviour
     {
@@ -20,18 +19,30 @@ namespace ShotField.RuntimeUI
         public RectTransform viewportFrame;
 
         private RenderTexture renderTexture;
+        private Camera monitorCam;
         private bool isPortrait = false;
 
         public bool IsPortrait => isPortrait;
 
         void Awake()
         {
+            EnsureMonitorCamera();
             SetupRenderTexture(false);
+        }
+
+        void LateUpdate()
+        {
+            RenderFeed();
         }
 
         void OnDestroy()
         {
             ReleaseRenderTexture();
+            if (monitorCam != null)
+            {
+                DestroyImmediate(monitorCam.gameObject);
+                monitorCam = null;
+            }
         }
 
         public void ToggleAspect()
@@ -50,21 +61,25 @@ namespace ShotField.RuntimeUI
 
             if (viewportFrame != null)
             {
-                // 调整 3D 浮动监视器物理边框尺寸
-                if (isPortrait)
-                {
-                    viewportFrame.sizeDelta = new Vector2(360f, 640f);
-                }
-                else
-                {
-                    viewportFrame.sizeDelta = new Vector2(640f, 360f);
-                }
+                viewportFrame.sizeDelta = isPortrait ? new Vector2(360f, 640f) : new Vector2(640f, 360f);
             }
+            RenderFeed();
+        }
+
+        private void EnsureMonitorCamera()
+        {
+            if (monitorCam != null) return;
+            var camGo = new GameObject("Monitor_InternalCam");
+            camGo.transform.SetParent(transform, false);
+            camGo.hideFlags = HideFlags.DontSave;
+            monitorCam = camGo.AddComponent<Camera>();
+            monitorCam.enabled = false; // 严守 PICO 单活动相机红线，不进入主渲染循环
         }
 
         private void SetupRenderTexture(bool portrait)
         {
             ReleaseRenderTexture();
+            EnsureMonitorCamera();
 
             int w = portrait ? 720 : 1280;
             int h = portrait ? 1280 : 720;
@@ -76,9 +91,9 @@ namespace ShotField.RuntimeUI
             };
             renderTexture.Create();
 
-            if (sourceCamera != null)
+            if (monitorCam != null)
             {
-                sourceCamera.targetTexture = renderTexture;
+                monitorCam.targetTexture = renderTexture;
             }
 
             if (monitorDisplay != null)
@@ -87,11 +102,27 @@ namespace ShotField.RuntimeUI
             }
         }
 
+        public void RenderFeed()
+        {
+            if (monitorCam == null || sourceCamera == null || renderTexture == null) return;
+
+            monitorCam.transform.position = sourceCamera.transform.position;
+            monitorCam.transform.rotation = sourceCamera.transform.rotation;
+            monitorCam.fieldOfView = sourceCamera.fieldOfView;
+            monitorCam.nearClipPlane = sourceCamera.nearClipPlane;
+            monitorCam.farClipPlane = sourceCamera.farClipPlane;
+            monitorCam.clearFlags = sourceCamera.clearFlags;
+            monitorCam.backgroundColor = sourceCamera.backgroundColor;
+            monitorCam.cullingMask = sourceCamera.cullingMask;
+            monitorCam.aspect = isPortrait ? ShotCameraState.PortraitAspect : ShotCameraState.DefaultAspect;
+            monitorCam.Render();
+        }
+
         private void ReleaseRenderTexture()
         {
-            if (sourceCamera != null && sourceCamera.targetTexture == renderTexture)
+            if (monitorCam != null && monitorCam.targetTexture == renderTexture)
             {
-                sourceCamera.targetTexture = null;
+                monitorCam.targetTexture = null;
             }
 
             if (renderTexture != null)
