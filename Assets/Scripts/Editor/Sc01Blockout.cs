@@ -17,13 +17,23 @@ namespace ShotField.EditorTools
                 return;
             }
 
-            var root = new GameObject("SC01_Blockout");
+            var root = BuildIntoScene();
             Undo.RegisterCreatedObjectUndo(root, "创建 SC01 客厅白模");
+            Selection.activeGameObject = root;
+            SceneView.RepaintAll();
+        }
+
+        /// <summary>
+        /// 无 GUI 版本：建白模并返回根节点。批处理（-executeMethod）走这条路径，
+        /// 调用方负责先准备空场景，并自行决定是否保存。
+        /// </summary>
+        internal static GameObject BuildIntoScene()
+        {
+            var root = new GameObject("SC01_Blockout");
             BuildRoom(root.transform);
             BuildProps(root.transform);
             BuildDirector(root.transform);
-            Selection.activeGameObject = root;
-            SceneView.RepaintAll();
+            return root;
         }
 
         private static void BuildRoom(Transform room)

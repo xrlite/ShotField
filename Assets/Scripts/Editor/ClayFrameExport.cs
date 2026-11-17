@@ -17,9 +17,7 @@ namespace ShotField.EditorTools
 
             try
             {
-                var png = Render(source);
-                using var file = new FileStream(path, FileMode.CreateNew);
-                file.Write(png, 0, png.Length);
+                SaveToPath(source, path);
                 Debug.Log("[ShotField] 白模静帧已保存：" + path);
             }
             catch (System.Exception error)
@@ -27,6 +25,33 @@ namespace ShotField.EditorTools
                 Debug.LogException(error);
                 EditorUtility.DisplayDialog("导出失败", error.Message, "关闭");
             }
+        }
+
+        /// <summary>
+        /// 无 GUI 版本：批处理模式（-executeMethod）只能走这条路径。
+        /// 调用方负责给出完整文件路径与目录存在性。
+        /// </summary>
+        internal static string SaveToPath(Camera source, string path)
+        {
+            if (source == null) throw new System.ArgumentNullException(nameof(source));
+            if (string.IsNullOrWhiteSpace(path)) throw new System.ArgumentNullException(nameof(path));
+
+            var directory = Path.GetDirectoryName(path);
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
+
+            var png = Render(source);
+            using var file = new FileStream(path, FileMode.Create);
+            file.Write(png, 0, png.Length);
+            return path;
+        }
+
+        /// <summary>返回导出尺寸，供批处理日志核对横竖画幅是否真的不同。</summary>
+        internal static Vector2Int MeasureOutputSize(float aspect)
+        {
+            float normalized = ShotField.Core.ShotCameraState.NormalizeAspect(aspect);
+            int width = Mathf.Clamp(Mathf.RoundToInt(1280f * Mathf.Min(1f, normalized)), 1, 1280);
+            int height = Mathf.Clamp(Mathf.RoundToInt(1280f * Mathf.Min(1f, 1f / normalized)), 1, 1280);
+            return new Vector2Int(width, height);
         }
 
         private static byte[] Render(Camera source)
