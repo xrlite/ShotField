@@ -5,7 +5,9 @@
     "ShotField.Constraints",
     "ShotField.RuntimeUI",
     "UnityEngine.UI",
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "ByteDance.PICO.XR",
+    "Unity.XR.Interaction.Toolkit"
   ],
   "includePlatforms": [
     "Editor"

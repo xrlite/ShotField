@@ -31,6 +31,7 @@ namespace ShotField.EditorTools
         internal static GameObject BuildIntoScene()
         {
             var root = new GameObject("SC01_Blockout");
+            root.AddComponent<ByteDance.PICO.XR.PXR_Manager>();
             BuildRoom(root.transform);
             BuildProps(root.transform);
             BuildLighting(root.transform);
@@ -134,6 +135,9 @@ namespace ShotField.EditorTools
             camera.nearClipPlane = 0.05f;
             director.transform.position = new Vector3(2.35f, 0.55f, 1.2f);
             director.transform.LookAt(new Vector3(1.5f, 0.52f, 2.15f));
+
+            var poseDriver = director.AddComponent<UnityEngine.InputSystem.XR.TrackedPoseDriver>();
+            poseDriver.trackingType = UnityEngine.InputSystem.XR.TrackedPoseDriver.TrackingType.RotationAndPosition;
 
             var visibility = director.AddComponent<VisibilityConstraint>();
             visibility.ruleName = "信封正面不可见";

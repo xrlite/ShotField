@@ -20,6 +20,7 @@ namespace ShotField.Core
             var json = JsonUtility.ToJson(passport, true);
             var staging = Path.Combine(directory, Guid.NewGuid().ToString("N") + ".tmp");
             File.WriteAllText(staging, json, new UTF8Encoding(false));
+            if (File.Exists(path)) File.Delete(path);
             File.Move(staging, path);
             return path;
         }

@@ -13,10 +13,10 @@ using UnityEngine;
 /// </summary>
 public static class BuildAndroid
 {
-    const string ScenePath = "Assets/Scenes/SampleScene.unity";
+    const string ScenePath = "Assets/Scenes/SC01_Blockout.unity";
     const string PackageId = "com.haoyunlai.shotfield";
     const string ProductName = "ShotField";
-    const string OutApk = "F:/pico/05_验证记录/2026-11/G0/ShotField_G1.apk";
+    const string OutApk = "F:/pico/05_验证记录/2026-11/G2/ShotField_G2.apk";
 
     /// <summary>只做构建：IL2CPP + ARM64。PICO SDK 6.2.0 强制要求这两项。</summary>
     public static void BuildIl2Cpp()
@@ -25,6 +25,12 @@ public static class BuildAndroid
         PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, PackageId);
         PlayerSettings.productName = ProductName;
+
+        var scenes = new EditorBuildSettingsScene[]
+        {
+            new EditorBuildSettingsScene(ScenePath, true)
+        };
+        EditorBuildSettings.scenes = scenes;
 
         DoBuild(OutApk, "IL2CPP-ARM64");
     }
@@ -44,6 +50,12 @@ public static class BuildAndroid
 
     static void DoBuild(string outPath, string tag)
     {
+        var outDir = System.IO.Path.GetDirectoryName(outPath);
+        if (!string.IsNullOrEmpty(outDir) && !System.IO.Directory.Exists(outDir))
+        {
+            System.IO.Directory.CreateDirectory(outDir);
+        }
+
         string[] scenes = new string[] { ScenePath };
 
         var o = new BuildPlayerOptions

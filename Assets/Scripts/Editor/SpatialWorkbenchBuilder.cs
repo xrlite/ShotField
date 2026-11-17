@@ -32,6 +32,7 @@ namespace ShotField.EditorTools
             var canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
             canvasGo.AddComponent<GraphicRaycaster>();
+            canvasGo.AddComponent<UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceGraphicRaycaster>();
             
             var canvasRt = canvasGo.GetComponent<RectTransform>();
             canvasRt.position = new Vector3(2.35f, 1.35f, 1.55f);
