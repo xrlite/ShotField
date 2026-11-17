@@ -1,0 +1,10 @@
+{
+  "name": "ShotField.Editor",
+  "references": [
+    "ShotField.Core",
+    "ShotField.Constraints"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ]
+}

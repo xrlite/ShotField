@@ -1,0 +1,6 @@
+{
+  "name": "ShotField.Constraints",
+  "references": [
+    "ShotField.Core"
+  ]
+}
