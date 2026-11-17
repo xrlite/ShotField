@@ -32,6 +32,7 @@ namespace ShotField.EditorTools
             var root = new GameObject("SC01_Blockout");
             BuildRoom(root.transform);
             BuildProps(root.transform);
+            BuildLighting(root.transform);
             BuildDirector(root.transform);
             return root;
         }
@@ -61,11 +62,22 @@ namespace ShotField.EditorTools
                 new Vector3(0.46f, 0.86f, 0.46f));
             Mark(actor, "actorA", SemanticMarker.Kind.ActorPrimary);
 
-            // 信封平放在桌面：绕 X 轴 -90° 使正面朝上，高度微调至桌面贴合
-            var envelope = Box(room, "Envelope", new Vector3(1.5f, 0.451f, 2.15f), new Vector3(0.21f, 0.01f, 0.148f));
-            envelope.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
-            var marker = Mark(envelope, "envelope", SemanticMarker.Kind.KeyProp);
-            marker.criticalFaceNormal = Vector3.up;   // 平放后正面朝上
+            // 标志性 Low-Poly 信封（主体 + 翘起封口折角 + 微露信纸）
+            var envRoot = new GameObject("Envelope");
+            envRoot.transform.SetParent(room, false);
+            envRoot.transform.localPosition = new Vector3(1.5f, 0.451f, 2.15f);
+            var col = envRoot.AddComponent<BoxCollider>();
+            col.size = new Vector3(0.21f, 0.02f, 0.148f);
+            col.center = new Vector3(0f, 0.01f, 0f);
+
+            Box(envRoot.transform, "Envelope_Body", Vector3.zero, new Vector3(0.21f, 0.008f, 0.148f));
+            var flap = Box(envRoot.transform, "Envelope_Flap", new Vector3(0f, 0.006f, 0.025f), new Vector3(0.18f, 0.005f, 0.07f));
+            flap.transform.localRotation = Quaternion.Euler(10f, 0f, 0f);
+            Box(envRoot.transform, "Letter_Edge", new Vector3(0f, 0.005f, 0.005f), new Vector3(0.16f, 0.004f, 0.04f));
+
+            var marker = Mark(envRoot, "envelope", SemanticMarker.Kind.KeyProp);
+            marker.displayName = "桌上的信";
+            marker.criticalFaceNormal = Vector3.up;   // 平放后封口折角正面朝上
             marker.criticalFaceSize = new Vector2(0.21f, 0.148f);
             marker.criticalFaceMustStayHidden = true;
 
@@ -75,12 +87,37 @@ namespace ShotField.EditorTools
                 "slipper", SemanticMarker.Kind.Prop);
         }
 
+        private static void BuildLighting(Transform room)
+        {
+            // 1. 落地窗冷月光（方向光：暗部压青，建立悬疑夜戏大基调）
+            var moon = new GameObject("WindowMoonlight");
+            moon.transform.SetParent(room, false);
+            var moonLight = moon.AddComponent<Light>();
+            moonLight.type = LightType.Directional;
+            moonLight.color = new Color(0.68f, 0.82f, 1.0f);
+            moonLight.intensity = 1.2f;
+            moonLight.shadows = LightShadows.Soft;
+            moon.transform.rotation = Quaternion.Euler(25f, -115f, 0f);
+
+            // 2. 茶几上方局部暖光（点光源：暖部提橙，高光打在信封与茶几焦点）
+            var lamp = new GameObject("TableWarmLight");
+            lamp.transform.SetParent(room, false);
+            lamp.transform.localPosition = new Vector3(1.2f, 1.25f, 2.2f);
+            var lampLight = lamp.AddComponent<Light>();
+            lampLight.type = LightType.Point;
+            lampLight.color = new Color(1.0f, 0.72f, 0.40f);
+            lampLight.range = 3.2f;
+            lampLight.intensity = 1.8f;
+            lampLight.shadows = LightShadows.Soft;
+        }
+
         private static void BuildDirector(Transform room)
         {
             var director = new GameObject("Director");
             director.transform.SetParent(room, false);
             var library = director.AddComponent<ShotLibrary>();
             var camera = director.AddComponent<Camera>();
+            camera.tag = "MainCamera";
             library.ShotCamera = camera;
             camera.fieldOfView = 40f;
             camera.aspect = ShotCameraState.DefaultAspect;
