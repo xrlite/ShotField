@@ -98,7 +98,10 @@ namespace ShotField.Core
 
         void OnEnable()
         {
-            if (!string.IsNullOrEmpty(markerId)) Registry[markerId] = this;
+            if (string.IsNullOrEmpty(markerId)) return;
+            if (Registry.TryGetValue(markerId, out var existing) && existing != null && existing != this)
+                Debug.LogWarning($"[SemanticMarker] markerId 重复：\"{markerId}\" 被 \"{name}\" 覆盖，规则将指向后者。请保证场景内标记 ID 唯一。", this);
+            Registry[markerId] = this;
         }
 
         void OnDisable()

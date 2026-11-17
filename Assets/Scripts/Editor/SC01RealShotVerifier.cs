@@ -84,7 +84,13 @@ namespace ShotField.EditorTools
 
             // 4. 护照历史保护与重启深度读回核验
             var outDir = Path.GetFullPath(Path.Combine(Application.dataPath, "../../../05_验证记录/2026-11"));
-            var verifyFolder = Path.Combine(outDir, "PassportVerify-" + Guid.NewGuid().ToString("N"));
+            var verifyRun = System.Environment.GetEnvironmentVariable("SHOTFIELD_VERIFY_RUN");
+            var folderTag = string.IsNullOrEmpty(verifyRun)
+                ? DateTimeOffset.Now.ToString("yyyyMMdd_HHmmss")
+                : verifyRun;
+            var verifyFolder = Path.Combine(outDir, "PassportVerify-" + folderTag);
+            if (Directory.Exists(verifyFolder))
+                verifyFolder = Path.Combine(outDir, "PassportVerify-" + folderTag + "-" + DateTimeOffset.Now.ToString("HHmmss"));
             var rules = UnityEngine.Object.FindObjectsByType<ShotConstraint>(FindObjectsInactive.Exclude);
             var specs = new ConstraintSpec[rules.Length];
             for (int i = 0; i < rules.Length; i++) specs[i] = rules[i].ToSpec();

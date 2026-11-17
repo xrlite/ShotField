@@ -12,8 +12,12 @@ namespace ShotField.EditorTools
         internal static void Verify(ShotLibrary library, ShotData first, ShotData second,
             ConstraintResult pass, ConstraintResult violation, ShotConstraint[] rules)
         {
+            var smokeRun = System.Environment.GetEnvironmentVariable("SHOTFIELD_VERIFY_RUN");
+            var folderTag = string.IsNullOrEmpty(smokeRun)
+                ? DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8)).ToString("yyyyMMdd_HHmmss")
+                : smokeRun;
             var folder = Path.GetFullPath(Path.Combine(Application.dataPath,
-                "../../../05_验证记录", DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM"), "PassportSmoke-" + Guid.NewGuid().ToString("N")));
+                "../../../05_验证记录", DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM"), "PassportSmoke-" + folderTag));
             first.lastCheck.Add(pass);
             first.checkedAt = DateTimeOffset.UtcNow.ToString("O");
             second.lastCheck.Add(violation);
