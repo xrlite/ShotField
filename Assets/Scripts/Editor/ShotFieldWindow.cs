@@ -39,7 +39,7 @@ namespace ShotField.EditorTools
 
         private void RescanLibrary()
         {
-            library = Object.FindFirstObjectByType<ShotLibrary>();
+            library = Object.FindAnyObjectByType<ShotLibrary>();
             if (library != null && library.ShotCamera == null)
             {
                 var main = Camera.main;
@@ -330,7 +330,7 @@ namespace ShotField.EditorTools
 
         private ShotConstraint[] FindObjects()
         {
-            return Object.FindObjectsByType<ShotConstraint>(FindObjectsSortMode.None);
+            return Object.FindObjectsByType<ShotConstraint>(FindObjectsInactive.Exclude);
         }
 
         private ShotData CurrentSelected()

@@ -93,7 +93,7 @@ namespace ShotField.EditorTools
             }
 
             // ---------- E：所有规则都跑得到 ----------
-            var all = Object.FindObjectsByType<ShotConstraint>(FindObjectsSortMode.None);
+            var all = Object.FindObjectsByType<ShotConstraint>(FindObjectsInactive.Exclude);
             if (all.Length >= 3) Pass("E. 场景中挂载了 " + all.Length + " 条约束规则");
             else Fail("E. 约束规则数量不足：" + all.Length);
 
@@ -115,18 +115,21 @@ namespace ShotField.EditorTools
             var text = sb.ToString();
             Debug.Log("[SMOKE]\n" + text);
 
-            // 日志在 EditorApplication.Exit 时可能来不及 flush，另存一份结果文件
             try
             {
-                var dir = "F:/pico/05_验证记录/2026-11";
-                if (System.IO.Directory.Exists(dir))
-                {
-                    System.IO.File.WriteAllText(dir + "/passport_smoke_result_20261117.txt", text, new System.Text.UTF8Encoding(false));
-                }
+                var now = System.DateTimeOffset.UtcNow.ToOffset(System.TimeSpan.FromHours(8));
+                var dir = System.IO.Path.Combine(Application.dataPath, "../../../05_验证记录", now.ToString("yyyy-MM"));
+                System.IO.Directory.CreateDirectory(dir);
+                var path = System.IO.Path.Combine(dir, $"passport_smoke_result_{now:yyyyMMdd_HHmmss_fff}.txt");
+                using var output = new System.IO.FileStream(path, System.IO.FileMode.CreateNew);
+                using var writer = new System.IO.StreamWriter(output, new UTF8Encoding(false));
+                writer.Write(text);
             }
             catch (System.Exception e)
             {
-                Debug.LogWarning("[SMOKE] 结果文件写入失败：" + e.Message);
+                Debug.LogError("[SMOKE] 结果文件写入失败：" + e);
+                EditorApplication.Exit(1);
+                return;
             }
 
             EditorApplication.Exit(fail == 0 ? 0 : 1);
@@ -134,7 +137,7 @@ namespace ShotField.EditorTools
 
         private static ConstraintResult EvalFirst(string ruleName, ShotData shot, ShotData prev)
         {
-            var all = Object.FindObjectsByType<ShotConstraint>(FindObjectsSortMode.None);
+            var all = Object.FindObjectsByType<ShotConstraint>(FindObjectsInactive.Exclude);
             for (int i = 0; i < all.Length; i++)
             {
                 if (all[i].ruleName == ruleName)
@@ -156,7 +159,7 @@ namespace ShotField.EditorTools
 
         private static void BuildScene()
         {
-            var existing = Object.FindObjectsByType<SemanticMarker>(FindObjectsSortMode.None);
+            var existing = Object.FindObjectsByType<SemanticMarker>(FindObjectsInactive.Exclude);
             if (existing.Length > 0)
             {
                 Line("场景里已有标记对象，直接复用");

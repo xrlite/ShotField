@@ -13,7 +13,7 @@ namespace ShotField.EditorTools
             ConstraintResult pass, ConstraintResult violation, ShotConstraint[] rules)
         {
             var folder = Path.GetFullPath(Path.Combine(Application.dataPath,
-                "../../../05_验证记录/2026-11", "PassportSmoke-" + Guid.NewGuid().ToString("N")));
+                "../../../05_验证记录", DateTimeOffset.UtcNow.ToOffset(TimeSpan.FromHours(8)).ToString("yyyy-MM"), "PassportSmoke-" + Guid.NewGuid().ToString("N")));
             first.lastCheck.Add(pass);
             first.checkedAt = DateTimeOffset.UtcNow.ToString("O");
             second.lastCheck.Add(violation);
