@@ -72,7 +72,16 @@ namespace ShotField.Core
     {
         public Vector3 position;
         public Quaternion rotation = Quaternion.identity;
+        public const float DefaultAspect = 16f / 9f;
+        public const float PortraitAspect = 9f / 16f;
+
         public float fieldOfView = 45f;
+        public float aspect = DefaultAspect;
+        public bool usesUnityCameraRotation;
+
+        // Legacy passports use a rotation with +Z pointing away from the subject.
+        public Quaternion CameraRotation => usesUnityCameraRotation
+            ? rotation : rotation * Quaternion.Euler(0f, 180f, 0f);
         public float nearClip = 0.05f;
         public float farClip = 100f;
         public ShotSize shotSize = ShotSize.Auto;
@@ -86,7 +95,9 @@ namespace ShotField.Core
             var t = cam.transform;
             s.position = t.position;
             s.rotation = t.rotation;
+            s.usesUnityCameraRotation = true;
             s.fieldOfView = cam.fieldOfView;
+            s.aspect = NormalizeAspect(cam.aspect);
             s.nearClip = cam.nearClipPlane;
             s.farClip = cam.farClipPlane;
             s.heightAboveFloor = t.position.y;
@@ -97,22 +108,24 @@ namespace ShotField.Core
         {
             if (cam == null) return;
             cam.transform.position = position;
-            cam.transform.rotation = rotation;
+            cam.transform.rotation = CameraRotation;
             cam.fieldOfView = fieldOfView;
+            cam.aspect = NormalizeAspect(aspect);
             cam.nearClipPlane = nearClip;
             cam.farClipPlane = farClip;
         }
 
         public Matrix4x4 ViewMatrix
         {
-            get { return Matrix4x4.TRS(position, rotation, Vector3.one).inverse; }
+            get { return Matrix4x4.Scale(new Vector3(1f, 1f, -1f)) *
+                    Matrix4x4.TRS(position, CameraRotation, Vector3.one).inverse; }
         }
 
-        public Matrix4x4 ProjectionMatrix(float aspect, bool useFov)
-        {
-            float fov = useFov ? fieldOfView : 60f;
-            return Matrix4x4.Perspective(fov, aspect, nearClip, farClip);
-        }
+        public Matrix4x4 ProjectionMatrix() =>
+            Matrix4x4.Perspective(fieldOfView, NormalizeAspect(aspect), nearClip, farClip);
+
+        public static float NormalizeAspect(float value) =>
+            value > 0f && !float.IsInfinity(value) ? value : DefaultAspect;
     }
 
     /// <summary>一条约束的检查结果。</summary>
@@ -173,6 +186,8 @@ namespace ShotField.Core
                     position = camera.position,
                     rotation = camera.rotation,
                     fieldOfView = camera.fieldOfView,
+                    aspect = camera.aspect,
+                    usesUnityCameraRotation = camera.usesUnityCameraRotation,
                     nearClip = camera.nearClip,
                     farClip = camera.farClip,
                     shotSize = camera.shotSize,

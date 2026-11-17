@@ -87,11 +87,10 @@ namespace ShotField.EditorTools
             cam.fieldOfView = 45f;
             cam.nearClipPlane = 0.05f;
             // 初始机位：低机位，贴桌沿，看向信封侧面
-            // 相机看 -Z，所以用 LookRotation 让 +Z 背离目标，而不是直接 LookAt
             var camPos = new Vector3(-2.6f, 0.62f, -1.4f);
             var camTarget = new Vector3(0f, 0.55f, 0f);
             camGo.transform.position = camPos;
-            camGo.transform.rotation = Quaternion.LookRotation((camPos - camTarget).normalized, Vector3.up);
+            camGo.transform.rotation = Quaternion.LookRotation(camTarget - camPos, Vector3.up);
 
             lib.ShotCamera = cam;
 

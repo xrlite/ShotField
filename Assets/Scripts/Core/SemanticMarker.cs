@@ -89,14 +89,14 @@ namespace ShotField.Core
         }
 
         /// <summary>场景里所有带标记的对象。</summary>
-        public static SemanticMarker[] All()
+        public static SemanticMarker[] All(FindObjectsInactive inactive = FindObjectsInactive.Exclude)
         {
-            return Object.FindObjectsByType<SemanticMarker>(FindObjectsInactive.Exclude);
+            return Object.FindObjectsByType<SemanticMarker>(inactive);
         }
 
-        public static SemanticMarker Find(string id)
+        public static SemanticMarker Find(string id, FindObjectsInactive inactive = FindObjectsInactive.Exclude)
         {
-            var all = All();
+            var all = All(inactive);
             for (int i = 0; i < all.Length; i++)
             {
                 if (all[i].markerId == id) return all[i];

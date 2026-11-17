@@ -43,9 +43,8 @@ namespace ShotField.Constraints
                 worldPos = m.transform.position;
             }
 
-            float aspect = 16f / 9f;
             float vx;
-            if (!ViewportX(shot.camera, aspect, worldPos, out vx))
+            if (!ViewportX(shot.camera, worldPos, out vx))
             {
                 return ConstraintResult.Violation(ruleName,
                     "主体不在画面内", subjectId);
@@ -62,14 +61,14 @@ namespace ShotField.Constraints
                 string.Format("主体水平位置 {0:F2}，符合要求", vx), subjectId);
         }
 
-        private bool ViewportX(ShotCameraState cam, float aspect, Vector3 worldPoint, out float vx)
+        private bool ViewportX(ShotCameraState cam, Vector3 worldPoint, out float vx)
         {
             vx = 0f;
 
             var local = cam.ViewMatrix.MultiplyPoint3x4(worldPoint);
             if (-local.z <= cam.nearClip) return false;
 
-            var proj = cam.ProjectionMatrix(aspect, true);
+            var proj = cam.ProjectionMatrix();
             // z 用相机空间的 local.z（前方为负），与 VisibilityConstraint 保持一致
             var clip = proj * new Vector4(local.x, local.y, local.z, 1f);
             if (clip.w <= 0f) return false;

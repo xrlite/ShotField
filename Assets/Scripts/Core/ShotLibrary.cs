@@ -45,10 +45,11 @@ namespace ShotField.Core
         public SceneSnapshot CaptureSnapshot()
         {
             var snap = new SceneSnapshot();
-            var markers = SemanticMarker.All();
+            var markers = SemanticMarker.All(FindObjectsInactive.Include);
             for (int i = 0; i < markers.Length; i++)
             {
                 var m = markers[i];
+                if (m.gameObject.scene != gameObject.scene) continue;
                 snap.actors.Add(new ActorState
                 {
                     actorId = m.markerId,
@@ -74,10 +75,11 @@ namespace ShotField.Core
         public void ApplySnapshot(SceneSnapshot snap)
         {
             if (snap == null) return;
-            var markers = SemanticMarker.All();
+            var markers = SemanticMarker.All(FindObjectsInactive.Include);
             for (int i = 0; i < markers.Length; i++)
             {
                 var m = markers[i];
+                if (m.gameObject.scene != gameObject.scene) continue;
                 var st = snap.Find(m.markerId);
                 if (st == null) continue;
                 m.transform.position = st.position;
@@ -85,6 +87,7 @@ namespace ShotField.Core
                 m.transform.localScale = st.scale;
                 m.gameObject.SetActive(st.active);
             }
+            Physics.SyncTransforms();
         }
 
         public void ApplyShot(ShotData shot)

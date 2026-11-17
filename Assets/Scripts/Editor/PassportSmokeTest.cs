@@ -27,6 +27,28 @@ namespace ShotField.EditorTools
             fresh.ShotCamera = library.ShotCamera;
             VerifyLoaded(fresh, firstPath, first, first.revision, CheckStatus.Pass);
             VerifyLoaded(fresh, secondPath, second, second.revision - 1, CheckStatus.Violation);
+            VerifyInactiveRoundTrip(library);
+        }
+
+        private static void VerifyInactiveRoundTrip(ShotLibrary library)
+        {
+            var marker = SemanticMarker.Find("actorA");
+            if (marker == null) throw new InvalidOperationException("找不到冒烟场景的 actorA。");
+            var original = library.CaptureSnapshot();
+            marker.gameObject.SetActive(false);
+            try
+            {
+                var hidden = library.CaptureSnapshot();
+                if (hidden.Find(marker.markerId)?.active != false)
+                    throw new InvalidOperationException("快照遗漏了隐藏人物。");
+                library.ApplySnapshot(original);
+                if (!marker.gameObject.activeSelf)
+                    throw new InvalidOperationException("应用快照后没有恢复隐藏人物。");
+            }
+            finally
+            {
+                library.ApplySnapshot(original);
+            }
         }
 
         private static string Write(string folder, ShotLibrary library, ShotData shot, ShotConstraint[] rules)
@@ -43,16 +65,41 @@ namespace ShotField.EditorTools
             library.AddLoaded(shot);
             library.ApplyShot(shot);
             var actual = library.ShotCamera;
+            VerifyProjection(actual, shot.camera);
             if (!File.Exists(path) || shot.revision != revision || shot.shotId != source.shotId ||
                 Vector3.Distance(actual.transform.position, source.camera.position) > 0.001f ||
-                Quaternion.Angle(actual.transform.rotation, source.camera.rotation) > 0.1f ||
+                Quaternion.Angle(actual.transform.rotation, source.camera.CameraRotation) > 0.1f ||
                 Mathf.Abs(actual.fieldOfView - source.camera.fieldOfView) > 0.01f ||
+                Mathf.Abs(actual.aspect - source.camera.aspect) > 0.001f ||
+                dto.cameraExtras.usesUnityCameraRotation != source.camera.usesUnityCameraRotation ||
                 Mathf.Abs(shot.camera.heightAboveFloor - source.camera.heightAboveFloor) > 0.001f ||
                 !dto.constraints.Any(rule => rule.type == "prop_hidden" && rule.propId == "envelope" && rule.face == "front") ||
                 !dto.props.Any(prop => prop.id == "envelope") || !dto.actors.Any(actor => actor.id == "actorA") ||
                 string.IsNullOrEmpty(dto.check_summary.checked_at) ||
                 (expected == CheckStatus.Pass ? dto.check_summary.pass : dto.check_summary.violation) != 1)
                 throw new InvalidOperationException("护照验收失败：" + path);
+
+            // Old passports omit both cameraExtras fields.
+            dto.cameraExtras.aspect = 0f;
+            dto.cameraExtras.usesUnityCameraRotation = false;
+            var euler = (source.camera.CameraRotation * Quaternion.Euler(0f, 180f, 0f)).eulerAngles;
+            dto.camera.rot = new[] { euler.x, euler.y, euler.z };
+            var legacy = dto.ToShot().camera;
+            if (legacy.aspect != ShotCameraState.DefaultAspect ||
+                Quaternion.Angle(legacy.CameraRotation, source.camera.CameraRotation) > 0.1f)
+                throw new InvalidOperationException("旧版护照画幅或相机朝向兼容失败：" + path);
+        }
+
+        private static void VerifyProjection(Camera actual, ShotCameraState state)
+        {
+            var point = actual.transform.position + actual.transform.forward * 2f +
+                actual.transform.right * 0.2f + actual.transform.up * 0.1f;
+            var local = state.ViewMatrix.MultiplyPoint3x4(point);
+            var clip = state.ProjectionMatrix() * new Vector4(local.x, local.y, local.z, 1f);
+            var projected = new Vector2(clip.x / clip.w, clip.y / clip.w) * 0.5f + Vector2.one * 0.5f;
+            var viewport = actual.WorldToViewportPoint(point);
+            if (clip.w <= 0f || Vector2.Distance(projected, viewport) > 0.001f)
+                throw new InvalidOperationException("约束投影与实际相机画面不一致。");
         }
     }
 }

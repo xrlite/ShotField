@@ -28,7 +28,8 @@ namespace ShotField.Core
         [Serializable]
         public class CameraExtras
         {
-            public float nearClip, farClip;
+            public float nearClip, farClip, aspect;
+            public bool usesUnityCameraRotation;
             public ShotSize shotSize;
             public ShotAngle angle;
         }
@@ -85,6 +86,8 @@ namespace ShotField.Core
                 cameraExtras = new CameraExtras
                 {
                     nearClip = state.nearClip, farClip = state.farClip,
+                    aspect = ShotCameraState.NormalizeAspect(state.aspect),
+                    usesUnityCameraRotation = state.usesUnityCameraRotation,
                     shotSize = state.shotSize, angle = state.angle
                 },
                 constraints = CopySpecs(shot.recordedConstraints ?? specs),
@@ -106,7 +109,7 @@ namespace ShotField.Core
         {
             foreach (var item in snapshotExtras)
             {
-                var marker = SemanticMarker.Find(item.actorId);
+                var marker = SemanticMarker.Find(item.actorId, FindObjectsInactive.Include);
                 if (marker == null) throw new InvalidOperationException("找不到语义标记 " + item.actorId);
                 switch (marker.kind)
                 {
@@ -140,6 +143,8 @@ namespace ShotField.Core
                     position = Unpack(camera.pos), rotation = Quaternion.Euler(Unpack(camera.rot)),
                     fieldOfView = camera.fov, heightAboveFloor = camera.height,
                     nearClip = cameraExtras.nearClip, farClip = cameraExtras.farClip,
+                    aspect = ShotCameraState.NormalizeAspect(cameraExtras.aspect),
+                    usesUnityCameraRotation = cameraExtras.usesUnityCameraRotation,
                     shotSize = cameraExtras.shotSize, angle = cameraExtras.angle
                 },
                 snapshot = new SceneSnapshot { actors = snapshotExtras }.Clone()

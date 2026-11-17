@@ -54,9 +54,6 @@ namespace ShotField.Constraints
                 return ConstraintResult.Pending(ruleName, "场景中没有标记为「关键面不可见」的对象", targetMarkerId);
             }
 
-            // 用 16:9 做判定的默认画幅（真实画幅以导出设置为准）
-            float aspect = 16f / 9f;
-
             string worstId = "";
             string worstDetail = "";
             int visibleCount = 0;
@@ -81,7 +78,7 @@ namespace ShotField.Constraints
                 for (int i = 0; i < samples.Length; i++)
                 {
                     var p = samples[i];
-                    if (!IsInsideViewport(cam, aspect, p)) continue;
+                    if (!IsInsideViewport(cam, p)) continue;
                     if (IsOccluded(cam, p, marker.transform)) continue;
                     visiblePoints++;
                 }
@@ -126,14 +123,14 @@ namespace ShotField.Constraints
         }
 
         /// <summary>世界点在机位的视口内吗（0..1，z 为正）。</summary>
-        private bool IsInsideViewport(ShotCameraState cam, float aspect, Vector3 worldPoint)
+        private bool IsInsideViewport(ShotCameraState cam, Vector3 worldPoint)
         {
             var vp = cam.ViewMatrix;
             var local = vp.MultiplyPoint3x4(worldPoint);   // 相机空间，Unity 相机看向 -Z
 
             if (-local.z <= cam.nearClip) return false;    // 在机位后面或太近
 
-            var proj = cam.ProjectionMatrix(aspect, true);
+            var proj = cam.ProjectionMatrix();
             // 注意：传入的 z 必须是相机空间的 local.z（前方为负）。
             // 之前写成 -local.z 会让 clip.w 变成负数，所有采样点都被判"不在视锥内"，
             // 结果是"信封正面不可见"永远判通过——这个 bug 是冒烟测试抓到的。
