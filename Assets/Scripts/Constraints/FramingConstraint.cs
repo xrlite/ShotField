@@ -61,23 +61,11 @@ namespace ShotField.Constraints
                 string.Format("主体水平位置 {0:F2}，符合要求", vx), subjectId);
         }
 
-        private bool ViewportX(ShotCameraState cam, Vector3 worldPoint, out float vx)
+        private static bool ViewportX(ShotCameraState cam, Vector3 worldPoint, out float vx)
         {
-            vx = 0f;
-
-            var local = cam.ViewMatrix.MultiplyPoint3x4(worldPoint);
-            if (-local.z <= cam.nearClip) return false;
-
-            var proj = cam.ProjectionMatrix();
-            // z 用相机空间的 local.z（前方为负），与 VisibilityConstraint 保持一致
-            var clip = proj * new Vector4(local.x, local.y, local.z, 1f);
-            if (clip.w <= 0f) return false;
-
-            float ndcX = clip.x / clip.w;
-            if (ndcX < -1f || ndcX > 1f) return false;
-
-            vx = (ndcX + 1f) * 0.5f;   // 转到 0..1
-            return true;
+            var projected = cam.TryProjectToViewport(worldPoint, out var viewport);
+            vx = viewport.x;
+            return projected && vx >= 0f && vx <= 1f;
         }
     }
 }

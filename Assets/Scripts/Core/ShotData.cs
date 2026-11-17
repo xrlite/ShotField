@@ -114,6 +114,22 @@ namespace ShotField.Core
         public Matrix4x4 ProjectionMatrix() =>
             Matrix4x4.Perspective(fieldOfView, NormalizeAspect(aspect), nearClip, farClip);
 
+        public ShotCameraState Clone() => (ShotCameraState)MemberwiseClone();
+
+        // Mono director camera projection. Independent of the headset's per-eye matrices.
+        public bool TryProjectToViewport(Vector3 worldPoint, out Vector2 viewport)
+        {
+            viewport = default;
+            var local = Quaternion.Inverse(CameraRotation) * (worldPoint - position);
+            if (local.z <= nearClip || local.z > farClip) return false;
+            float halfHeight = local.z * Mathf.Tan(fieldOfView * Mathf.Deg2Rad * 0.5f);
+            if (halfHeight <= 0f) return false;
+            viewport = new Vector2(
+                0.5f + local.x / (2f * halfHeight * NormalizeAspect(aspect)),
+                0.5f + local.y / (2f * halfHeight));
+            return true;
+        }
+
         public static float NormalizeAspect(float value) =>
             value > 0f && !float.IsInfinity(value) ? value : DefaultAspect;
     }
@@ -161,30 +177,12 @@ namespace ShotField.Core
 
         public ShotData Clone()
         {
-            var c = new ShotData
-            {
-                shotId = shotId,
-                revision = revision,
-                camera = new ShotCameraState
-                {
-                    position = camera.position,
-                    rotation = camera.rotation,
-                    fieldOfView = camera.fieldOfView,
-                    aspect = camera.aspect,
-                    usesUnityCameraRotation = camera.usesUnityCameraRotation,
-                    nearClip = camera.nearClip,
-                    farClip = camera.farClip,
-                    shotSize = camera.shotSize,
-                    angle = camera.angle,
-                    heightAboveFloor = camera.heightAboveFloor
-                },
-                snapshot = snapshot.Clone(),
-                intent = intent,
-                approval = approval,
-                updatedAt = updatedAt,
-                updatedBy = updatedBy
-            };
-            c.lockedRules.AddRange(lockedRules);
+            var c = (ShotData)MemberwiseClone();
+            c.camera = camera.Clone();
+            c.snapshot = snapshot.Clone();
+            c.lockedRules = new List<string>(lockedRules);
+            c.lastCheck = new List<ConstraintResult>();
+            c.checkedAt = null;
             c.recordedConstraints = ShotPassportDto.CopySpecs(recordedConstraints);
             c.recordedCheck = recordedCheck?.Copy();
             return c;

@@ -32,12 +32,12 @@ namespace ShotField.EditorTools
             var canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
             canvasGo.AddComponent<GraphicRaycaster>();
-            canvasGo.AddComponent<UnityEngine.XR.Interaction.Toolkit.UI.TrackedDeviceGraphicRaycaster>();
+            canvasGo.AddComponent<TrackedDeviceRaycaster>();
             
             var canvasRt = canvasGo.GetComponent<RectTransform>();
             canvasRt.position = new Vector3(2.35f, 1.35f, 1.55f);
             canvasRt.rotation = Quaternion.Euler(15f, -145f, 0f);
-            canvasRt.sizeDelta = new Vector2(1000f, 700f);
+            canvasRt.sizeDelta = new Vector2(1080f, 700f);
             canvasRt.localScale = Vector3.one * 0.0018f;
 
             var wb = canvasGo.AddComponent<SpatialWorkbench>();
@@ -62,13 +62,13 @@ namespace ShotField.EditorTools
             var controlPanel = CreatePanel(canvasGo.transform, "WindowB_Controls", PicoCard, new Vector2(0f, -150f), new Vector2(760f, 90f));
             wb.prevBtn = CreateButton(controlPanel.transform, "PrevBtn", "◀ 上一镜", new Vector2(-280f, 0f));
             wb.nextBtn = CreateButton(controlPanel.transform, "NextBtn", "下一镜 ▶", new Vector2(-170f, 0f));
-            wb.captureViewBtn = CreateButton(controlPanel.transform, "CaptureBtn", "🎯 扳机抓位", new Vector2(-55f, 0f), PicoAccent);
-            wb.newShotBtn = CreateButton(controlPanel.transform, "NewBtn", "➕ 新机位", new Vector2(55f, 0f));
-            wb.toggleAspectBtn = CreateButton(controlPanel.transform, "AspectBtn", "📐 画幅", new Vector2(165f, 0f));
-            wb.savePassportBtn = CreateButton(controlPanel.transform, "SaveBtn", "💾 存护照", new Vector2(275f, 0f));
+            wb.captureViewBtn = CreateButton(controlPanel.transform, "CaptureBtn", "抓取视角", new Vector2(-55f, 0f), PicoAccent);
+            wb.newShotBtn = CreateButton(controlPanel.transform, "NewBtn", "新机位", new Vector2(55f, 0f));
+            wb.toggleAspectBtn = CreateButton(controlPanel.transform, "AspectBtn", "画幅", new Vector2(165f, 0f));
+            wb.savePassportBtn = CreateButton(controlPanel.transform, "SaveBtn", "存护照", new Vector2(275f, 0f));
 
             // 4. 窗口 C：约束质检抬头卡片（右侧浮窗）
-            var hudPanel = CreatePanel(canvasGo.transform, "WindowC_HUD", PicoCard, new Vector2(440f, 80f), new Vector2(200f, 220f));
+            var hudPanel = CreatePanel(canvasGo.transform, "WindowC_HUD", PicoCard, new Vector2(430f, 80f), new Vector2(200f, 220f));
             CreateText(hudPanel.transform, "HUD_Title", "空间质检扫描", 16, FontStyle.Bold, new Vector2(0f, 75f), Color.white);
             
             var visPill = CreatePanel(hudPanel.transform, "VisPill", new Color(0.2f, 0.7f, 0.2f, 0.9f), new Vector2(0f, 25f), new Vector2(180f, 40f)).GetComponent<Image>();
@@ -107,7 +107,8 @@ namespace ShotField.EditorTools
         {
             var go = CreatePanel(parent, name, bg ?? new Color(0.24f, 0.26f, 0.30f, 0.95f), pos, new Vector2(95f, 45f));
             var btn = go.AddComponent<Button>();
-            CreateText(go.transform, "Label", label, 13, FontStyle.Normal, Vector2.zero, Color.white);
+            var text = CreateText(go.transform, "Label", label, 13, FontStyle.Normal, Vector2.zero, Color.white);
+            text.rectTransform.sizeDelta = new Vector2(95f, 45f);
             return btn;
         }
 
@@ -117,6 +118,7 @@ namespace ShotField.EditorTools
             go.transform.SetParent(parent, false);
             var txt = go.AddComponent<Text>();
             txt.text = content;
+            txt.raycastTarget = false;
             txt.fontSize = size;
             txt.fontStyle = style;
             txt.color = color;

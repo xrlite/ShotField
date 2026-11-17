@@ -75,7 +75,7 @@ namespace ShotField.RuntimeUI
             ReleaseRenderTexture();
             if (monitorCam != null)
             {
-                DestroyImmediate(monitorCam.gameObject);
+                ReleaseObject(monitorCam.gameObject);
                 monitorCam = null;
             }
         }
@@ -142,6 +142,7 @@ namespace ShotField.RuntimeUI
         {
             if (monitorCam == null || sourceCamera == null || renderTexture == null) return;
 
+            var prevActive = RenderTexture.active;
             monitorCam.transform.position = sourceCamera.transform.position;
             monitorCam.transform.rotation = sourceCamera.transform.rotation;
             monitorCam.fieldOfView = sourceCamera.fieldOfView;
@@ -152,6 +153,7 @@ namespace ShotField.RuntimeUI
             monitorCam.cullingMask = sourceCamera.cullingMask;
             monitorCam.aspect = isPortrait ? ShotCameraState.PortraitAspect : ShotCameraState.DefaultAspect;
             monitorCam.Render();
+            if (RenderTexture.active != prevActive) RenderTexture.active = prevActive;
         }
 
         private void ReleaseRenderTexture()
@@ -168,9 +170,17 @@ namespace ShotField.RuntimeUI
                     RenderTexture.active = null;
                 }
                 renderTexture.Release();
-                DestroyImmediate(renderTexture);
+                if (monitorDisplay != null && monitorDisplay.texture == renderTexture)
+                    monitorDisplay.texture = null;
+                ReleaseObject(renderTexture);
                 renderTexture = null;
             }
+        }
+
+        private static void ReleaseObject(Object resource)
+        {
+            if (Application.isPlaying) Destroy(resource);
+            else DestroyImmediate(resource);
         }
     }
 }

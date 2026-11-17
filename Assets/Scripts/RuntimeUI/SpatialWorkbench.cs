@@ -1,15 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
+using UnityEngine.EventSystems;
 using ShotField.Core;
 using ShotField.Constraints;
 
 namespace ShotField.RuntimeUI
 {
-    /// <summary>
-    /// 空间 3D 浮动中控工作台（Spatial 3D Workbench）。
-    /// 遵循 PICO 空间多窗口交互规范，悬浮于三维片场空间中。
-    /// 包含：当前镜头信息、时间轴切换、约束质检卡片、画幅切换与护照落盘。
-    /// </summary>
     public class SpatialWorkbench : MonoBehaviour
     {
         [Header("核心引用")]
@@ -30,47 +27,47 @@ namespace ShotField.RuntimeUI
         [Header("空间按钮")]
         public Button prevBtn, nextBtn, newShotBtn, toggleAspectBtn, savePassportBtn, captureViewBtn;
 
-        private static readonly Color PassGreen = new Color(0.32f, 0.77f, 0.10f, 0.95f);
-        private static readonly Color FailRed = new Color(1.00f, 0.30f, 0.31f, 0.95f);
-        private static readonly Color PendingAmber = new Color(1.00f, 0.75f, 0.10f, 0.95f);
-        private static readonly Color NeutralMuted = new Color(0.20f, 0.22f, 0.25f, 0.85f);
-
         private int currentShotIndex = 0;
-        private VisibilityConstraint cachedVisRule;
-        private AxisConstraint cachedAxisRule;
+        private ShotConstraint[] rules;
+        private readonly InputAction captureAction = new InputAction("CaptureView", InputActionType.Button);
+
+        void Awake()
+        {
+            captureAction.AddBinding("<XRController>{RightHand}/triggerPressed");
+            captureAction.AddBinding("<Keyboard>/space");
+        }
+
+        void OnEnable() => captureAction.Enable();
+        void OnDisable() => captureAction.Disable();
+        void OnDestroy() => captureAction.Dispose();
 
         void Start()
         {
             if (library == null) library = Object.FindAnyObjectByType<ShotLibrary>();
-            cachedVisRule = Object.FindAnyObjectByType<VisibilityConstraint>();
-            cachedAxisRule = Object.FindAnyObjectByType<AxisConstraint>();
+            rules = Object.FindObjectsByType<ShotConstraint>(FindObjectsInactive.Include);
             if (prevBtn != null) prevBtn.onClick.AddListener(PreviousShot);
             if (nextBtn != null) nextBtn.onClick.AddListener(NextShot);
             if (newShotBtn != null) newShotBtn.onClick.AddListener(CreateNewShot);
             if (captureViewBtn != null) captureViewBtn.onClick.AddListener(CaptureCurrentViewToShot);
-            if (toggleAspectBtn != null && monitor != null) toggleAspectBtn.onClick.AddListener(monitor.ToggleAspect);
+            if (toggleAspectBtn != null && monitor != null) toggleAspectBtn.onClick.AddListener(ToggleAspect);
             if (savePassportBtn != null) savePassportBtn.onClick.AddListener(SavePassport);
             RefreshUI();
         }
 
-        void Update()
+        void LateUpdate()
         {
-            if (UnityEngine.InputSystem.Keyboard.current != null &&
-                UnityEngine.InputSystem.Keyboard.current.spaceKey.wasPressedThisFrame)
-            {
-                CaptureCurrentViewToShot();
-            }
+            if (!captureAction.WasPressedThisFrame()) return;
+            var device = captureAction.activeControl?.device;
+            if (device != null && !(device is Keyboard) && EventSystem.current != null &&
+                EventSystem.current.IsPointerOverGameObject(device.deviceId)) return;
+            CaptureCurrentViewToShot();
         }
 
         public void CaptureCurrentViewToShot()
         {
-            if (library == null) return;
             var mainCam = Camera.main;
-            if (mainCam != null && library.ShotCamera != null && mainCam != library.ShotCamera)
-            {
-                library.ShotCamera.transform.position = mainCam.transform.position;
-                library.ShotCamera.transform.rotation = mainCam.transform.rotation;
-            }
+            if (library == null || mainCam == null || library.ShotCamera == null || mainCam == library.ShotCamera) return;
+            library.ShotCamera.transform.SetPositionAndRotation(mainCam.transform.position, mainCam.transform.rotation);
             CreateNewShot();
             ShowNotify("[扳机捕获] 机位已同步至当前视线");
         }
@@ -79,6 +76,8 @@ namespace ShotField.RuntimeUI
         {
             if (library == null || library.Count == 0)
             {
+                WorkbenchStatus.UpdatePill(visibilityPill, visibilityStatusText, null, "信封");
+                WorkbenchStatus.UpdatePill(axisPill, axisStatusText, null, "轴线");
                 if (shotTitleText != null) shotTitleText.text = "暂无镜头";
                 if (shotInfoText != null) shotInfoText.text = "点击下方按钮以当前机位创建分镜";
                 return;
@@ -86,6 +85,12 @@ namespace ShotField.RuntimeUI
 
             currentShotIndex = Mathf.Clamp(currentShotIndex, 0, library.Count - 1);
             var shot = library.Shots[currentShotIndex];
+            if (monitor != null)
+            {
+                bool portrait = shot.camera.aspect < 1f;
+                if (monitor.IsPortrait != portrait) monitor.SetAspect(portrait);
+                monitor.RequestRender();
+            }
 
             if (shotTitleText != null)
                 shotTitleText.text = $"分镜 [{shot.shotId}] (第 {currentShotIndex + 1}/{library.Count} 镜)";
@@ -115,7 +120,7 @@ namespace ShotField.RuntimeUI
         public void CreateNewShot()
         {
             if (library == null) return;
-            var newShot = library.CreateShot(true, $"分镜 S0{library.Count + 1} (空间创建)", true);
+            var newShot = library.CreateShot(SceneCaptureMode.Current, "空间创建");
             currentShotIndex = library.Count - 1;
             ShowNotify($"已创建分镜: {newShot.shotId}");
             RefreshUI();
@@ -129,19 +134,14 @@ namespace ShotField.RuntimeUI
             {
                 EvaluateConstraints(shot);
 
-                var rules = Object.FindObjectsByType<ShotConstraint>(FindObjectsInactive.Exclude);
-                var specs = new ConstraintSpec[rules.Length];
-                for (int i = 0; i < rules.Length; i++) specs[i] = rules[i].ToSpec();
-                shot.recordedConstraints = specs;
+                var specs = new System.Collections.Generic.List<ConstraintSpec>(rules.Length);
+                foreach (var rule in rules)
+                    if (IsApplicable(rule)) specs.Add(rule.ToSpec());
+                shot.recordedConstraints = specs.ToArray();
 
-                var shotDir = System.IO.Path.Combine(ShotPassportStore.ProjectFolder, shot.shotId);
-                while (System.IO.File.Exists(System.IO.Path.Combine(shotDir, $"rev{shot.revision:D3}.json")))
-                {
-                    shot.revision++;
-                }
-
-                var dto = ShotPassportDto.FromShot(shot, library.SceneId, specs);
-                var path = ShotPassportStore.Save(dto, ShotPassportStore.ProjectFolder);
+                var dto = ShotPassportDto.FromShot(shot, library.SceneId, shot.recordedConstraints);
+                var path = ShotPassportStore.SaveNextRevision(dto, ShotPassportStore.ProjectFolder);
+                shot.revision = dto.revision;
                 ShowNotify($"护照已保存: rev{dto.revision:D3}");
                 Debug.Log($"[镜场 ShotField] 护照已存至: {path}");
             }
@@ -152,37 +152,35 @@ namespace ShotField.RuntimeUI
             }
         }
 
+        private void ToggleAspect()
+        {
+            monitor.ToggleAspect();
+            if (library == null || library.Count == 0) return;
+            var shot = library.Shots[currentShotIndex];
+            shot.camera.aspect = monitor.IsPortrait ? ShotCameraState.PortraitAspect : ShotCameraState.DefaultAspect;
+            RefreshUI();
+        }
+
         private void EvaluateConstraints(ShotData shot)
         {
             shot.lastCheck.Clear();
-            if (cachedVisRule == null) cachedVisRule = Object.FindAnyObjectByType<VisibilityConstraint>();
-            ConstraintResult visRes = null;
-            if (cachedVisRule != null) { visRes = cachedVisRule.Evaluate(shot, null); shot.lastCheck.Add(visRes); }
-            UpdatePill(visibilityPill, visibilityStatusText, visRes?.status, "信封正面不可见 [安全]", "信封正面泄漏 [违规报警!]", "信封遮挡 [待确认]", "信封规则 [未配置]");
-
-            if (cachedAxisRule == null) cachedAxisRule = Object.FindAnyObjectByType<AxisConstraint>();
-            ConstraintResult axisRes = null;
-            if (cachedAxisRule != null)
+            ConstraintResult vis = null, axis = null;
+            var previous = currentShotIndex > 0 ? library.Shots[currentShotIndex - 1] : null;
+            foreach (var rule in rules)
             {
-                var prev = currentShotIndex > 0 ? library.Shots[currentShotIndex - 1] : null;
-                axisRes = cachedAxisRule.Evaluate(shot, prev);
-                shot.lastCheck.Add(axisRes);
+                if (!IsApplicable(rule)) continue;
+                var result = rule.Evaluate(shot, previous);
+                shot.lastCheck.Add(result);
+                if (rule is VisibilityConstraint && vis == null) vis = result;
+                if (rule is AxisConstraint && axis == null) axis = result;
             }
-            UpdatePill(axisPill, axisStatusText, axisRes?.status, "轴线连续性 [正常]", "发生 180° 越轴 [违规!]", "轴线关系 [待确认]", "轴线规则 [未配置]");
+            WorkbenchStatus.UpdatePill(visibilityPill, visibilityStatusText, vis?.status, "信封");
+            WorkbenchStatus.UpdatePill(axisPill, axisStatusText, axis?.status, "轴线");
             shot.checkedAt = System.DateTimeOffset.UtcNow.ToString("O");
         }
 
-        private void UpdatePill(Image pill, Text text, CheckStatus? status, string pass, string fail, string pend, string none)
-        {
-            if (text == null) return;
-            if (!status.HasValue) { text.text = none; if (pill != null) pill.color = NeutralMuted; return; }
-            switch (status.Value)
-            {
-                case CheckStatus.Pass: text.text = pass; if (pill != null) pill.color = PassGreen; break;
-                case CheckStatus.Violation: text.text = fail; if (pill != null) pill.color = FailRed; break;
-                case CheckStatus.Pending: text.text = pend; if (pill != null) pill.color = PendingAmber; break;
-            }
-        }
+        private bool IsApplicable(ShotConstraint rule) =>
+            rule != null && rule.isActiveAndEnabled && rule.gameObject.scene == library.gameObject.scene;
 
         private void ShowNotify(string msg)
         {

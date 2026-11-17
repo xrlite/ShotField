@@ -94,11 +94,9 @@ namespace ShotField.EditorTools
         {
             var point = actual.transform.position + actual.transform.forward * 2f +
                 actual.transform.right * 0.2f + actual.transform.up * 0.1f;
-            var local = state.ViewMatrix.MultiplyPoint3x4(point);
-            var clip = state.ProjectionMatrix() * new Vector4(local.x, local.y, local.z, 1f);
-            var projected = new Vector2(clip.x / clip.w, clip.y / clip.w) * 0.5f + Vector2.one * 0.5f;
             var viewport = actual.WorldToViewportPoint(point);
-            if (clip.w <= 0f || Vector2.Distance(projected, viewport) > 0.001f)
+            if (!state.TryProjectToViewport(point, out var projected) ||
+                Vector2.Distance(projected, viewport) > 0.001f)
                 throw new InvalidOperationException("约束投影与实际相机画面不一致。");
         }
     }

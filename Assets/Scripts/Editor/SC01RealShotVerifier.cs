@@ -31,11 +31,10 @@ namespace ShotField.EditorTools
             Log("时间: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
             // 1. 构建真实 SC01 片场与工作台
-            EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-            var root = Sc01Blockout.BuildIntoScene();
-            var wbGo = SpatialWorkbenchBuilder.BuildWorkbench();
+            EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity", OpenSceneMode.Single);
+            var wbGo = GameObject.Find("Spatial_Workbench_Canvas");
 
-            Assert("SC01. 场景根节点与 PXR_Manager 挂载", root.GetComponent<ByteDance.PICO.XR.PXR_Manager>() != null);
+            Assert("SC01. 工作台引用已保存", wbGo != null && wbGo.GetComponent<SpatialWorkbench>() != null);
             var hmdGo = GameObject.Find("XR_Headset");
             var tpd = hmdGo != null ? hmdGo.GetComponent<UnityEngine.InputSystem.XR.TrackedPoseDriver>() : null;
             Assert("SC01. XR_Headset 头显观察机位存在且挂载 TrackedPoseDriver", tpd != null);
@@ -54,7 +53,7 @@ namespace ShotField.EditorTools
             // 机位 1：安全机位（侧平视极低角度拍茶几侧面，信封正面朝上不入画）
             cam.transform.position = new Vector3(2.35f, 0.42f, 1.20f);
             cam.transform.LookAt(new Vector3(1.50f, 0.451f, 2.15f));
-            var s01 = lib.CreateShot(false, "S01 安全机位：平视低角度拍茶几，信封正面朝上不入画", true);
+            var s01 = lib.CreateShot(SceneCaptureMode.Current, "S01 安全机位：平视低角度拍茶几，信封正面朝上不入画");
             var r1 = vis.Evaluate(s01, null);
             Log($"  [DETAIL S01] status={r1.status}, detail={r1.detail}");
             Assert("REAL_SHOT_1. 安全机位判定 = 通过 (Pass)", r1.status == CheckStatus.Pass);
@@ -62,10 +61,19 @@ namespace ShotField.EditorTools
             // 机位 2：危险机位（茶几上方 1.45m 俯冲俯拍信封正面）
             cam.transform.position = new Vector3(1.50f, 1.45f, 2.15f);
             cam.transform.LookAt(new Vector3(1.50f, 0.45f, 2.15f));
-            var s02 = lib.CreateShot(true, "S02 危险机位：正上方俯拍信封，正面完全泄露", true);
+            var s02 = lib.CreateShot(SceneCaptureMode.InheritLatestOrCapture, "S02 危险机位：正上方俯拍信封，正面完全泄露");
             var r2 = vis.Evaluate(s02, s01);
             Log($"  [DETAIL S02] status={r2.status}, detail={r2.detail}");
             Assert("REAL_SHOT_2. 危险机位判定 = 违规 (Violation)", r2.status == CheckStatus.Violation);
+
+            var occluder = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            occluder.transform.position = new Vector3(1.5f, 0.8f, 2.15f);
+            occluder.transform.localScale = new Vector3(0.4f, 0.05f, 0.4f);
+            Physics.SyncTransforms();
+            Assert("REAL_SHOT_OCCLUSION. 同一正面机位加挡板后判定通过",
+                vis.Evaluate(s02, s01).status == CheckStatus.Pass);
+            occluder.SetActive(false);
+            Physics.SyncTransforms();
 
             // 3. 画幅切换一致性
             monitor.SetAspect(false); // 16:9
@@ -90,10 +98,10 @@ namespace ShotField.EditorTools
             var path1 = ShotPassportStore.Save(dto1, verifyFolder);
 
             // 递增版本保存 rev002，验证版本链并存、历史不可篡改
-            s01.revision = 2;
             var dto2 = ShotPassportDto.FromShot(s01, lib.SceneId, specs);
-            var path2 = ShotPassportStore.Save(dto2, verifyFolder);
-            bool historyPreserved = File.Exists(path1) && File.Exists(path2);
+            var path2 = ShotPassportStore.SaveNextRevision(dto2, verifyFolder);
+            bool historyPreserved = File.Exists(path1) && File.Exists(path2) &&
+                                    dto2.revision == dto1.revision + 1 && path1 != path2;
             Assert("PASSPORT_HISTORY. 不可变版本链 (rev001 与 rev002 并存未被覆写)", historyPreserved);
 
             // 尝试同版本重复保存，断言必须抛出异常阻断
@@ -121,9 +129,10 @@ namespace ShotField.EditorTools
             Log(resultTag);
 
             Directory.CreateDirectory(outDir);
-            var outFile = Path.Combine(outDir, "sc01_verification_result.txt");
+            var outFile = Path.Combine(verifyFolder, "sc01_verification_result.txt");
             File.WriteAllText(outFile, sb.ToString(), new UTF8Encoding(false));
             Debug.Log(sb.ToString());
+            if (Application.isBatchMode) EditorApplication.Exit(failCount == 0 ? 0 : 1);
         }
 
         private static void Assert(string name, bool condition)

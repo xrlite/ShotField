@@ -118,7 +118,7 @@ namespace ShotField.EditorTools
                 if (GUILayout.Button("从当前场景新建镜头", GUILayout.Height(24f)))
                 {
                     Undo.RegisterCompleteObjectUndo(library, "创建镜头");
-                    library.CreateShot(inheritFromPrevious, newShotIntent, true);
+                    library.CreateShot(inheritFromPrevious ? SceneCaptureMode.InheritLatestOrCapture : SceneCaptureMode.Current, newShotIntent);
                     selectedIndex = library.Count - 1;
                     newShotIntent = "";
                     EditorUtility.SetDirty(library);

@@ -18,14 +18,22 @@ namespace ShotField.EditorTools
     /// </summary>
     public static class CrossProcessVerifier
     {
-        private static readonly string OutDir = Path.GetFullPath(
-            Path.Combine(Application.dataPath, "../../../05_验证记录/2026-11/CrossProcessVerify"));
+        private static string GetRunDirectory()
+        {
+            var id = Environment.GetEnvironmentVariable("SHOTFIELD_VERIFY_RUN");
+            if (string.IsNullOrEmpty(id) || !System.Text.RegularExpressions.Regex.IsMatch(id, @"\A[A-Za-z0-9_-]+\z"))
+                throw new InvalidOperationException("请为 A/B 两次调用设置相同的 SHOTFIELD_VERIFY_RUN。");
+            return Path.GetFullPath(Path.Combine(Application.dataPath,
+                "../../../05_验证记录/2026-11", "PassportCrossProcess-" + id));
+        }
 
         public static void RunProcessA()
         {
             try
             {
-                if (Directory.Exists(OutDir)) Directory.Delete(OutDir, true);
+                var OutDir = GetRunDirectory();
+                if (Directory.Exists(OutDir))
+                    throw new IOException("该验收目录已存在，请使用新的运行编号。");
                 Directory.CreateDirectory(OutDir);
 
                 EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
@@ -40,7 +48,7 @@ namespace ShotField.EditorTools
                 cam.transform.position = new Vector3(2.35f, 0.42f, 1.20f);
                 cam.transform.LookAt(new Vector3(1.50f, 0.451f, 2.15f));
                 cam.fieldOfView = 45f;
-                var s01 = lib.CreateShot(false, "S01 低角度安全机位", true);
+                var s01 = lib.CreateShot(SceneCaptureMode.Current, "S01 低角度安全机位");
                 var r1 = vis.Evaluate(s01, null);
 
                 var rules = UnityEngine.Object.FindObjectsByType<ShotConstraint>(FindObjectsInactive.Exclude);
@@ -54,9 +62,8 @@ namespace ShotField.EditorTools
                 var dto1 = ShotPassportDto.FromShot(s01, lib.SceneId, specs);
                 var path1 = ShotPassportStore.Save(dto1, OutDir);
 
-                s01.revision = 2;
                 var dto2 = ShotPassportDto.FromShot(s01, lib.SceneId, specs);
-                var path2 = ShotPassportStore.Save(dto2, OutDir);
+                var path2 = ShotPassportStore.SaveNextRevision(dto2, OutDir);
 
                 string hash1 = ComputeSha256(path1);
                 string meta = $"{{\"shot_id\":\"{dto1.shot_id}\",\"rev1_hash\":\"{hash1}\",\"path1\":\"{path1.Replace('\\', '/')}\",\"path2\":\"{path2.Replace('\\', '/')}\"}}";
@@ -83,6 +90,7 @@ namespace ShotField.EditorTools
                 sb.AppendLine("=== [跨进程护照恢复独立核验 (Process B)] ===");
                 sb.AppendLine("启动时间: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
+                var OutDir = GetRunDirectory();
                 var metaFile = Path.Combine(OutDir, "process_a_meta.json");
                 Assert("META. 进程 A 元数据文件存在", File.Exists(metaFile));
 
@@ -120,17 +128,30 @@ namespace ShotField.EditorTools
                 Assert("CAM_RESTORE. 机位三维物理坐标深度还原", Vector3.Distance(cam.transform.position, expectedPos) < 0.001f);
                 Assert("CAM_FOV. 视场角恢复 (45°)", Mathf.Approximately(cam.fieldOfView, 45f) && Mathf.Approximately(cam.fieldOfView, loadedDto.camera.fov));
                 Assert("CAM_ASPECT. 画幅比恢复 (16:9)", Mathf.Approximately(cam.aspect, ShotCameraState.DefaultAspect));
+                Assert("CAM_ROTATION. 相机旋转从护照恢复", Quaternion.Angle(
+                    cam.transform.rotation, reloadedShot.camera.CameraRotation) < 0.01f);
 
-                // 用护照中记录的规格在独立场景中再次执行约束判定
-                var reEval = vis.Evaluate(reloadedShot, null);
+                // Keep the generated geometry and replace the active visibility rule with the archived rule.
+                var archived = Array.Find(reloadedShot.recordedConstraints, spec => spec != null && spec.type == "prop_hidden");
+                if (archived == null || archived.propId != "envelope" || archived.face != "front")
+                    throw new FormatException("护照缺少 SC01 的信封正面规则。");
+                vis.enabled = false;
+                var restoredRule = dirGo.AddComponent<VisibilityConstraint>();
+                restoredRule.ruleName = archived.ruleName;
+                restoredRule.targetMarkerId = archived.propId;
+                restoredRule.occluderMask = archived.occluderMask;
+                restoredRule.epsilon = archived.epsilon;
+                var reEval = restoredRule.Evaluate(reloadedShot, null);
                 Assert("RULE_RE_EVAL. 独立进程重求值结果完全一致 (Pass)", reEval.status == CheckStatus.Pass);
 
                 sb.AppendLine($"=== 结果: 通过 {pass} 项, 失败 {fail} 项 ===");
                 string resultTag = fail == 0 ? "CROSS_PROCESS_VERIFY_RESULT=PASS" : "CROSS_PROCESS_VERIFY_RESULT=FAIL";
                 sb.AppendLine(resultTag);
 
-                var reportPath = Path.Combine(Path.GetDirectoryName(OutDir), "cross_process_verification.txt");
-                File.WriteAllText(reportPath, sb.ToString(), new UTF8Encoding(false));
+                var reportPath = Path.Combine(OutDir, "cross_process_verification.txt");
+                using (var stream = new FileStream(reportPath, FileMode.CreateNew))
+                using (var writer = new StreamWriter(stream, new UTF8Encoding(false)))
+                    writer.Write(sb.ToString());
                 Debug.Log(sb.ToString());
 
                 EditorApplication.Exit(fail == 0 ? 0 : 1);

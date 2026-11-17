@@ -14,6 +14,7 @@ namespace ShotField.Constraints
     /// </summary>
     public class VisibilityConstraint : ShotConstraint
     {
+        private readonly RaycastHit[] hitBuffer = new RaycastHit[16];
         [Tooltip("留空则检查场景里所有勾了 criticalFaceMustStayHidden 的对象")]
         public string targetMarkerId = "";
 
@@ -45,7 +46,7 @@ namespace ShotField.Constraints
         {
             if (shot == null) return ConstraintResult.Pending(ruleName, "无镜头数据", targetMarkerId);
 
-            var cam = ShotCameraStateFor(shot);
+            var cam = shot.camera;
             if (cam == null) return ConstraintResult.Pending(ruleName, "机位数据缺失", targetMarkerId);
 
             var targets = ResolveTargets();
@@ -57,6 +58,7 @@ namespace ShotField.Constraints
             string worstId = "";
             string worstDetail = "";
             int visibleCount = 0;
+            System.Span<Vector3> samples = stackalloc Vector3[5];
 
             for (int t = 0; t < targets.Length; t++)
             {
@@ -72,7 +74,7 @@ namespace ShotField.Constraints
                     continue;   // 正面背对摄影机，本镜不可能露出
                 }
 
-                var samples = marker.SampleCriticalFace();
+                marker.SampleCriticalFace(samples);
                 int visiblePoints = 0;
 
                 for (int i = 0; i < samples.Length; i++)
@@ -123,25 +125,9 @@ namespace ShotField.Constraints
         }
 
         /// <summary>世界点在机位的视口内吗（0..1，z 为正）。</summary>
-        private bool IsInsideViewport(ShotCameraState cam, Vector3 worldPoint)
-        {
-            var vp = cam.ViewMatrix;
-            var local = vp.MultiplyPoint3x4(worldPoint);   // 相机空间，Unity 相机看向 -Z
-
-            if (-local.z <= cam.nearClip) return false;    // 在机位后面或太近
-
-            var proj = cam.ProjectionMatrix();
-            // 注意：传入的 z 必须是相机空间的 local.z（前方为负）。
-            // 之前写成 -local.z 会让 clip.w 变成负数，所有采样点都被判"不在视锥内"，
-            // 结果是"信封正面不可见"永远判通过——这个 bug 是冒烟测试抓到的。
-            var clip = proj * new Vector4(local.x, local.y, local.z, 1f);
-            if (clip.w <= 0f) return false;
-
-            float ndcX = clip.x / clip.w;
-            float ndcY = clip.y / clip.w;
-
-            return ndcX >= -1f && ndcX <= 1f && ndcY >= -1f && ndcY <= 1f;
-        }
+        private static bool IsInsideViewport(ShotCameraState cam, Vector3 worldPoint) =>
+            cam.TryProjectToViewport(worldPoint, out var viewport) &&
+            viewport.x >= 0f && viewport.x <= 1f && viewport.y >= 0f && viewport.y <= 1f;
 
         /// <summary>
         /// 从机位到该点之间有无遮挡。
@@ -158,8 +144,16 @@ namespace ShotField.Constraints
             float castDist = dist - epsilon;
             if (castDist <= 0f) return false;
 
-            var hits = Physics.RaycastAll(origin, dir.normalized, castDist, occluderMask, QueryTriggerInteraction.Ignore);
-            for (int i = 0; i < hits.Length; i++)
+            var direction = dir / dist;
+            var count = Physics.RaycastNonAlloc(origin, direction, hitBuffer, castDist, occluderMask, QueryTriggerInteraction.Ignore);
+            var hits = hitBuffer;
+            // A full buffer can omit the blocker. Preserve the result in dense scenes.
+            if (count == hitBuffer.Length)
+            {
+                hits = Physics.RaycastAll(origin, direction, castDist, occluderMask, QueryTriggerInteraction.Ignore);
+                count = hits.Length;
+            }
+            for (int i = 0; i < count; i++)
             {
                 var c = hits[i].collider;
                 if (c == null) continue;
@@ -170,10 +164,5 @@ namespace ShotField.Constraints
             return false;
         }
 
-        /// <summary>shot 里没有 Camera 对象，用相机状态自己算。</summary>
-        private ShotCameraState ShotCameraStateFor(ShotData shot)
-        {
-            return shot.camera;
-        }
     }
 }

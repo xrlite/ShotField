@@ -54,6 +54,14 @@ namespace ShotField.Core
         /// <summary>关键面的 5 个采样点：中心 + 四角。用于判断"是否有一角露出"。</summary>
         public Vector3[] SampleCriticalFace()
         {
+            var points = new Vector3[5];
+            SampleCriticalFace(points);
+            return points;
+        }
+
+        public void SampleCriticalFace(System.Span<Vector3> points)
+        {
+            if (points.Length < 5) throw new System.ArgumentException("关键面采样需要 5 个位置。", nameof(points));
             var center = CriticalFaceCenter;
             var n = CriticalFaceNormalWorld;
 
@@ -66,14 +74,11 @@ namespace ShotField.Core
             float hw = criticalFaceSize.x * 0.5f;
             float hh = criticalFaceSize.y * 0.5f;
 
-            return new Vector3[]
-            {
-                center,
-                center + right * hw + realUp * hh,
-                center - right * hw + realUp * hh,
-                center + right * hw - realUp * hh,
-                center - right * hw - realUp * hh
-            };
+            points[0] = center;
+            points[1] = center + right * hw + realUp * hh;
+            points[2] = center - right * hw + realUp * hh;
+            points[3] = center + right * hw - realUp * hh;
+            points[4] = center - right * hw - realUp * hh;
         }
 
         void OnValidate()
@@ -88,6 +93,20 @@ namespace ShotField.Core
             }
         }
 
+        private static readonly System.Collections.Generic.Dictionary<string, SemanticMarker> Registry =
+            new System.Collections.Generic.Dictionary<string, SemanticMarker>();
+
+        void OnEnable()
+        {
+            if (!string.IsNullOrEmpty(markerId)) Registry[markerId] = this;
+        }
+
+        void OnDisable()
+        {
+            if (!string.IsNullOrEmpty(markerId) && Registry.TryGetValue(markerId, out var m) && m == this)
+                Registry.Remove(markerId);
+        }
+
         /// <summary>场景里所有带标记的对象。</summary>
         public static SemanticMarker[] All(FindObjectsInactive inactive = FindObjectsInactive.Exclude)
         {
@@ -96,10 +115,17 @@ namespace ShotField.Core
 
         public static SemanticMarker Find(string id, FindObjectsInactive inactive = FindObjectsInactive.Exclude)
         {
+            if (string.IsNullOrEmpty(id)) return null;
+            if (inactive == FindObjectsInactive.Exclude && Registry.TryGetValue(id, out var m) && m != null && m.gameObject.activeInHierarchy)
+                return m;
             var all = All(inactive);
             for (int i = 0; i < all.Length; i++)
             {
-                if (all[i].markerId == id) return all[i];
+                if (all[i].markerId == id)
+                {
+                    Registry[id] = all[i];
+                    return all[i];
+                }
             }
             return null;
         }

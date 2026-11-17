@@ -4,6 +4,7 @@ using UnityEngine;
 
 namespace ShotField.Core
 {
+    public enum SceneCaptureMode { Current, InheritLatestOrCapture, Empty }
     /// <summary>
     /// 镜头库：管理镜头列表、快照捕获与镜头继承。
     ///
@@ -102,10 +103,9 @@ namespace ShotField.Core
 
         /// <summary>
         /// 新建镜头。
-        /// inheritFromPrevious = true 时，复制上一镜的场景快照，只换机位（Previs Pro 的做法）。
-        /// 注意：复制的是深拷贝，之后两镜各自独立。
+        /// 继承时深拷贝上一镜；首镜没有可继承对象时捕获当前场景。
         /// </summary>
-        public ShotData CreateShot(bool inheritFromPrevious, string intent, bool captureFromCurrentScene)
+        public ShotData CreateShot(SceneCaptureMode captureMode, string intent)
         {
             var shot = new ShotData();
             shot.shotId = NextShotId();
@@ -114,18 +114,12 @@ namespace ShotField.Core
             shot.updatedBy = defaultUpdatedBy;
             shot.intent = intent ?? "";
 
-            if (inheritFromPrevious && Latest != null)
+            shot.snapshot = captureMode switch
             {
-                shot.snapshot = Latest.snapshot.Clone();   // 深拷贝
-            }
-            else if (captureFromCurrentScene)
-            {
-                shot.snapshot = CaptureSnapshot();
-            }
-            else
-            {
-                shot.snapshot = new SceneSnapshot();
-            }
+                SceneCaptureMode.InheritLatestOrCapture when Latest != null => Latest.snapshot.Clone(),
+                SceneCaptureMode.Empty => new SceneSnapshot(),
+                _ => CaptureSnapshot()
+            };
 
             shot.camera = CaptureCamera();
             shots.Add(shot);

@@ -30,6 +30,31 @@ namespace ShotField.Core
             return path;
         }
 
+        public static string SaveNextRevision(ShotPassportDto passport, string folder)
+        {
+            if (passport == null || passport.revision < 1) throw new ArgumentException("护照版本无效。");
+            ValidateId(passport.shot_id);
+            var directory = Path.Combine(folder, passport.shot_id);
+            var revision = passport.revision;
+            if (Directory.Exists(directory))
+            {
+                foreach (var file in Directory.EnumerateFiles(directory, "rev*.json"))
+                {
+                    var name = Path.GetFileNameWithoutExtension(file);
+                    if (int.TryParse(name.AsSpan(3), out var existing) && existing >= revision)
+                        revision = checked(existing + 1);
+                }
+            }
+            var original = passport.revision;
+            passport.revision = revision;
+            try { return Save(passport, folder); }
+            catch
+            {
+                passport.revision = original;
+                throw;
+            }
+        }
+
         public static ShotPassportDto Load(string path)
         {
             var passport = JsonUtility.FromJson<ShotPassportDto>(File.ReadAllText(path));

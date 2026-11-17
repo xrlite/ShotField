@@ -2,6 +2,7 @@ using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>
 /// Android 构建入口。只在 Editor 下编译，不会进 Player。
@@ -86,6 +87,29 @@ public static class BuildAndroid
             Debug.LogError("构建失败，错误数 " + r.summary.totalErrors);
             EditorApplication.Exit(1);
         }
+    }
+}
+
+// Change only the temporary build scene, preserving the checked-in baseline for the A/B control.
+internal sealed class PicoManagerBuildProbe : IProcessSceneWithReport
+{
+    public int callbackOrder => 0;
+
+    public void OnProcessScene(Scene scene, BuildReport report)
+    {
+        if (report == null || report.summary.platform != BuildTarget.Android ||
+            scene.path != "Assets/Scenes/SC01_Blockout.unity") return;
+        bool omit = System.Environment.GetEnvironmentVariable("SHOTFIELD_OMIT_PXR_MANAGER") == "1";
+        int count = 0;
+        foreach (var root in scene.GetRootGameObjects())
+        {
+            foreach (var manager in root.GetComponentsInChildren<ByteDance.PICO.XR.PXR_Manager>(true))
+            {
+                count++;
+                if (omit) Object.DestroyImmediate(manager);
+            }
+        }
+        Debug.Log($"[PICO_MANAGER_AB] original={count} packaged={(omit ? 0 : count)}");
     }
 }
 

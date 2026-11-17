@@ -46,7 +46,7 @@ namespace ShotField.EditorTools
 
             // ---------- A：安全机位（信封背面一侧，正面背对镜头）----------
             SmokeScene.PlaceCamera(Line, cam, new Vector3(0f, 1.20f, 2.00f), new Vector3(0f, 0.55f, 0f));
-            var s01 = lib.CreateShot(false, "S01 安全机位：从信封背面拍，正面向下不可见", true);
+            var s01 = lib.CreateShot(SceneCaptureMode.Current, "S01 安全机位：从信封背面拍，正面向下不可见");
             Line("");
             Line("[S01] 机位 z=+2.00（信封背面一侧），意图：" + s01.intent);
             var r1 = EvalFirst("信封正面不可见", s01, null);
@@ -55,7 +55,7 @@ namespace ShotField.EditorTools
             // ---------- B：危险机位（信封正面一侧，正面正对镜头）----------
             SmokeScene.PlaceCamera(Line, cam, new Vector3(0f, 1.20f, -2.00f), new Vector3(0f, 0.55f, 0f));
             cam.aspect = ShotCameraState.PortraitAspect;
-            var s02 = lib.CreateShot(true, "S02 危险机位：绕到信封正面一侧", true);
+            var s02 = lib.CreateShot(SceneCaptureMode.InheritLatestOrCapture, "S02 危险机位：绕到信封正面一侧");
             Vector3 snapPosA = Vector3.zero, snapPosB = Vector3.zero;
             var stA = s02.snapshot.Find("actorA");
             if (stA != null) snapPosA = stA.position;

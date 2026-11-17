@@ -180,6 +180,9 @@ namespace ShotField.EditorTools
             obj.transform.SetParent(parent, false);
             obj.transform.localPosition = position;
             obj.transform.localScale = size;
+            // The envelope root owns its collider. Trim and the window marker are visual only.
+            if (name is "Envelope_Body" or "Envelope_Flap" or "Letter_Edge" or "WindowMarker")
+                obj.GetComponent<Collider>().enabled = false;
             return obj;
         }
     }
