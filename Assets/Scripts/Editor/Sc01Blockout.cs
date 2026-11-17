@@ -61,9 +61,11 @@ namespace ShotField.EditorTools
                 new Vector3(0.46f, 0.86f, 0.46f));
             Mark(actor, "actorA", SemanticMarker.Kind.ActorPrimary);
 
-            var envelope = Box(room, "Envelope", new Vector3(1.5f, 0.524f, 2.15f), new Vector3(0.01f, 0.148f, 0.21f));
+            // 信封平放在桌面：绕 X 轴 -90° 使正面朝上，高度微调至桌面贴合
+            var envelope = Box(room, "Envelope", new Vector3(1.5f, 0.451f, 2.15f), new Vector3(0.21f, 0.01f, 0.148f));
+            envelope.transform.localRotation = Quaternion.Euler(-90f, 0f, 0f);
             var marker = Mark(envelope, "envelope", SemanticMarker.Kind.KeyProp);
-            marker.criticalFaceNormal = Vector3.left;
+            marker.criticalFaceNormal = Vector3.up;   // 平放后正面朝上
             marker.criticalFaceSize = new Vector2(0.21f, 0.148f);
             marker.criticalFaceMustStayHidden = true;
 
