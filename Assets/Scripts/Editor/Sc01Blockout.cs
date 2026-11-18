@@ -68,9 +68,15 @@ namespace ShotField.EditorTools
         {
             Sc01ArtSceneBuilder.BuildProps(room);
             Box(room, "Fridge", new Vector3(-0.6f, 0.9f, 3.6f), new Vector3(0.6f, 1.8f, 0.6f));
-            Mark(Primitive(room, PrimitiveType.Cylinder, "Tea", new Vector3(-0.25f, 0.82f, 1.32f),
+            // 半杯凉茶：制作包 §2 给茶几面 (1.1, 0.46, 2.3)、r=0.04 h=0.09。
+            // 桌面高度取茶几实测顶面（当前写实茶几仅 0.19m 高，硬用 0.45 会悬空 26cm）。
+            float teaCenterY = Sc01ArtSceneBuilder.LastTableTopY + 0.045f;
+            Mark(Primitive(room, PrimitiveType.Cylinder, "Tea", new Vector3(1.1f, teaCenterY, 2.3f),
                 new Vector3(0.08f, 0.045f, 0.08f)), "tea", SemanticMarker.Kind.Prop);
-            Mark(Box(room, "Slipper", new Vector3(0.55f, 0.05f, 0.45f), new Vector3(0.085f, 0.045f, 0.24f)),
+            // 女式单只拖鞋：制作包 §2 位置 (0.55, 0.05, 0.45)，文字说明是「鞋柜旁」。
+            // 实测鞋柜 AABB 为 X[-0.3,0.7] Z[0.395,0.605]，Z=0.45 会整只落在柜体内部，
+            // 故把 Z 前移到柜前地面 0.30，保持 X=0.55 与制作包一致。
+            Mark(Box(room, "Slipper", new Vector3(0.55f, 0.022f, 0.25f), new Vector3(0.085f, 0.045f, 0.24f)),
                 "slipper", SemanticMarker.Kind.Prop);
         }
 
