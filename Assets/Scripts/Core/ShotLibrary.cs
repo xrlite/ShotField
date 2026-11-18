@@ -32,8 +32,6 @@ namespace ShotField.Core
             shots.Add(shot);
             RecordUndo(shot);
             MarkDirty();
-            RecordUndo(shot);
-            MarkDirty();
         }
 
         public IReadOnlyList<ShotData> Shots { get { return shots; } }
