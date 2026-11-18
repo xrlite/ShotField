@@ -8,6 +8,7 @@
     "Unity.InputSystem",
     "ByteDance.PICO.XR",
     "Unity.XR.Interaction.Toolkit",
+    "Unity.XR.CoreUtils",
     "Compiler"
   ],
   "includePlatforms": [

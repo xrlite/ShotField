@@ -44,8 +44,10 @@ namespace ShotField.EditorTools
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             Sc01ArtAssetBuilder.BuildAll();
-            BuildIntoScene();
+            var root = BuildIntoScene();
+            // 先建工作台 Canvas 再装配 XRI：Canvas 射线组件要加在已存在的 Canvas 上
             SpatialWorkbenchBuilder.BuildWorkbench();
+            SceneXriRigBuilder.BuildRig(root);
             EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene(), "Assets/Scenes/SC01_Blockout.unity");
             Debug.Log("[SC01] 场景已更新并保存至 Assets/Scenes/SC01_Blockout.unity");
         }
