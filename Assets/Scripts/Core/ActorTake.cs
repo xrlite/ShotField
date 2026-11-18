@@ -29,6 +29,35 @@ namespace ShotField.Core
     }
 
     [Serializable]
+    public struct ActorKeyframeDto
+    {
+        public float t;
+        public float px, py, pz;
+        public float rx, ry, rz, rw;
+        public string action;
+
+        public ActorKeyframeDto(ActorKeyframe k)
+        {
+            t = k.time;
+            px = k.position.x; py = k.position.y; pz = k.position.z;
+            rx = k.rotation.x; ry = k.rotation.y; rz = k.rotation.z; rw = k.rotation.w;
+            action = k.actionTag;
+        }
+
+        public ActorKeyframe ToKeyframe() =>
+            new ActorKeyframe(t, new Vector3(px, py, pz), new Quaternion(rx, ry, rz, rw), action);
+    }
+
+    [Serializable]
+    public class ActorTakeDto
+    {
+        public string takeId;
+        public string actorId;
+        public float duration;
+        public List<ActorKeyframeDto> keyframes = new List<ActorKeyframeDto>();
+    }
+
+    [Serializable]
     public class ActorTake
     {
         public string takeId = "Take_01";
@@ -70,6 +99,22 @@ namespace ShotField.Core
             float span = kB.time - kA.time;
             float factor = span > 0.0001f ? (t - kA.time) / span : 0f;
             return ActorKeyframe.Lerp(kA, kB, factor);
+        }
+
+        public ActorTakeDto ToDto()
+        {
+            if (keyframes == null || keyframes.Count == 0) return null;
+            var dto = new ActorTakeDto { takeId = takeId, actorId = actorId, duration = duration };
+            for (int i = 0; i < keyframes.Count; i++) dto.keyframes.Add(new ActorKeyframeDto(keyframes[i]));
+            return dto;
+        }
+
+        public static ActorTake FromDto(ActorTakeDto dto)
+        {
+            if (dto == null || dto.keyframes == null || dto.keyframes.Count == 0) return null;
+            var take = new ActorTake { takeId = dto.takeId, actorId = dto.actorId, duration = dto.duration };
+            for (int i = 0; i < dto.keyframes.Count; i++) take.keyframes.Add(dto.keyframes[i].ToKeyframe());
+            return take;
         }
 
         public ActorTake Clone()

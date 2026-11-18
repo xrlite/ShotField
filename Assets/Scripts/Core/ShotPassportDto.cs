@@ -19,11 +19,7 @@ namespace ShotField.Core
     public class ShotPassportDto
     {
         [Serializable]
-        public class CameraFields
-        {
-            public float[] pos, rot;
-            public float fov, height;
-        }
+        public class CameraFields { public float[] pos, rot; public float fov, height; }
 
         [Serializable]
         public class CameraExtras
@@ -66,6 +62,7 @@ namespace ShotField.Core
         public List<ActorState> snapshotExtras;
         public bool approvalLocked;
         public TrajectoryDto cameraTrajectory;
+        public ActorTakeDto actorTake;
 
         public static string QualifyShotId(string shotId, string sceneId) =>
             shotId.StartsWith(sceneId + "-", StringComparison.Ordinal) ? shotId : sceneId + "-" + shotId;
@@ -98,6 +95,7 @@ namespace ShotField.Core
                 updated_by = shot.updatedBy,
                 intent = shot.intent,
                 cameraTrajectory = shot.trajectory?.ToDto(),
+                actorTake = shot.take?.ToDto(),
                 lockedRules = shot.lockedRules.ToArray(),
                 snapshotExtras = shot.snapshot.Clone().actors
             };
@@ -148,7 +146,8 @@ namespace ShotField.Core
                     shotSize = cameraExtras.shotSize, angle = cameraExtras.angle
                 },
                 snapshot = new SceneSnapshot { actors = snapshotExtras }.Clone(),
-                trajectory = cameraTrajectory != null ? CameraTrajectory.FromDto(cameraTrajectory) : null
+                trajectory = cameraTrajectory != null ? CameraTrajectory.FromDto(cameraTrajectory) : null,
+                take = actorTake != null ? ActorTake.FromDto(actorTake) : null
             };
         }
 
@@ -170,12 +169,9 @@ namespace ShotField.Core
             var summary = new CheckSummary { checked_at = shot.checkedAt ?? "" };
             foreach (var result in shot.lastCheck)
             {
-                switch (result.status)
-                {
-                    case CheckStatus.Pass: summary.pass++; break;
-                    case CheckStatus.Violation: summary.violation++; break;
-                    case CheckStatus.Pending: summary.pending++; break;
-                }
+                if (result.status == CheckStatus.Pass) summary.pass++;
+                else if (result.status == CheckStatus.Violation) summary.violation++;
+                else if (result.status == CheckStatus.Pending) summary.pending++;
             }
             return summary;
         }

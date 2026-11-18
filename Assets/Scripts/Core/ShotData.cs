@@ -4,24 +4,11 @@ using UnityEngine;
 
 namespace ShotField.Core
 {
-    /// <summary>约束检查的三态结果。对应产品定义：通过 / 违规 / 待确认。</summary>
-    public enum CheckStatus
-    {
-        Pass = 0,
-        Violation = 1,
-        Pending = 2
-    }
-
-    /// <summary>景别。</summary>
+    public enum CheckStatus { Pass = 0, Violation = 1, Pending = 2 }
     public enum ShotSize { Auto = 0, Wide = 1, Full = 2, Medium = 3, CloseUp = 4, Detail = 5 }
-
-    /// <summary>机位角度。</summary>
     public enum ShotAngle { Auto = 0, EyeLevel = 1, Low = 2, High = 3, Dutch = 4 }
-
-    /// <summary>审批状态。</summary>
     public enum ApprovalStatus { Draft = 0, Reviewed = 1, Approved = 2, Locked = 3 }
 
-    /// <summary>单个对象的快照。存值，不存引用——这是"镜头之间不共享可变数据"的基础。</summary>
     [Serializable]
     public class ActorState
     {
@@ -32,7 +19,6 @@ namespace ShotField.Core
         public bool active = true;
     }
 
-    /// <summary>场景快照：某一时刻整个片场的静态状态。深拷贝语义。</summary>
     [Serializable]
     public class SceneSnapshot
     {
@@ -52,14 +38,11 @@ namespace ShotField.Core
         public ActorState Find(string actorId)
         {
             for (int i = 0; i < actors.Count; i++)
-            {
                 if (actors[i].actorId == actorId) return actors[i];
-            }
             return null;
         }
     }
 
-    /// <summary>机位状态：镜头自己的、独立于场景的那一半数据。</summary>
     [Serializable]
     public class ShotCameraState
     {
@@ -72,14 +55,13 @@ namespace ShotField.Core
         public float aspect = DefaultAspect;
         public bool usesUnityCameraRotation;
 
-        // Legacy passports use a rotation with +Z pointing away from the subject.
         public Quaternion CameraRotation => usesUnityCameraRotation
             ? rotation : rotation * Quaternion.Euler(0f, 180f, 0f);
         public float nearClip = 0.05f;
         public float farClip = 100f;
         public ShotSize shotSize = ShotSize.Auto;
         public ShotAngle angle = ShotAngle.Auto;
-        public float heightAboveFloor;   // 机位高度，米
+        public float heightAboveFloor;
 
         public static ShotCameraState FromCamera(Camera cam)
         {
@@ -116,7 +98,6 @@ namespace ShotField.Core
 
         public ShotCameraState Clone() => (ShotCameraState)MemberwiseClone();
 
-        // Mono director camera projection. Independent of the headset's per-eye matrices.
         public bool TryProjectToViewport(Vector3 worldPoint, out Vector2 viewport)
         {
             viewport = default;
@@ -134,7 +115,6 @@ namespace ShotField.Core
             value > 0f && !float.IsInfinity(value) ? value : DefaultAspect;
     }
 
-    /// <summary>一条约束的检查结果。</summary>
     [Serializable]
     public class ConstraintResult
     {
@@ -143,17 +123,14 @@ namespace ShotField.Core
         public string detail = "";
         public string targetId = "";
 
-        public static ConstraintResult Pass(string rule, string detail, string target) =>
-            new ConstraintResult { ruleName = rule, status = CheckStatus.Pass, detail = detail, targetId = target };
-
-        public static ConstraintResult Violation(string rule, string detail, string target) =>
-            new ConstraintResult { ruleName = rule, status = CheckStatus.Violation, detail = detail, targetId = target };
-
-        public static ConstraintResult Pending(string rule, string detail, string target) =>
-            new ConstraintResult { ruleName = rule, status = CheckStatus.Pending, detail = detail, targetId = target };
+        public static ConstraintResult Pass(string r, string d, string t) =>
+            new ConstraintResult { ruleName = r, status = CheckStatus.Pass, detail = d, targetId = t };
+        public static ConstraintResult Violation(string r, string d, string t) =>
+            new ConstraintResult { ruleName = r, status = CheckStatus.Violation, detail = d, targetId = t };
+        public static ConstraintResult Pending(string r, string d, string t) =>
+            new ConstraintResult { ruleName = r, status = CheckStatus.Pending, detail = d, targetId = t };
     }
 
-    /// <summary>一个镜头 = 一份场景快照 + 一份独立机位 + 意图与审批记录。这就是镜头护照的代码形态。</summary>
     [Serializable]
     public class ShotData
     {
@@ -163,10 +140,10 @@ namespace ShotField.Core
         public SceneSnapshot snapshot = new SceneSnapshot();
 
         [TextArea(2, 5)]
-        public string intent = "";              // 导演意图：为什么这样拍
-
-        public CameraTrajectory trajectory;     // 可选运镜轨迹
-        public List<string> lockedRules = new List<string>();   // 不可修改的约束名
+        public string intent = "";
+        public CameraTrajectory trajectory;
+        public ActorTake take;
+        public List<string> lockedRules = new List<string>();
         public ApprovalStatus approval = ApprovalStatus.Draft;
         public string updatedAt = "";
         public string updatedBy = "";
@@ -182,6 +159,7 @@ namespace ShotField.Core
             c.camera = camera.Clone();
             c.snapshot = snapshot.Clone();
             c.trajectory = trajectory?.Clone();
+            c.take = take?.Clone();
             c.lockedRules = new List<string>(lockedRules);
             c.lastCheck = new List<ConstraintResult>();
             c.checkedAt = null;
