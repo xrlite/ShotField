@@ -65,6 +65,7 @@ namespace ShotField.Core
         public string[] lockedRules;
         public List<ActorState> snapshotExtras;
         public bool approvalLocked;
+        public TrajectoryDto cameraTrajectory;
 
         public static ShotPassportDto FromShot(ShotData shot, string sceneId, ConstraintSpec[] specs)
         {
@@ -94,6 +95,7 @@ namespace ShotField.Core
                 updated_at = NormalizeTime(shot.updatedAt),
                 updated_by = shot.updatedBy,
                 intent = shot.intent,
+                cameraTrajectory = shot.trajectory?.ToDto(),
                 lockedRules = shot.lockedRules.ToArray(),
                 snapshotExtras = shot.snapshot.Clone().actors
             };
@@ -143,7 +145,8 @@ namespace ShotField.Core
                     usesUnityCameraRotation = cameraExtras.usesUnityCameraRotation,
                     shotSize = cameraExtras.shotSize, angle = cameraExtras.angle
                 },
-                snapshot = new SceneSnapshot { actors = snapshotExtras }.Clone()
+                snapshot = new SceneSnapshot { actors = snapshotExtras }.Clone(),
+                trajectory = cameraTrajectory != null ? CameraTrajectory.FromDto(cameraTrajectory) : null
             };
         }
 
@@ -178,11 +181,9 @@ namespace ShotField.Core
         private static string NormalizeTime(string value)
         {
             var offset = TimeSpan.FromHours(8);
-            if (DateTime.TryParseExact(value, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture,
-                DateTimeStyles.None, out var legacy))
+            if (DateTime.TryParseExact(value, "yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out var legacy))
                 return new DateTimeOffset(legacy, offset).ToString("O");
-            if (DateTimeOffset.TryParseExact(value, "O", CultureInfo.InvariantCulture,
-                DateTimeStyles.None, out var parsed))
+            if (DateTimeOffset.TryParseExact(value, "O", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
                 return parsed.ToOffset(offset).ToString("O");
             if (string.IsNullOrEmpty(value)) return DateTimeOffset.UtcNow.ToOffset(offset).ToString("O");
             throw new FormatException("无法识别镜头更新时间 " + value);

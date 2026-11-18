@@ -165,6 +165,7 @@ namespace ShotField.Core
         [TextArea(2, 5)]
         public string intent = "";              // 导演意图：为什么这样拍
 
+        public CameraTrajectory trajectory;     // 可选运镜轨迹
         public List<string> lockedRules = new List<string>();   // 不可修改的约束名
         public ApprovalStatus approval = ApprovalStatus.Draft;
         public string updatedAt = "";
@@ -180,6 +181,7 @@ namespace ShotField.Core
             var c = (ShotData)MemberwiseClone();
             c.camera = camera.Clone();
             c.snapshot = snapshot.Clone();
+            c.trajectory = trajectory?.Clone();
             c.lockedRules = new List<string>(lockedRules);
             c.lastCheck = new List<ConstraintResult>();
             c.checkedAt = null;
