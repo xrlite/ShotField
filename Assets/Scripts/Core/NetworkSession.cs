@@ -1,19 +1,19 @@
 using System;
-using System.IO;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 
 namespace ShotField.Core
 {
     public class NetworkSession
     {
-        public enum SessionState { Disconnected, Hosting, Connected }
+        public enum SessionState { Disconnected, Hosting, Connected, Connecting }
 
-        public SessionState State { get; private set; } = SessionState.Disconnected;
-        public ParticipantRole LocalRole { get; private set; } = ParticipantRole.Director;
+        public SessionState State { get; private set; }
+        public ParticipantRole LocalRole { get; private set; }
         public string LocalClientId { get; private set; } = "local";
 
         public event Action<string, string> OnClientJoined;
@@ -21,185 +21,180 @@ namespace ShotField.Core
         public event Action<PassportSyncData> OnPassportSyncReceived;
         public event Action<CommentData> OnCommentReceived;
 
-        private TcpListener serverListener;
-        private TcpClient clientSocket;
-        private NetworkStream clientStream;
-        private readonly List<TcpClient> connectedClients = new List<TcpClient>();
-        private readonly Queue<SetPacket> incomingQueue = new Queue<SetPacket>();
-        private readonly object queueLock = new object();
-        private byte[] readBuffer = new byte[8192];
-        private int clientCounter = 0;
+        private TcpListener listener;
+        private SessionPeer upstream;
+        private readonly List<SessionPeer> peers = new List<SessionPeer>();
+        private readonly ConcurrentQueue<Action> incoming = new ConcurrentQueue<Action>();
+        private readonly Dictionary<string, SetPacket> passports = new Dictionary<string, SetPacket>();
+        private SetPacket latestCamera;
+        private int generation;
 
         public void StartHost(int port = 7777, ParticipantRole role = ParticipantRole.Director)
         {
             Disconnect();
-            LocalRole = role; LocalClientId = "host-0";
-            serverListener = new TcpListener(IPAddress.Any, port);
-            serverListener.Start();
-            serverListener.BeginAcceptTcpClient(OnAcceptClient, null);
+            var server = new TcpListener(IPAddress.Any, port);
+            server.Start();
+            listener = server;
+            LocalRole = role;
+            LocalClientId = "host";
             State = SessionState.Hosting;
+            _ = Accept(server, generation);
         }
 
-        public void Connect(string ip, int port, ParticipantRole role, string displayName = "Client")
+        public async void Connect(string ip, int port, ParticipantRole role, string displayName = "Client")
         {
             Disconnect();
+            int epoch = generation;
             LocalRole = role;
-            clientSocket = new TcpClient();
-            clientSocket.Connect(ip, port);
-            clientStream = clientSocket.GetStream();
-            State = SessionState.Connected;
-            clientStream.BeginRead(readBuffer, 0, readBuffer.Length, OnReadIncoming, clientStream);
-            SendPacket(SetPacket.Create(PacketType.JoinRequest, "pending", new JoinRequestData { role = role.ToString(), displayName = displayName }));
+            var socket = new TcpClient();
+            var peer = new SessionPeer(socket);
+            upstream = peer;
+            State = SessionState.Connecting;
+            try
+            {
+                await socket.ConnectAsync(ip, port).ConfigureAwait(false);
+                if (!peer.Send(SetPacket.Create(PacketType.JoinRequest, "", new JoinRequestData
+                    { role = role.ToString(), displayName = displayName }))) return;
+                await Receive(peer, epoch, false).ConfigureAwait(false);
+            }
+            catch (Exception ex) { Post(epoch, () => Debug.LogWarning(ex.Message)); }
+            finally
+            {
+                peer.Dispose();
+                Post(epoch, Disconnect);
+            }
         }
 
-        public void BroadcastCamera(int shotIndex, Vector3 pos, Quaternion rot, float fov) =>
-            Broadcast(SetPacket.Create(PacketType.CameraSync, LocalClientId, new CameraSyncData(shotIndex, pos, rot, fov)));
-
-        public void BroadcastPassport(string shotId, int revision, string json) =>
-            Broadcast(SetPacket.Create(PacketType.PassportSync, LocalClientId, new PassportSyncData { shotId = shotId, revision = revision, passportJson = json }));
-
-        public void SendComment(string text, string shotId) =>
-            Broadcast(SetPacket.Create(PacketType.Comment, LocalClientId, new CommentData { sender = LocalRole.ToString(), text = text, shotId = shotId, timestamp = DateTime.Now.ToString("HH:mm:ss") }));
-
-        public void Broadcast(SetPacket packet)
+        public void BroadcastCamera(int index, Vector3 position, Quaternion rotation, float fov)
         {
+            if (State != SessionState.Hosting) return;
+            latestCamera = SetPacket.Create(PacketType.CameraSync, LocalClientId,
+                new CameraSyncData(index, position, rotation, fov));
+            Broadcast(latestCamera);
+        }
+
+        public void BroadcastPassport(string shotId, int revision, string json)
+        {
+            if (State != SessionState.Hosting) return;
+            var packet = SetPacket.Create(PacketType.PassportSync, LocalClientId, new PassportSyncData
+                { shotId = shotId, revision = revision, passportJson = json });
+            passports[shotId] = packet;
+            Broadcast(packet);
+        }
+
+        public void SendComment(string text, string shotId)
+        {
+            var packet = SetPacket.Create(PacketType.Comment, LocalClientId, new CommentData
+                { sender = LocalRole.ToString(), text = text, shotId = shotId, timestamp = DateTimeOffset.UtcNow.ToString("O") });
             if (State == SessionState.Hosting)
             {
-                byte[] bytes = EncodePacket(packet);
-                lock (connectedClients)
-                {
-                    for (int i = connectedClients.Count - 1; i >= 0; i--)
-                    {
-                        try { if (connectedClients[i].Connected) connectedClients[i].GetStream().Write(bytes, 0, bytes.Length); }
-                        catch { connectedClients.RemoveAt(i); }
-                    }
-                }
-            }
-            else if (State == SessionState.Connected && clientStream != null)
-            {
-                byte[] bytes = EncodePacket(packet);
-                clientStream.Write(bytes, 0, bytes.Length);
-            }
-        }
-
-        private void OnAcceptClient(IAsyncResult ar)
-        {
-            if (serverListener == null) return;
-            try
-            {
-                var client = serverListener.EndAcceptTcpClient(ar);
-                lock (connectedClients) connectedClients.Add(client);
-                var stream = client.GetStream();
-                byte[] buf = new byte[8192];
-                stream.BeginRead(buf, 0, buf.Length, OnReadFromClient, new KeyValuePair<TcpClient, byte[]>(client, buf));
-                serverListener.BeginAcceptTcpClient(OnAcceptClient, null);
-            }
-            catch { }
-        }
-
-        private void OnReadFromClient(IAsyncResult ar)
-        {
-            var pair = (KeyValuePair<TcpClient, byte[]>)ar.AsyncState;
-            var client = pair.Key;
-            var buf = pair.Value;
-            try
-            {
-                int bytesRead = client.GetStream().EndRead(ar);
-                if (bytesRead <= 0) return;
-                string msg = Encoding.UTF8.GetString(buf, 0, bytesRead);
-                foreach (var line in msg.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
-                {
-                    var packet = JsonUtility.FromJson<SetPacket>(line.Trim());
-                    if (packet != null) HandleServerIncoming(client, packet);
-                }
-                client.GetStream().BeginRead(buf, 0, buf.Length, OnReadFromClient, pair);
-            }
-            catch { }
-        }
-
-        private void HandleServerIncoming(TcpClient client, SetPacket packet)
-        {
-            if (packet.type == PacketType.JoinRequest.ToString())
-            {
-                var req = packet.Unpack<JoinRequestData>();
-                string newId = "client-" + (++clientCounter);
-                var resp = new JoinResponseData { clientId = newId, assignedRole = req.role, currentShotIndex = 0, sceneId = "SC01" };
-                byte[] bytes = EncodePacket(SetPacket.Create(PacketType.JoinResponse, "host", resp));
-                client.GetStream().Write(bytes, 0, bytes.Length);
-                lock (queueLock) incomingQueue.Enqueue(SetPacket.Create(PacketType.JoinRequest, newId, req));
-            }
-            else
-            {
                 Broadcast(packet);
-                lock (queueLock) incomingQueue.Enqueue(packet);
+                OnCommentReceived?.Invoke(packet.Unpack<CommentData>());
+            }
+            else if (State == SessionState.Connected) upstream.Send(packet);
+        }
+
+        private void Broadcast(SetPacket packet) => peers.ForEach(peer => { if (peer.Role.HasValue) peer.Send(packet); });
+
+        private async Task Accept(TcpListener server, int epoch)
+        {
+            try
+            {
+                while (true)
+                {
+                    var socket = await server.AcceptTcpClientAsync().ConfigureAwait(false);
+                    var peer = new SessionPeer(socket);
+                    incoming.Enqueue(() =>
+                    {
+                        if (epoch != generation) { peer.Dispose(); return; }
+                        peers.Add(peer);
+                        _ = Receive(peer, epoch, true);
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                Post(epoch, () => { Debug.LogWarning(ex.Message); Disconnect(); });
             }
         }
 
-        private void OnReadIncoming(IAsyncResult ar)
+        private async Task Receive(SessionPeer peer, int epoch, bool hosting)
         {
-            var stream = (NetworkStream)ar.AsyncState;
             try
             {
-                int bytesRead = stream.EndRead(ar);
-                if (bytesRead <= 0) return;
-                string msg = Encoding.UTF8.GetString(readBuffer, 0, bytesRead);
-                foreach (var line in msg.Split(new[] { '\n' }, StringSplitOptions.RemoveEmptyEntries))
-                {
-                    var packet = JsonUtility.FromJson<SetPacket>(line.Trim());
-                    if (packet != null)
-                    {
-                        if (packet.type == PacketType.JoinResponse.ToString())
-                        {
-                            var resp = packet.Unpack<JoinResponseData>();
-                            LocalClientId = resp.clientId;
-                        }
-                        lock (queueLock) incomingQueue.Enqueue(packet);
-                    }
-                }
-                stream.BeginRead(readBuffer, 0, readBuffer.Length, OnReadIncoming, stream);
+                await peer.Read(packet => Post(epoch, () => Dispatch(peer, packet, hosting))).ConfigureAwait(false);
             }
-            catch { }
+            catch (Exception ex) { Post(epoch, () => Debug.LogWarning(ex.Message)); }
+            finally
+            {
+                peer.Dispose();
+                if (hosting) Post(epoch, () => peers.Remove(peer));
+            }
         }
+
+        private void Dispatch(SessionPeer peer, SetPacket packet, bool hosting)
+        {
+            if (hosting)
+            {
+                if (!peer.Role.HasValue && packet.type == nameof(PacketType.JoinRequest))
+                {
+                    var request = packet.Unpack<JoinRequestData>();
+                    if (!Enum.TryParse(request.role, out ParticipantRole role) || !Enum.IsDefined(typeof(ParticipantRole), role)
+                        || role == ParticipantRole.Director) { peer.Dispose(); return; }
+                    peer.Role = role;
+                    peer.Send(SetPacket.Create(PacketType.JoinResponse, LocalClientId,
+                        new JoinResponseData { clientId = peer.Id, assignedRole = role.ToString(), sceneId = "SC01" }));
+                    if (latestCamera != null) peer.Send(latestCamera);
+                    foreach (var passport in passports.Values) peer.Send(passport);
+                    OnClientJoined?.Invoke(peer.Id, role.ToString());
+                }
+                else if (peer.Role.HasValue && packet.type == nameof(PacketType.Comment))
+                {
+                    var comment = packet.Unpack<CommentData>();
+                    comment.sender = peer.Role.Value.ToString();
+                    Broadcast(SetPacket.Create(PacketType.Comment, peer.Id, comment));
+                    OnCommentReceived?.Invoke(comment);
+                }
+                return;
+            }
+
+            switch (packet.type)
+            {
+                case nameof(PacketType.JoinResponse):
+                    LocalClientId = packet.Unpack<JoinResponseData>().clientId;
+                    State = SessionState.Connected;
+                    break;
+                case nameof(PacketType.CameraSync): OnCameraSyncReceived?.Invoke(packet.Unpack<CameraSyncData>()); break;
+                case nameof(PacketType.PassportSync): OnPassportSyncReceived?.Invoke(packet.Unpack<PassportSyncData>()); break;
+                case nameof(PacketType.Comment): OnCommentReceived?.Invoke(packet.Unpack<CommentData>()); break;
+            }
+        }
+
+        private void Post(int epoch, Action action) =>
+            incoming.Enqueue(() => { if (epoch == generation) action(); });
 
         public void Tick()
         {
-            while (true)
+            for (int i = 0; i < 64 && incoming.TryDequeue(out var action); i++)
             {
-                SetPacket packet = null;
-                lock (queueLock)
-                {
-                    if (incomingQueue.Count > 0) packet = incomingQueue.Dequeue();
-                }
-                if (packet == null) break;
-                DispatchPacket(packet);
+                try { action(); }
+                catch (Exception ex) { Debug.LogWarning(ex.Message); }
             }
         }
-
-        private void DispatchPacket(SetPacket packet)
-        {
-            if (packet.type == PacketType.JoinRequest.ToString())
-            {
-                var data = packet.Unpack<JoinRequestData>();
-                OnClientJoined?.Invoke(packet.senderId, data.role);
-            }
-            else if (packet.type == PacketType.CameraSync.ToString())
-                OnCameraSyncReceived?.Invoke(packet.Unpack<CameraSyncData>());
-            else if (packet.type == PacketType.PassportSync.ToString())
-                OnPassportSyncReceived?.Invoke(packet.Unpack<PassportSyncData>());
-            else if (packet.type == PacketType.Comment.ToString())
-                OnCommentReceived?.Invoke(packet.Unpack<CommentData>());
-        }
-
-        private byte[] EncodePacket(SetPacket p) => Encoding.UTF8.GetBytes(JsonUtility.ToJson(p) + "\n");
-        private void SendPacket(SetPacket p) { byte[] b = EncodePacket(p); clientStream?.Write(b, 0, b.Length); }
 
         public void Disconnect()
         {
-            try { serverListener?.Stop(); } catch { }
-            try { clientStream?.Close(); } catch { }
-            try { clientSocket?.Close(); } catch { }
-            lock (connectedClients) { foreach (var c in connectedClients) try { c.Close(); } catch { } connectedClients.Clear(); }
-            serverListener = null; clientSocket = null; clientStream = null; State = SessionState.Disconnected;
+            generation++;
+            listener?.Stop();
+            listener = null;
+            upstream?.Dispose();
+            upstream = null;
+            foreach (var peer in peers) peer.Dispose();
+            peers.Clear();
+            passports.Clear();
+            latestCamera = null;
+            State = SessionState.Disconnected;
+            LocalClientId = "local";
         }
     }
 }

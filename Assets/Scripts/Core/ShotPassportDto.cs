@@ -67,13 +67,15 @@ namespace ShotField.Core
         public bool approvalLocked;
         public TrajectoryDto cameraTrajectory;
 
+        public static string QualifyShotId(string shotId, string sceneId) =>
+            shotId.StartsWith(sceneId + "-", StringComparison.Ordinal) ? shotId : sceneId + "-" + shotId;
+
         public static ShotPassportDto FromShot(ShotData shot, string sceneId, ConstraintSpec[] specs)
         {
             var state = shot.camera;
             var dto = new ShotPassportDto
             {
-                shot_id = shot.shotId.StartsWith(sceneId + "-", StringComparison.Ordinal)
-                    ? shot.shotId : sceneId + "-" + shot.shotId,
+                shot_id = QualifyShotId(shot.shotId, sceneId),
                 revision = shot.revision,
                 camera = new CameraFields
                 {

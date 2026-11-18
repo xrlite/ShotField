@@ -26,6 +26,7 @@ namespace ShotField.RuntimeUI
         private float lastFov;
         private bool isDirty = true;
 
+        public Texture Feed => renderTexture;
         public bool IsPortrait => isPortrait;
         public void RequestRender() => isDirty = true;
 

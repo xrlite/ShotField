@@ -11,7 +11,7 @@ namespace ShotField.EditorTools
         public static void Run()
         {
             int passCount = 0;
-            int totalTests = 6;
+            int totalTests = 7;
             int port = 9188;
 
             var host = new NetworkSession();
@@ -34,9 +34,7 @@ namespace ShotField.EditorTools
                 host.OnClientJoined += (id, role) => { joinedClientId = id; joinedRole = role; };
 
                 client.Connect("127.0.0.1", port, ParticipantRole.Producer, "ProducerPC");
-                Thread.Sleep(200);
-                host.Tick();
-                client.Tick();
+                WaitFor(host, client, () => joinedClientId != null && client.State == NetworkSession.SessionState.Connected);
 
                 if (!string.IsNullOrEmpty(joinedClientId) && joinedRole == "Producer" && client.State == NetworkSession.SessionState.Connected)
                 {
@@ -52,8 +50,7 @@ namespace ShotField.EditorTools
                 var testPos = new Vector3(2.5f, 1.2f, -3.0f);
                 var testRot = Quaternion.Euler(15f, 45f, 0f);
                 host.BroadcastCamera(2, testPos, testRot, 40f);
-                Thread.Sleep(200);
-                client.Tick();
+                WaitFor(host, client, () => receivedCam != null);
 
                 if (receivedCam != null && receivedCam.shotIndex == 2 && receivedCam.Position == testPos)
                 {
@@ -66,11 +63,11 @@ namespace ShotField.EditorTools
                 PassportSyncData receivedPassport = null;
                 client.OnPassportSyncReceived += data => receivedPassport = data;
 
-                host.BroadcastPassport("SC01-S02", 2, "{\"test\":true}");
-                Thread.Sleep(200);
-                client.Tick();
+                string longPassport = new string('镜', 12000);
+                host.BroadcastPassport("SC01-S02", 2, longPassport);
+                WaitFor(host, client, () => receivedPassport != null);
 
-                if (receivedPassport != null && receivedPassport.shotId == "SC01-S02" && receivedPassport.revision == 2)
+                if (receivedPassport != null && receivedPassport.shotId == "SC01-S02" && receivedPassport.revision == 2 && receivedPassport.passportJson == longPassport)
                 {
                     passCount++;
                     Debug.Log("[PASS] Test 4: 镜头护照更新事件可靠广播接收 (SC01-S02 rev002)");
@@ -82,8 +79,7 @@ namespace ShotField.EditorTools
                 host.OnCommentReceived += data => receivedComment = data;
 
                 client.SendComment("机位偏高，信封被桌角挡住，请微调", "SC01-S02");
-                Thread.Sleep(200);
-                host.Tick();
+                WaitFor(host, client, () => receivedComment != null);
 
                 if (receivedComment != null && receivedComment.sender == "Producer" && receivedComment.text.Contains("信封被桌角挡住"))
                 {
@@ -91,6 +87,17 @@ namespace ShotField.EditorTools
                     Debug.Log("[PASS] Test 5: 制片人端向导演端发送审片批注评论，交流成功留痕");
                 }
                 else Debug.LogError("[FAIL] Test 5: 审片评论收发异常");
+
+                client.Disconnect();
+                receivedPassport = null;
+                client.Connect("127.0.0.1", port, ParticipantRole.Producer, "ProducerPC");
+                WaitFor(host, client, () => receivedPassport != null);
+                if (receivedPassport?.passportJson == longPassport)
+                {
+                    passCount++;
+                    Debug.Log("[PASS] Rejoin restores the latest complete passport.");
+                }
+                else Debug.LogError("[FAIL] Rejoin did not restore the latest passport.");
 
                 // Test 6: 优雅断开与资源回收
                 client.Disconnect();
@@ -120,6 +127,17 @@ namespace ShotField.EditorTools
             {
                 Debug.LogError($"NET-VERIFY-RESULT=FAIL ({passCount}/{totalTests})");
                 EditorApplication.Exit(1);
+            }
+        }
+
+        private static void WaitFor(NetworkSession host, NetworkSession client, Func<bool> condition)
+        {
+            var timeout = System.Diagnostics.Stopwatch.StartNew();
+            while (!condition() && timeout.ElapsedMilliseconds < 3000)
+            {
+                host.Tick();
+                client.Tick();
+                Thread.Sleep(5);
             }
         }
     }

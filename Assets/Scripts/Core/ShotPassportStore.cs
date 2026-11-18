@@ -65,6 +65,24 @@ namespace ShotField.Core
             return passport;
         }
 
+        public static ShotPassportDto LoadLatest(string id, string folder)
+        {
+            ValidateId(id);
+            var directory = Path.Combine(folder, id);
+            if (!Directory.Exists(directory)) return null;
+            int latest = 0;
+            string latestPath = null;
+            foreach (var file in Directory.EnumerateFiles(directory, "rev*.json"))
+            {
+                var stem = Path.GetFileNameWithoutExtension(file);
+                if (!int.TryParse(stem.AsSpan(3), out var revision) || revision <= latest) continue;
+                if (stem != $"rev{revision:D3}") continue;
+                latest = revision;
+                latestPath = file;
+            }
+            return latestPath == null ? null : Load(latestPath);
+        }
+
         private static void ValidateId(string id)
         {
             if (string.IsNullOrEmpty(id) || !Regex.IsMatch(id, @"\ASC[0-9]+-S[0-9]+\z"))

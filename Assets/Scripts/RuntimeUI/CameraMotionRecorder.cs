@@ -15,6 +15,7 @@ namespace ShotField.RuntimeUI
         public Camera filmCamera;
         [Tooltip("头显观察相机：导演VR自由视角（独立观察，不强制视角绑架）")]
         public Camera hmdObserver;
+        public bool useDeviceInput = true;
 
         [Header("采样与滤波设置")]
         [Range(10, 60)] public int sampleRate = 30;
@@ -37,6 +38,7 @@ namespace ShotField.RuntimeUI
 
         public State CurrentState { get; private set; } = State.Idle;
 
+        private Material ownedLineMaterial;
         private float recordStartTime;
         private float nextSampleTime;
         private float playStartTime;
@@ -51,12 +53,24 @@ namespace ShotField.RuntimeUI
 
         void OnEnable() => recordAction.Enable();
         void OnDisable() => recordAction.Disable();
-        void OnDestroy() => recordAction.Dispose();
+        void OnDestroy()
+        {
+            recordAction.Dispose();
+            if (ownedLineMaterial != null) Destroy(ownedLineMaterial);
+        }
+
+        public void LoadAndPlay(CameraTrajectory trajectory)
+        {
+            rawTrajectory = trajectory.Clone();
+            smoothedTrajectory = null;
+            RefreshTrajectoryLine();
+            StartPlayback();
+        }
 
         void Update()
         {
-            if (recordAction.WasPressedThisFrame() && CurrentState == State.Idle) StartRecording();
-            else if (recordAction.WasReleasedThisFrame() && CurrentState == State.Recording) StopRecording();
+            if (useDeviceInput && recordAction.WasPressedThisFrame() && CurrentState == State.Idle) StartRecording();
+            else if (useDeviceInput && recordAction.WasReleasedThisFrame() && CurrentState == State.Recording) StopRecording();
 
             if (CurrentState == State.Recording) TickRecording();
             else if (CurrentState == State.Playing) TickPlayback();
@@ -64,18 +78,15 @@ namespace ShotField.RuntimeUI
 
         public void StartRecording()
         {
-            if (poseSource == null)
-            {
-                Debug.LogWarning("[运镜录制] poseSource 未绑定！已禁止 Camera.main 自动回退，拒绝录制。");
-                return;
-            }
+            if (poseSource == null || CurrentState != State.Idle) return;
             CurrentState = State.Recording;
             rawTrajectory = new CameraTrajectory();
             smoothedTrajectory = new CameraTrajectory();
             recordStartTime = Time.time;
-            nextSampleTime = recordStartTime;
+            nextSampleTime = recordStartTime + 1f / sampleRate;
             UpdateLineStyle(recordColor);
             RecordSample(0f);
+            RefreshTrajectoryLine();
         }
 
         public void StopRecording()
@@ -96,11 +107,7 @@ namespace ShotField.RuntimeUI
 
         public void StartPlayback()
         {
-            if (filmCamera == null)
-            {
-                Debug.LogWarning("[运镜回放] filmCamera 未绑定！已禁止 Camera.main 自动回退，拒绝回放。");
-                return;
-            }
+            if (filmCamera == null || filmCamera == hmdObserver || CurrentState == State.Recording) return;
             var traj = ActiveTrajectory;
             if (traj == null || traj.Count == 0) return;
             CurrentState = State.Playing;
@@ -118,8 +125,12 @@ namespace ShotField.RuntimeUI
             {
                 float elapsed = Time.time - recordStartTime;
                 if (elapsed > 0.001f) RecordSample(elapsed);
-                nextSampleTime = Time.time + (1f / sampleRate);
-                RefreshTrajectoryLine();
+                nextSampleTime = recordStartTime + (Mathf.Floor(elapsed * sampleRate) + 1f) / sampleRate;
+                if (trajectoryLine != null)
+                {
+                    trajectoryLine.positionCount = rawTrajectory.Count;
+                    trajectoryLine.SetPosition(rawTrajectory.Count - 1, rawTrajectory.points[rawTrajectory.Count - 1].position);
+                }
             }
         }
 
@@ -132,15 +143,8 @@ namespace ShotField.RuntimeUI
                 return;
             }
             float elapsed = Time.time - playStartTime;
-            if (elapsed >= traj.totalDuration)
-            {
-                var endPoint = traj.points[traj.points.Count - 1];
-                filmCamera.transform.SetPositionAndRotation(endPoint.position, endPoint.rotation);
-                filmCamera.fieldOfView = endPoint.fieldOfView;
-                CurrentState = State.Idle;
-                return;
-            }
             var sample = traj.Evaluate(elapsed);
+            if (elapsed >= traj.totalDuration) CurrentState = State.Idle;
             filmCamera.transform.SetPositionAndRotation(sample.position, sample.rotation);
             filmCamera.fieldOfView = sample.fieldOfView;
         }
@@ -167,7 +171,8 @@ namespace ShotField.RuntimeUI
                 trajectoryLine.startWidth = 0.012f;
                 trajectoryLine.endWidth = 0.012f;
                 trajectoryLine.useWorldSpace = true;
-                trajectoryLine.material = new Material(Shader.Find("Sprites/Default"));
+                ownedLineMaterial = new Material(Shader.Find("Sprites/Default"));
+                trajectoryLine.sharedMaterial = ownedLineMaterial;
             }
         }
 

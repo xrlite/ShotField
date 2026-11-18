@@ -45,7 +45,7 @@ namespace ShotField.EditorTools
                 dir.SwitchMode(TabletopDirector.ScaleMode.Immersive1to1);
                 bool isImmersive = dir.currentMode == TabletopDirector.ScaleMode.Immersive1to1;
 
-                if (isMini && isImmersive)
+                if (isMini && isImmersive && camGo.transform.position == Vector3.zero)
                 {
                     passCount++;
                     Debug.Log("[PASS] Test 2: 1:1 片场与 1:20 微缩沙盘双尺度模式切换正常");
@@ -74,22 +74,18 @@ namespace ShotField.EditorTools
                 takePlayer.actorTransform = actorGo.transform;
                 takePlayer.currentTake = take.Clone();
 
-                var camA = new GameObject("ShotCamA");
-                var camB = new GameObject("ShotCamB");
-                camA.transform.position = new Vector3(0, 1.5f, -2);
-                camB.transform.position = new Vector3(2, 0.8f, 1);
-
-                // 验证演员 Take 在不同机位下独立播放，演员 Transform 正确被驱动至终点
                 takePlayer.StartPlayback();
-                var endKeyframe = takePlayer.currentTake.Evaluate(2.0f);
-                actorGo.transform.SetPositionAndRotation(endKeyframe.position, endKeyframe.rotation);
-
-                if (actorGo.transform.position == new Vector3(2, 0, 2) && camA.transform.position != camB.transform.position)
+                takePlayer.AdvancePlayback(0.5f);
+                var midpoint = actorGo.transform.position;
+                takePlayer.AdvancePlayback(3f);
+                if (midpoint == new Vector3(0.5f, 0, 0.5f) &&
+                    actorGo.transform.position == new Vector3(2, 0, 2) &&
+                    takePlayer.CurrentState == ActorTakePlayer.PlayState.Idle)
                 {
                     passCount++;
-                    Debug.Log("[PASS] Test 4: 演员 Take 与摄影机完全解耦，支持同一段表演多机位复用拍摄");
+                    Debug.Log("[PASS] Test 4: 演员播放器实际应用中间帧和终帧");
                 }
-                else Debug.LogError("[FAIL] Test 4: 多机位演员 Take 复用测试异常");
+                else Debug.LogError("[FAIL] Test 4: 演员播放器未正确应用轨迹");
 
                 // Test 5: 观众实验室视线采样与注视热度统计
                 var labGo = new GameObject("AudienceLabGo");
@@ -98,23 +94,21 @@ namespace ShotField.EditorTools
                 lab.audienceHead = labGo.transform;
                 lab.focusTargetId = "envelope";
 
-                // 模拟 10 次采样，其中 7 次视线对准道具
-                for (int i = 0; i < 10; i++)
-                {
-                    bool hit = i < 7;
-                    lab.gazeSamples.Add(new AudienceLab.GazeSample
-                    {
-                        time = i * 0.1f,
-                        origin = Vector3.zero,
-                        forward = Vector3.forward,
-                        hitTargetId = hit ? "envelope" : ""
-                    });
-                    if (hit) lab.focusHitDuration += 0.1f;
-                }
-                lab.screeningDuration = 1.0f;
+                var target = new GameObject("Screening prop");
+                target.transform.SetParent(testRoot.transform);
+                labGo.transform.position = new Vector3(200, 200, 200);
+                target.transform.position = labGo.transform.position + Vector3.forward * 3f;
+                target.AddComponent<BoxCollider>();
+                target.AddComponent<SemanticMarker>().markerId = "phase2-screening-prop";
+                Physics.SyncTransforms();
+                lab.StartScreeningSession(null, "phase2-screening-prop");
+                lab.CaptureSample(0f);
+                labGo.transform.rotation = Quaternion.Euler(0, 90, 0);
+                lab.CaptureSample(0.7f);
+                lab.CaptureSample(1f);
                 float focusRatio = lab.GetFocusRatio();
 
-                if (Mathf.Approximately(focusRatio, 0.7f) && lab.gazeSamples.Count == 10)
+                if (Mathf.Approximately(focusRatio, 0.7f) && lab.gazeSamples.Count == 3)
                 {
                     passCount++;
                     Debug.Log($"[PASS] Test 5: 观众实验室视线注意力采样与关键道具注视占比统计准确 ({focusRatio * 100f:F0}%)");

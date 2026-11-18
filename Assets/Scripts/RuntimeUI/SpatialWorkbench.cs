@@ -24,8 +24,10 @@ namespace ShotField.RuntimeUI
         public Image visibilityPill;
         public Image axisPill;
 
-        [Header("空间按钮")]
         public Button prevBtn, nextBtn, newShotBtn, toggleAspectBtn, savePassportBtn, captureViewBtn;
+
+        public event System.Action<ShotPassportDto> PassportSaved;
+        public ShotData SelectedShot => library != null && library.Count > 0 ? library.Shots[Mathf.Clamp(currentShotIndex, 0, library.Count - 1)] : null;
 
         private int currentShotIndex = 0;
         private ShotConstraint[] rules;
@@ -52,6 +54,8 @@ namespace ShotField.RuntimeUI
             if (toggleAspectBtn != null && monitor != null) toggleAspectBtn.onClick.AddListener(ToggleAspect);
             if (savePassportBtn != null) savePassportBtn.onClick.AddListener(SavePassport);
             RefreshUI();
+            if (Application.platform == RuntimePlatform.WindowsPlayer || Application.isEditor)
+                gameObject.AddComponent<DesktopStudioPanel>();
         }
 
         void LateUpdate()
@@ -101,19 +105,14 @@ namespace ShotField.RuntimeUI
             EvaluateConstraints(shot);
         }
 
-        public void NextShot()
-        {
-            if (library == null || library.Count == 0) return;
-            currentShotIndex = (currentShotIndex + 1) % library.Count;
-            library.ApplyShot(library.Shots[currentShotIndex]);
-            RefreshUI();
-        }
+        public void NextShot() => StepShot(1);
+        public void PreviousShot() => StepShot(-1);
 
-        public void PreviousShot()
+        private void StepShot(int direction)
         {
-            if (library == null || library.Count == 0) return;
-            currentShotIndex = (currentShotIndex - 1 + library.Count) % library.Count;
-            library.ApplyShot(library.Shots[currentShotIndex]);
+            if (SelectedShot == null) return;
+            currentShotIndex = (currentShotIndex + direction + library.Count) % library.Count;
+            library.ApplyShot(SelectedShot);
             RefreshUI();
         }
 
@@ -142,6 +141,7 @@ namespace ShotField.RuntimeUI
                 var dto = ShotPassportDto.FromShot(shot, library.SceneId, shot.recordedConstraints);
                 var path = ShotPassportStore.SaveNextRevision(dto, ShotPassportStore.ProjectFolder);
                 shot.revision = dto.revision;
+                PassportSaved?.Invoke(dto);
                 ShowNotify($"护照已保存: rev{dto.revision:D3}");
                 Debug.Log($"[镜场 ShotField] 护照已存至: {path}");
             }

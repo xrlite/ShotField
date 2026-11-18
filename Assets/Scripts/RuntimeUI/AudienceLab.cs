@@ -34,10 +34,9 @@ namespace ShotField.RuntimeUI
         void Update()
         {
             if (!isScreeningActive) return;
-            screeningDuration = Time.time - screeningStartTime;
             if (Time.time >= nextSampleTime)
             {
-                RecordGazeSample();
+                CaptureSample(Time.time - screeningStartTime);
                 nextSampleTime = Time.time + 0.1f; // 10Hz 采样率
             }
         }
@@ -56,12 +55,18 @@ namespace ShotField.RuntimeUI
 
         public void StopScreeningSession()
         {
+            if (!isScreeningActive) return;
+            screeningDuration = Time.time - screeningStartTime;
+            AccumulatePreviousHit();
             isScreeningActive = false;
             ComputeSummary();
         }
 
-        private void RecordGazeSample()
+        public void CaptureSample(float elapsed)
         {
+            if (!isScreeningActive || elapsed < screeningDuration) return;
+            screeningDuration = elapsed;
+            AccumulatePreviousHit();
             var head = audienceHead != null ? audienceHead : (screeningCamera != null ? screeningCamera.transform : transform);
             Ray ray = new Ray(head.position, head.forward);
             string hitId = "";
@@ -72,11 +77,6 @@ namespace ShotField.RuntimeUI
                 if (marker != null) hitId = marker.markerId;
             }
 
-            if (!string.IsNullOrEmpty(focusTargetId) && hitId == focusTargetId)
-            {
-                focusHitDuration += 0.1f;
-            }
-
             gazeSamples.Add(new GazeSample
             {
                 time = screeningDuration,
@@ -84,6 +84,13 @@ namespace ShotField.RuntimeUI
                 forward = ray.direction,
                 hitTargetId = hitId
             });
+        }
+
+        private void AccumulatePreviousHit()
+        {
+            if (gazeSamples.Count == 0 || string.IsNullOrEmpty(focusTargetId)) return;
+            var previous = gazeSamples[gazeSamples.Count - 1];
+            if (previous.hitTargetId == focusTargetId) focusHitDuration += screeningDuration - previous.time;
         }
 
         public float GetFocusRatio() =>

@@ -19,6 +19,7 @@ namespace ShotField.RuntimeUI
         [Header("相机与观察者")]
         public Transform observerCamera;
 
+        private bool hasSavedPose;
         private Vector3 savedImmersivePos;
         private Quaternion savedImmersiveRot;
 
@@ -29,6 +30,7 @@ namespace ShotField.RuntimeUI
                 if (tabletopAnchor == null)
                 {
                     var anchorGo = new GameObject("TabletopAnchor");
+                    anchorGo.transform.SetParent(transform);
                     anchorGo.transform.SetPositionAndRotation(new Vector3(0, 0.8f, 1.2f), Quaternion.identity);
                     tabletopAnchor = anchorGo.transform;
                 }
@@ -46,6 +48,7 @@ namespace ShotField.RuntimeUI
             {
                 if (observerCamera != null)
                 {
+                    hasSavedPose = true;
                     savedImmersivePos = observerCamera.position;
                     savedImmersiveRot = observerCamera.rotation;
                     observerCamera.position = anchor.position + new Vector3(0, 0.6f, -0.8f);
@@ -56,9 +59,10 @@ namespace ShotField.RuntimeUI
             }
             else
             {
-                if (observerCamera != null && savedImmersivePos != Vector3.zero)
+                if (observerCamera != null && hasSavedPose)
                 {
                     observerCamera.SetPositionAndRotation(savedImmersivePos, savedImmersiveRot);
+                    hasSavedPose = false;
                 }
                 currentMode = ScaleMode.Immersive1to1;
                 SetTabletopActive(false);

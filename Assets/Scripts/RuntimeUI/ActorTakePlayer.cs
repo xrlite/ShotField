@@ -31,7 +31,7 @@ namespace ShotField.RuntimeUI
         void Update()
         {
             if (CurrentState == PlayState.Recording) TickRecording();
-            else if (CurrentState == PlayState.Playing) TickPlayback();
+            else if (CurrentState == PlayState.Playing) AdvancePlayback(Time.time - playStartTime);
         }
 
         public void StartRecordingTake(string takeId = "Take_01")
@@ -39,7 +39,7 @@ namespace ShotField.RuntimeUI
             if (actorTransform == null) return;
             currentTake = new ActorTake { takeId = takeId, actorId = actorId };
             recordStartTime = Time.time;
-            nextSampleTime = recordStartTime;
+            nextSampleTime = recordStartTime + 1f / sampleRate;
             CurrentState = PlayState.Recording;
             RecordSample(0f);
         }
@@ -52,7 +52,7 @@ namespace ShotField.RuntimeUI
             CurrentState = PlayState.Idle;
         }
 
-        public void StartPlayback(bool loop = false)
+        public void StartPlayback()
         {
             if (currentTake == null || currentTake.Count == 0 || actorTransform == null) return;
             CurrentState = PlayState.Playing;
@@ -70,27 +70,20 @@ namespace ShotField.RuntimeUI
             {
                 float elapsed = Time.time - recordStartTime;
                 if (elapsed > 0.001f) RecordSample(elapsed);
-                nextSampleTime = Time.time + (1f / sampleRate);
+                nextSampleTime = recordStartTime + (Mathf.Floor(elapsed * sampleRate) + 1f) / sampleRate;
             }
         }
 
-        private void TickPlayback()
+        public void AdvancePlayback(float elapsed)
         {
+            if (CurrentState != PlayState.Playing) return;
             if (actorTransform == null || currentTake == null || currentTake.Count == 0)
             {
                 CurrentState = PlayState.Idle;
                 return;
             }
 
-            float elapsed = Time.time - playStartTime;
-            if (elapsed >= currentTake.duration)
-            {
-                var endK = currentTake.keyframes[currentTake.keyframes.Count - 1];
-                actorTransform.SetPositionAndRotation(endK.position, endK.rotation);
-                CurrentState = PlayState.Idle;
-                return;
-            }
-
+            if (elapsed >= currentTake.duration) CurrentState = PlayState.Idle;
             var sample = currentTake.Evaluate(elapsed);
             actorTransform.SetPositionAndRotation(sample.position, sample.rotation);
         }
