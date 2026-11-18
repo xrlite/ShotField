@@ -48,26 +48,30 @@ namespace ShotField.EditorTools
             var lib = dirGo.GetComponent<ShotLibrary>();
             var vis = dirGo.GetComponent<VisibilityConstraint>();
             var monitor = wbGo.GetComponent<SpatialMonitor>();
+            var envelope = SemanticMarker.Find("envelope");
+            Assert("SC01. 信封语义标记与关键面已接线", envelope != null &&
+                envelope.criticalFaceMustStayHidden && envelope.criticalFaceNormal == Vector3.forward);
+            var envelopeCenter = envelope.CriticalFaceCenter;
 
             // 2. 两台真实机位一过一警
             // 机位 1：安全机位（侧平视极低角度拍茶几侧面，信封正面朝上不入画）
-            cam.transform.position = new Vector3(2.35f, 0.42f, 1.20f);
-            cam.transform.LookAt(new Vector3(1.50f, 0.451f, 2.15f));
+            cam.transform.position = envelopeCenter + new Vector3(0.85f, -0.39f, -0.95f);
+            cam.transform.LookAt(envelopeCenter);
             var s01 = lib.CreateShot(SceneCaptureMode.Current, "S01 安全机位：平视低角度拍茶几，信封正面朝上不入画");
             var r1 = vis.Evaluate(s01, null);
             Log($"  [DETAIL S01] status={r1.status}, detail={r1.detail}");
             Assert("REAL_SHOT_1. 安全机位判定 = 通过 (Pass)", r1.status == CheckStatus.Pass);
 
             // 机位 2：危险机位（茶几上方 1.45m 俯冲俯拍信封正面）
-            cam.transform.position = new Vector3(1.50f, 1.45f, 2.15f);
-            cam.transform.LookAt(new Vector3(1.50f, 0.45f, 2.15f));
+            cam.transform.position = envelopeCenter + envelope.CriticalFaceNormalWorld * 1f;
+            cam.transform.LookAt(envelopeCenter);
             var s02 = lib.CreateShot(SceneCaptureMode.InheritLatestOrCapture, "S02 危险机位：正上方俯拍信封，正面完全泄露");
             var r2 = vis.Evaluate(s02, s01);
             Log($"  [DETAIL S02] status={r2.status}, detail={r2.detail}");
             Assert("REAL_SHOT_2. 危险机位判定 = 违规 (Violation)", r2.status == CheckStatus.Violation);
 
             var occluder = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            occluder.transform.position = new Vector3(1.5f, 0.8f, 2.15f);
+            occluder.transform.position = envelopeCenter + envelope.CriticalFaceNormalWorld * 0.35f;
             occluder.transform.localScale = new Vector3(0.4f, 0.05f, 0.4f);
             Physics.SyncTransforms();
             Assert("REAL_SHOT_OCCLUSION. 同一正面机位加挡板后判定通过",
@@ -131,8 +135,9 @@ namespace ShotField.EditorTools
 
             // 5. 汇总并落盘证据
             Log($"=== 结果: 通过 {passCount} 项, 失败 {failCount} 项 ===");
-            string resultTag = failCount == 0 ? "SC01-VERIFY-RESULT=PASS" : "SC01-VERIFY-RESULT=FAIL";
+            string resultTag = failCount == 0 ? "SC01-REAL-RESULT=PASS" : "SC01-REAL-RESULT=FAIL";
             Log(resultTag);
+            Log(resultTag.Replace("SC01-REAL", "SC01-VERIFY"));
 
             Directory.CreateDirectory(outDir);
             var outFile = Path.Combine(verifyFolder, "sc01_verification_result.txt");

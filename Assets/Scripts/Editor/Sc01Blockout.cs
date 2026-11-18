@@ -39,9 +39,11 @@ namespace ShotField.EditorTools
             return root;
         }
 
+        [MenuItem("镜场 ShotField/重建 SC01 美术场景")]
         public static void BuildAndSaveScene()
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
+            Sc01ArtAssetBuilder.BuildAll();
             BuildIntoScene();
             SpatialWorkbenchBuilder.BuildWorkbench();
             EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene(), "Assets/Scenes/SC01_Blockout.unity");
@@ -64,35 +66,9 @@ namespace ShotField.EditorTools
 
         private static void BuildProps(Transform room)
         {
-            Box(room, "ShoeCabinet", new Vector3(0.2f, 0.45f, 0.5f), new Vector3(1f, 0.9f, 0.35f));
-            Box(room, "Sofa", new Vector3(0f, 0.425f, 3.2f), new Vector3(2f, 0.85f, 0.8f));
-            Box(room, "CoffeeTable", new Vector3(1.4f, 0.225f, 2.2f), new Vector3(1.2f, 0.45f, 0.6f));
+            Sc01ArtSceneBuilder.BuildProps(room);
             Box(room, "Fridge", new Vector3(-0.6f, 0.9f, 3.6f), new Vector3(0.6f, 1.8f, 0.6f));
-
-            var actor = Primitive(room, PrimitiveType.Capsule, "ActorA", new Vector3(0.8f, 0.86f, 1.25f),
-                new Vector3(0.46f, 0.86f, 0.46f));
-            Mark(actor, "actorA", SemanticMarker.Kind.ActorPrimary);
-
-            // 标志性 Low-Poly 信封（主体 + 翘起封口折角 + 微露信纸）
-            var envRoot = new GameObject("Envelope");
-            envRoot.transform.SetParent(room, false);
-            envRoot.transform.localPosition = new Vector3(1.5f, 0.451f, 2.15f);
-            var col = envRoot.AddComponent<BoxCollider>();
-            col.size = new Vector3(0.21f, 0.02f, 0.148f);
-            col.center = new Vector3(0f, 0.01f, 0f);
-
-            Box(envRoot.transform, "Envelope_Body", Vector3.zero, new Vector3(0.21f, 0.008f, 0.148f));
-            var flap = Box(envRoot.transform, "Envelope_Flap", new Vector3(0f, 0.006f, 0.025f), new Vector3(0.18f, 0.005f, 0.07f));
-            flap.transform.localRotation = Quaternion.Euler(10f, 0f, 0f);
-            Box(envRoot.transform, "Letter_Edge", new Vector3(0f, 0.005f, 0.005f), new Vector3(0.16f, 0.004f, 0.04f));
-
-            var marker = Mark(envRoot, "envelope", SemanticMarker.Kind.KeyProp);
-            marker.displayName = "桌上的信";
-            marker.criticalFaceNormal = Vector3.up;   // 平放后封口折角正面朝上
-            marker.criticalFaceSize = new Vector2(0.21f, 0.148f);
-            marker.criticalFaceMustStayHidden = true;
-
-            Mark(Primitive(room, PrimitiveType.Cylinder, "Tea", new Vector3(1.1f, 0.495f, 2.3f),
+            Mark(Primitive(room, PrimitiveType.Cylinder, "Tea", new Vector3(-0.25f, 0.82f, 1.32f),
                 new Vector3(0.08f, 0.045f, 0.08f)), "tea", SemanticMarker.Kind.Prop);
             Mark(Box(room, "Slipper", new Vector3(0.55f, 0.05f, 0.45f), new Vector3(0.085f, 0.045f, 0.24f)),
                 "slipper", SemanticMarker.Kind.Prop);
@@ -128,7 +104,7 @@ namespace ShotField.EditorTools
             var hmd = new GameObject("XR_Headset");
             hmd.transform.SetParent(room, false);
             hmd.transform.position = new Vector3(0.5f, 1.4f, 0.6f);
-            hmd.transform.LookAt(new Vector3(1.5f, 0.45f, 2.15f));
+            hmd.transform.LookAt(Sc01ArtSceneBuilder.EnvelopePosition);
             var hmdCam = hmd.AddComponent<Camera>();
             hmdCam.tag = "MainCamera";
             hmdCam.nearClipPlane = 0.05f;
@@ -152,8 +128,8 @@ namespace ShotField.EditorTools
             camera.fieldOfView = 45f;
             camera.aspect = ShotCameraState.DefaultAspect;
             camera.nearClipPlane = 0.05f;
-            director.transform.position = new Vector3(2.35f, 0.55f, 1.2f);
-            director.transform.LookAt(new Vector3(1.5f, 0.52f, 2.15f));
+            director.transform.position = Sc01ArtSceneBuilder.EnvelopePosition + new Vector3(0.85f, -0.26f, -0.95f);
+            director.transform.LookAt(Sc01ArtSceneBuilder.EnvelopePosition);
 
             var visibility = director.AddComponent<VisibilityConstraint>();
             visibility.ruleName = "信封正面不可见";

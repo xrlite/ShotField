@@ -7,7 +7,8 @@
     "UnityEngine.UI",
     "Unity.InputSystem",
     "ByteDance.PICO.XR",
-    "Unity.XR.Interaction.Toolkit"
+    "Unity.XR.Interaction.Toolkit",
+    "Compiler"
   ],
   "includePlatforms": [
     "Editor"
