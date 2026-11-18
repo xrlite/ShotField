@@ -74,23 +74,14 @@ namespace ShotField.Core
             }
         }
 
+        // 快捷键已移到 RuntimeUI/DesktopStudioPanel.HandleShortcuts()：
+        // 工程 activeInputHandler=1（纯新输入系统），Core 程序集不引用 Unity.InputSystem，
+        // 此处调用旧 UnityEngine.Input 会每帧抛 InvalidOperationException。
         protected virtual void Update()
         {
             if (AutoSave != null && AutoSave.Tick(Time.deltaTime))
             {
                 TriggerAutoSave();
-            }
-
-            if (Input.GetKey(KeyCode.LeftControl) || Input.GetKey(KeyCode.RightControl))
-            {
-                if (Input.GetKeyDown(KeyCode.Z) && !Input.GetKey(KeyCode.LeftShift))
-                {
-                    Undo();
-                }
-                else if (Input.GetKeyDown(KeyCode.Y) || (Input.GetKey(KeyCode.LeftShift) && Input.GetKeyDown(KeyCode.Z)))
-                {
-                    Redo();
-                }
             }
         }
     }
