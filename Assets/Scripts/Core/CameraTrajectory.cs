@@ -106,40 +106,48 @@ namespace ShotField.Core
             return TrajectoryPoint.Lerp(pA, pB, factor);
         }
 
-        public CameraTrajectory Smooth(int windowSize = 3, bool preserveEndpoints = true)
+        public CameraTrajectory Smooth(int windowSize = 5, bool preserveEndpoints = true)
         {
             var smoothed = new CameraTrajectory { totalDuration = totalDuration };
             if (points == null || points.Count == 0) return smoothed;
-            if (points.Count <= 2 || windowSize <= 1)
+            if (points.Count <= 2)
             {
                 smoothed.points = new List<TrajectoryPoint>(points);
                 return smoothed;
             }
 
-            int half = windowSize / 2;
-            for (int i = 0; i < points.Count; i++)
+            int n = points.Count;
+            for (int i = 0; i < n; i++)
             {
-                if (preserveEndpoints && (i == 0 || i == points.Count - 1))
+                if (preserveEndpoints && (i == 0 || i == n - 1))
                 {
                     smoothed.points.Add(points[i]);
                     continue;
                 }
 
-                int start = Mathf.Max(0, i - half);
-                int end = Mathf.Min(points.Count - 1, i + half);
-                Vector3 sumPos = Vector3.zero;
-                float sumFov = 0f;
-                int count = end - start + 1;
-                Quaternion avgRot = points[i].rotation;
-
-                for (int j = start; j <= end; j++)
+                Vector3 pos;
+                float fov;
+                if (n >= 5 && i >= 2 && i <= n - 3)
                 {
-                    sumPos += points[j].position;
-                    sumFov += points[j].fieldOfView;
-                    if (j > start) avgRot = Quaternion.Slerp(avgRot, points[j].rotation, 1f / (j - start + 1));
+                    pos = (-3f * points[i - 2].position + 12f * points[i - 1].position + 17f * points[i].position
+                         + 12f * points[i + 1].position - 3f * points[i + 2].position) / 35f;
+                    fov = (-3f * points[i - 2].fieldOfView + 12f * points[i - 1].fieldOfView + 17f * points[i].fieldOfView
+                         + 12f * points[i + 1].fieldOfView - 3f * points[i + 2].fieldOfView) / 35f;
+                }
+                else
+                {
+                    int prev = Mathf.Max(0, i - 1);
+                    int next = Mathf.Min(n - 1, i + 1);
+                    pos = (points[prev].position + 2f * points[i].position + points[next].position) * 0.25f;
+                    fov = (points[prev].fieldOfView + 2f * points[i].fieldOfView + points[next].fieldOfView) * 0.25f;
                 }
 
-                smoothed.points.Add(new TrajectoryPoint(points[i].time, sumPos / count, avgRot, sumFov / count));
+                int pIdx = Mathf.Max(0, i - 1);
+                int nIdx = Mathf.Min(n - 1, i + 1);
+                Quaternion neighborMid = Quaternion.Slerp(points[pIdx].rotation, points[nIdx].rotation, 0.5f);
+                Quaternion rot = Quaternion.Slerp(points[i].rotation, neighborMid, 0.25f);
+
+                smoothed.points.Add(new TrajectoryPoint(points[i].time, pos, rot, fov));
             }
             return smoothed;
         }
