@@ -55,6 +55,7 @@ namespace ShotField.RuntimeUI
             if (toggleAspectBtn != null && monitor != null) toggleAspectBtn.onClick.AddListener(ToggleAspect);
             if (savePassportBtn != null) savePassportBtn.onClick.AddListener(SavePassport);
             RefreshUI();
+            EnsureRuntimeButtons(GetComponent<Canvas>());
             var motion = GetComponent<CameraMotionRecorder>();
             var board = GetComponent<TabletopDirector>();
             var actor = GetComponent<ActorTakePlayer>();

@@ -20,6 +20,8 @@ namespace ShotField.RuntimeUI
         private string address = "127.0.0.1";
         private string note = "";
         private string status = "";
+        private string videoSource = "";
+        private bool showAdvanced;
         private bool showTabletop;
         private Transform recordingPose;
 
@@ -64,6 +66,7 @@ namespace ShotField.RuntimeUI
         void Update()
         {
             session.Tick();
+            HandleShortcuts();
             if (motion == null) return;
             if (motion.CurrentState == CameraMotionRecorder.State.Recording && Keyboard.current != null)
             {
@@ -83,6 +86,17 @@ namespace ShotField.RuntimeUI
                 audience.StopScreeningSession();
                 status = $"Camera-direction proxy: {audience.GetFocusRatio():P0} target visibility by ray";
             }
+        }
+
+        // 快捷键归 UI 层：Core 程序集不引用 Unity.InputSystem，且工程为纯新输入系统。
+        private void HandleShortcuts()
+        {
+            var kb = Keyboard.current;
+            if (kb == null || workbench == null) return;
+            bool ctrl = kb.leftCtrlKey.isPressed || kb.rightCtrlKey.isPressed;
+            if (!ctrl) return;
+            if (kb.zKey.wasPressedThisFrame && !kb.leftShiftKey.isPressed) workbench.UndoShot();
+            else if (kb.yKey.wasPressedThisFrame || (kb.zKey.wasPressedThisFrame && kb.leftShiftKey.isPressed)) workbench.RedoShot();
         }
 
         void OnDestroy()

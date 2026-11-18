@@ -10,7 +10,7 @@ namespace ShotField.RuntimeUI
         void OnGUI()
         {
             if (motion == null) return;
-            GUILayout.BeginArea(new Rect(12, 12, 340, 590), GUI.skin.box);
+            GUILayout.BeginArea(new Rect(12, 12, 340, Mathf.Min(Screen.height - 24f, 820f)), GUI.skin.box);
             GUILayout.Label(session.State.ToString());
             address = GUILayout.TextField(address);
             GUILayout.BeginHorizontal();
@@ -41,6 +41,8 @@ namespace ShotField.RuntimeUI
             if (GUILayout.Button("Send review note") && !string.IsNullOrWhiteSpace(note))
                 session.SendComment(note, (receivedShot ?? selected)?.shotId);
 
+            DrawAdvancedControls();
+
             showTabletop = GUILayout.Toggle(showTabletop, "1:20 tabletop walking marks");
             if (showTabletop && actor != null) DrawTabletop();
             GUILayout.Label(status);
@@ -48,6 +50,34 @@ namespace ShotField.RuntimeUI
             var feed = workbench.monitor?.Feed;
             if (feed != null)
                 GUI.DrawTexture(new Rect(365, 12, Mathf.Max(1, Screen.width - 377), Mathf.Max(1, Screen.height - 24)), feed, ScaleMode.ScaleToFit);
+        }
+
+        // 折叠区：不撑高既有布局，展开后才绘制新入口。
+        private void DrawAdvancedControls()
+        {
+            showAdvanced = GUILayout.Toggle(showAdvanced, "高级 · 撤销 / AI / 成片对照");
+            if (!showAdvanced) return;
+
+            GUILayout.Label(workbench.HistoryState);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("撤销 Ctrl+Z")) workbench.UndoShot();
+            if (GUILayout.Button("重做 Ctrl+Y")) workbench.RedoShot();
+            GUILayout.EndHorizontal();
+
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("解析当前剧本")) workbench.ParseStoryBible();
+            if (GUILayout.Button("导出 Seedance 参考包")) workbench.ExportReferencePackage();
+            GUILayout.EndHorizontal();
+            GUILayout.Label(workbench.AiState);
+
+            videoSource = GUILayout.TextField(videoSource);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("播放成片")) workbench.PlayReviewVideo(videoSource);
+            if (GUILayout.Button("切换比对模式")) workbench.CycleCompareMode();
+            GUILayout.EndHorizontal();
+            GUILayout.Label("比对: " + workbench.CompareModeName + " / " + workbench.ReviewState);
+            float progress = GUILayout.HorizontalSlider(workbench.ReviewProgress, 0f, 1f);
+            if (Mathf.Abs(progress - workbench.ReviewProgress) > 0.01f) workbench.SeekReview(progress);
         }
 
         private void DrawTabletop()
