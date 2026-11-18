@@ -12,7 +12,7 @@ namespace ShotField.Core
     /// 每个 ShotData 持有自己的一份 SceneSnapshot 深拷贝；
     /// 应用某个镜头时，是把那份快照"刷"到场景里，而不是让场景和镜头指向同一块内存。
     /// </summary>
-    public class ShotLibrary : MonoBehaviour
+    public partial class ShotLibrary : MonoBehaviour
     {
         [SerializeField] private List<ShotData> shots = new List<ShotData>();
         [SerializeField] private string defaultUpdatedBy = "yangl";
@@ -30,6 +30,10 @@ namespace ShotField.Core
             if (Find(shot.shotId) != null || Find(shortId) != null)
                 throw new InvalidOperationException("镜头 ID 已存在：" + shot.shotId);
             shots.Add(shot);
+            RecordUndo(shot);
+            MarkDirty();
+            RecordUndo(shot);
+            MarkDirty();
         }
 
         public IReadOnlyList<ShotData> Shots { get { return shots; } }
@@ -123,13 +127,15 @@ namespace ShotField.Core
 
             shot.camera = CaptureCamera();
             shots.Add(shot);
+            RecordUndo(shot);
+            MarkDirty();
             return shot;
         }
 
         /// <summary>把当前机位写回某个镜头的独立机位状态（不动场景快照）。</summary>
         public void UpdateCameraOf(ShotData shot)
         {
-            if (shot == null) return;
+            RecordUndo(shot);
             shot.camera = CaptureCamera();
             shot.revision += 1;
             shot.lastCheck.Clear();
@@ -142,7 +148,7 @@ namespace ShotField.Core
         /// <summary>把当前场景状态写回某个镜头（会改快照）。</summary>
         public void UpdateSnapshotOf(ShotData shot)
         {
-            if (shot == null) return;
+            RecordUndo(shot);
             shot.snapshot = CaptureSnapshot();
             shot.revision += 1;
             shot.lastCheck.Clear();
