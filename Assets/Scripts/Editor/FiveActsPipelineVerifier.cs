@@ -8,6 +8,9 @@ namespace ShotField.EditorTools
 {
     public static class FiveActsPipelineVerifier
     {
+        // 1 条枚举数量 + 5 条逐幕描述符 + 3 条请求/解析 = 9。
+        private const int ExpectedAssertions = 9;
+
         [MenuItem("镜场 ShotField/验证/验证五幕剧本与 Seedance 管线")]
         public static void Run()
         {
@@ -54,7 +57,13 @@ namespace ShotField.EditorTools
             Assert("剧本解析器成功为第二幕提取角色与节拍",
                 analysis != null && analysis.beats.Count > 0);
 
-            Debug.Log($"FIVE-ACTS-PIPELINE-RESULT=PASS ({passCount}/5)");
+            if (passCount != ExpectedAssertions)
+            {
+                Debug.LogError($"FIVE-ACTS-PIPELINE-RESULT=FAIL 断言计数不符 ({passCount}/{ExpectedAssertions})");
+                if (Application.isBatchMode) EditorApplication.Exit(1);
+                return;
+            }
+            Debug.Log($"FIVE-ACTS-PIPELINE-RESULT=PASS ({passCount}/{ExpectedAssertions})");
             if (Application.isBatchMode) EditorApplication.Exit(0);
         }
     }

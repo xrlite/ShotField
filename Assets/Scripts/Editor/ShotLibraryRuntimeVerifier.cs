@@ -9,6 +9,9 @@ namespace ShotField.EditorTools
 {
     public static class ShotLibraryRuntimeVerifier
     {
+        // 断言总数必须与下方 Assert 调用条数一致；新增断言时同步改这里。
+        private const int ExpectedAssertions = 10;
+
         [MenuItem("镜场 ShotField/验证/验证 ShotLibrary 运行时撤销与自动保存")]
         public static void Run()
         {
@@ -65,7 +68,13 @@ namespace ShotField.EditorTools
                 bool triggered = lib.AutoSave.Tick(30.1f);
                 Assert("步进 30s 且有脏标记时正确触发自动保存事件", triggered && !lib.AutoSave.IsDirty);
 
-                Debug.Log($"SHOTLIBRARY-RUNTIME-RESULT=PASS ({passCount}/5)");
+                if (passCount != ExpectedAssertions)
+                {
+                    Debug.LogError($"SHOTLIBRARY-RUNTIME-RESULT=FAIL 断言计数不符 ({passCount}/{ExpectedAssertions})");
+                    if (Application.isBatchMode) EditorApplication.Exit(1);
+                    return;
+                }
+                Debug.Log($"SHOTLIBRARY-RUNTIME-RESULT=PASS ({passCount}/{ExpectedAssertions})");
                 if (Application.isBatchMode) EditorApplication.Exit(0);
             }
             finally

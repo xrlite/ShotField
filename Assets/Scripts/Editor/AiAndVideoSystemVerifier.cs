@@ -8,6 +8,9 @@ namespace ShotField.EditorTools
 {
     public static class AiAndVideoSystemVerifier
     {
+        // 2 条解析 + 2 条交接 + 2 条播放器初始化 + 1 条模式切换 + 1 条模式枚举 = 8。
+        private const int ExpectedAssertions = 8;
+
         [MenuItem("镜场 ShotField/验证/验证 AI 系统与生成回片对照")]
         public static void Run()
         {
@@ -64,10 +67,25 @@ namespace ShotField.EditorTools
                 player.SetMode(ComparisonDisplayMode.PictureInPicture);
                 Assert("支持画中画与分屏比对模式切换", player.displayMode == ComparisonDisplayMode.PictureInPicture);
 
+                // 无视频源时 SeekNormalized 会安全返回，不能拿「不抛错」当断言。
+                // 改为逐个验证三种比对模式都能真正设置成功（可失败的断言）。
                 player.SeekNormalized(0.5f);
-                Assert("Seek 接口正常执行无抛错", true);
+                bool allModesApplied = true;
+                foreach (ComparisonDisplayMode mode in Enum.GetValues(typeof(ComparisonDisplayMode)))
+                {
+                    player.SetMode(mode);
+                    allModesApplied &= player.displayMode == mode;
+                }
+                Assert("三种比对模式均可设置且状态回读一致",
+                    allModesApplied && Enum.GetValues(typeof(ComparisonDisplayMode)).Length == 3);
 
-                Debug.Log($"AI-AND-VIDEO-RESULT=PASS ({passCount}/5)");
+                if (passCount != ExpectedAssertions)
+                {
+                    Debug.LogError($"AI-AND-VIDEO-RESULT=FAIL 断言计数不符 ({passCount}/{ExpectedAssertions})");
+                    if (Application.isBatchMode) EditorApplication.Exit(1);
+                    return;
+                }
+                Debug.Log($"AI-AND-VIDEO-RESULT=PASS ({passCount}/{ExpectedAssertions})");
                 if (Application.isBatchMode) EditorApplication.Exit(0);
             }
             finally
