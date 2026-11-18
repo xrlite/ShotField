@@ -5,6 +5,8 @@
     "ShotField.Core",
     "ShotField.Constraints",
     "UnityEngine.UI",
-    "Unity.InputSystem"
+    "Unity.InputSystem",
+    "Unity.XR.Interaction.Toolkit",
+    "Unity.XR.CoreUtils"
   ]
 }
