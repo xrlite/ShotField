@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem;
 using ShotField.Core;
 
 namespace ShotField.RuntimeUI
@@ -28,8 +29,17 @@ namespace ShotField.RuntimeUI
             if (actorTransform == null) actorTransform = transform;
         }
 
+        private readonly InputAction recordTake = new InputAction("ActorTake", InputActionType.Button,
+            "<XRController>{LeftHand}/gripPressed");
+
+        void OnEnable() => recordTake.Enable();
+        void OnDisable() => recordTake.Disable();
+        void OnDestroy() => recordTake.Dispose();
+
         void Update()
         {
+            if (recordTake.WasPressedThisFrame()) StartRecordingTake();
+            if (recordTake.WasReleasedThisFrame()) StopRecordingTake();
             if (CurrentState == PlayState.Recording) TickRecording();
             else if (CurrentState == PlayState.Playing) AdvancePlayback(Time.time - playStartTime);
         }

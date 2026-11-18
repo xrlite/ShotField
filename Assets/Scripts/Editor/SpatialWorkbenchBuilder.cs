@@ -88,6 +88,36 @@ namespace ShotField.EditorTools
 
             Undo.RegisterCreatedObjectUndo(canvasGo, "创建空间多窗口工作台");
             Debug.Log("[镜场 ShotField] PICO 空间 3D 悬浮多窗口工作台构建成功！");
+            var head = Camera.main;
+            var actorTarget = SemanticMarker.Find("actorA");
+            if (!dirCam || !head || head == dirCam || !actorTarget)
+                throw new System.InvalidOperationException("Missing SC01 camera or actor binding.");
+            var motion = canvasGo.AddComponent<CameraMotionRecorder>();
+            motion.poseSource = head.transform;
+            motion.filmCamera = dirCam;
+            motion.hmdObserver = head;
+            var board = canvasGo.AddComponent<TabletopDirector>();
+            board.sceneRoot1to1 = dirCam.transform.parent;
+            board.tabletopAnchor = new GameObject("TabletopAnchor").transform;
+            board.tabletopAnchor.SetParent(canvasGo.transform.parent);
+            board.tabletopAnchor.position = new Vector3(0, 0.8f, 1.2f);
+            board.tabletopProxyRoot = GameObject.CreatePrimitive(PrimitiveType.Capsule).transform;
+            board.tabletopProxyRoot.name = "ActorTabletopProxy";
+            board.tabletopProxyRoot.SetParent(board.tabletopAnchor);
+            board.tabletopProxyRoot.localScale = actorTarget.transform.lossyScale * board.miniScale;
+            board.SyncWorldToProxy(actorTarget.transform, board.tabletopProxyRoot);
+            board.tabletopProxyRoot.gameObject.SetActive(false);
+            board.observerCamera = head.transform;
+            var actor = canvasGo.AddComponent<ActorTakePlayer>();
+            actor.actorTransform = actorTarget.transform;
+            var audience = canvasGo.AddComponent<AudienceLab>();
+            audience.audienceHead = head.transform;
+            audience.screeningCamera = dirCam;
+            canvasGo.AddComponent<DesktopStudioPanel>();
+            wb.playMotion = CreateButton(canvasGo.transform, "PlayMotion", "运镜回放", new Vector2(-180,-255));
+            wb.toggleBoard = CreateButton(canvasGo.transform, "ToggleBoard", "沙盘", new Vector2(-60,-255));
+            wb.playActor = CreateButton(canvasGo.transform, "PlayActor", "表演回放", new Vector2(60,-255));
+            wb.screenShot = CreateButton(canvasGo.transform, "ScreenShot", "观众试看", new Vector2(180,-255));
             return canvasGo;
         }
 

@@ -13,6 +13,19 @@ namespace ShotField.EditorTools
             int passCount = 0;
             int totalTests = 5;
 
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity");
+            var bench = UnityEngine.Object.FindAnyObjectByType<SpatialWorkbench>();
+            if (!bench || bench.gameObject.scene != scene) throw new InvalidOperationException("Missing saved workbench");
+            var motion = bench.GetComponent<CameraMotionRecorder>();
+            var board = bench.GetComponent<TabletopDirector>();
+            var actor = bench.GetComponent<ActorTakePlayer>();
+            var audience = bench.GetComponent<AudienceLab>();
+            if (!motion || !motion.poseSource || !motion.filmCamera || !motion.hmdObserver ||
+                motion.filmCamera == motion.hmdObserver || !board || !board.sceneRoot1to1 ||
+                !board.tabletopProxyRoot || !board.observerCamera || !actor ||
+                actor.actorTransform != SemanticMarker.Find("actorA").transform || !audience ||
+                audience.audienceHead != motion.hmdObserver.transform)
+                throw new InvalidOperationException("Invalid SC01 studio bindings");
             var testRoot = new GameObject("Phase2TestRoot");
             try
             {

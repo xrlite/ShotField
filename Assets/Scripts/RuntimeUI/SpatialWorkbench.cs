@@ -7,7 +7,7 @@ using ShotField.Constraints;
 
 namespace ShotField.RuntimeUI
 {
-    public class SpatialWorkbench : MonoBehaviour
+    public partial class SpatialWorkbench : MonoBehaviour
     {
         [Header("核心引用")]
         public ShotLibrary library;
@@ -26,6 +26,7 @@ namespace ShotField.RuntimeUI
 
         public Button prevBtn, nextBtn, newShotBtn, toggleAspectBtn, savePassportBtn, captureViewBtn;
 
+        public Button playMotion, toggleBoard, playActor, screenShot;
         public event System.Action<ShotPassportDto> PassportSaved;
         public ShotData SelectedShot => library != null && library.Count > 0 ? library.Shots[Mathf.Clamp(currentShotIndex, 0, library.Count - 1)] : null;
 
@@ -54,8 +55,23 @@ namespace ShotField.RuntimeUI
             if (toggleAspectBtn != null && monitor != null) toggleAspectBtn.onClick.AddListener(ToggleAspect);
             if (savePassportBtn != null) savePassportBtn.onClick.AddListener(SavePassport);
             RefreshUI();
-            if (Application.platform == RuntimePlatform.WindowsPlayer || Application.isEditor)
-                gameObject.AddComponent<DesktopStudioPanel>();
+            var motion = GetComponent<CameraMotionRecorder>();
+            var board = GetComponent<TabletopDirector>();
+            var actor = GetComponent<ActorTakePlayer>();
+            var lab = GetComponent<AudienceLab>();
+            if (motion && playMotion) playMotion.onClick.AddListener(motion.StartPlayback);
+            if (actor && playActor) playActor.onClick.AddListener(() => actor.StartPlayback());
+            if (board && toggleBoard) toggleBoard.onClick.AddListener(() =>
+            {
+                board.SyncWorldToProxy(actor.actorTransform, board.tabletopProxyRoot);
+                board.SwitchMode(board.currentMode == TabletopDirector.ScaleMode.TabletopMini
+                    ? TabletopDirector.ScaleMode.Immersive1to1 : TabletopDirector.ScaleMode.TabletopMini);
+            });
+            if (lab && screenShot) screenShot.onClick.AddListener(() =>
+            {
+                if (lab.isScreeningActive) lab.StopScreeningSession();
+                else { lab.StartScreeningSession(library.ShotCamera); motion.StartPlayback(); }
+            });
         }
 
         void LateUpdate()
@@ -76,34 +92,7 @@ namespace ShotField.RuntimeUI
             ShowNotify("[扳机捕获] 机位已同步至当前视线");
         }
 
-        public void RefreshUI()
-        {
-            if (library == null || library.Count == 0)
-            {
-                WorkbenchStatus.UpdatePill(visibilityPill, visibilityStatusText, null, "信封");
-                WorkbenchStatus.UpdatePill(axisPill, axisStatusText, null, "轴线");
-                if (shotTitleText != null) shotTitleText.text = "暂无镜头";
-                if (shotInfoText != null) shotInfoText.text = "点击下方按钮以当前机位创建分镜";
-                return;
-            }
 
-            currentShotIndex = Mathf.Clamp(currentShotIndex, 0, library.Count - 1);
-            var shot = library.Shots[currentShotIndex];
-            if (monitor != null)
-            {
-                bool portrait = shot.camera.aspect < 1f;
-                if (monitor.IsPortrait != portrait) monitor.SetAspect(portrait);
-                monitor.RequestRender();
-            }
-
-            if (shotTitleText != null)
-                shotTitleText.text = $"分镜 [{shot.shotId}] (第 {currentShotIndex + 1}/{library.Count} 镜)";
-
-            if (shotInfoText != null)
-                shotInfoText.text = $"意图: {shot.intent}\n机位: {shot.camera.position}";
-
-            EvaluateConstraints(shot);
-        }
 
         public void NextShot() => StepShot(1);
         public void PreviousShot() => StepShot(-1);
@@ -161,23 +150,7 @@ namespace ShotField.RuntimeUI
             RefreshUI();
         }
 
-        private void EvaluateConstraints(ShotData shot)
-        {
-            shot.lastCheck.Clear();
-            ConstraintResult vis = null, axis = null;
-            var previous = currentShotIndex > 0 ? library.Shots[currentShotIndex - 1] : null;
-            foreach (var rule in rules)
-            {
-                if (!IsApplicable(rule)) continue;
-                var result = rule.Evaluate(shot, previous);
-                shot.lastCheck.Add(result);
-                if (rule is VisibilityConstraint && vis == null) vis = result;
-                if (rule is AxisConstraint && axis == null) axis = result;
-            }
-            WorkbenchStatus.UpdatePill(visibilityPill, visibilityStatusText, vis?.status, "信封");
-            WorkbenchStatus.UpdatePill(axisPill, axisStatusText, axis?.status, "轴线");
-            shot.checkedAt = System.DateTimeOffset.UtcNow.ToString("O");
-        }
+
 
         private bool IsApplicable(ShotConstraint rule) =>
             rule != null && rule.isActiveAndEnabled && rule.gameObject.scene == library.gameObject.scene;
