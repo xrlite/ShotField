@@ -8,7 +8,7 @@ using UnityEngine;
 
 namespace ShotField.Core
 {
-    public class NetworkSession
+    public partial class NetworkSession
     {
         public enum SessionState { Disconnected, Hosting, Connected, Connecting }
 
@@ -68,6 +68,7 @@ namespace ShotField.Core
         public void BroadcastCamera(int index, Vector3 position, Quaternion rotation, float fov)
         {
             if (State != SessionState.Hosting) return;
+            CurrentShotIndex = index;
             latestCamera = SetPacket.Create(PacketType.CameraSync, LocalClientId,
                 new CameraSyncData(index, position, rotation, fov));
             Broadcast(latestCamera);
@@ -143,10 +144,18 @@ namespace ShotField.Core
                         || role == ParticipantRole.Director) { peer.Dispose(); return; }
                     peer.Role = role;
                     peer.Send(SetPacket.Create(PacketType.JoinResponse, LocalClientId,
-                        new JoinResponseData { clientId = peer.Id, assignedRole = role.ToString(), sceneId = "SC01" }));
+                        new JoinResponseData
+                        {
+                            clientId = peer.Id, assignedRole = role.ToString(),
+                            currentShotIndex = CurrentShotIndex, sceneId = "SC01"
+                        }));
                     if (latestCamera != null) peer.Send(latestCamera);
                     foreach (var passport in passports.Values) peer.Send(passport);
                     OnClientJoined?.Invoke(peer.Id, role.ToString());
+                }
+                else if (peer.Role.HasValue && packet.type == nameof(PacketType.Heartbeat))
+                {
+                    HandleHeartbeat();
                 }
                 else if (peer.Role.HasValue && packet.type == nameof(PacketType.Comment))
                 {
@@ -161,9 +170,12 @@ namespace ShotField.Core
             switch (packet.type)
             {
                 case nameof(PacketType.JoinResponse):
-                    LocalClientId = packet.Unpack<JoinResponseData>().clientId;
+                    var resp = packet.Unpack<JoinResponseData>();
+                    LocalClientId = resp.clientId;
+                    InitialShotIndex = resp.currentShotIndex;
                     State = SessionState.Connected;
                     break;
+                case nameof(PacketType.Heartbeat): HandleHeartbeat(); break;
                 case nameof(PacketType.CameraSync): OnCameraSyncReceived?.Invoke(packet.Unpack<CameraSyncData>()); break;
                 case nameof(PacketType.PassportSync): OnPassportSyncReceived?.Invoke(packet.Unpack<PassportSyncData>()); break;
                 case nameof(PacketType.Comment): OnCommentReceived?.Invoke(packet.Unpack<CommentData>()); break;
@@ -180,21 +192,6 @@ namespace ShotField.Core
                 try { action(); }
                 catch (Exception ex) { Debug.LogWarning(ex.Message); }
             }
-        }
-
-        public void Disconnect()
-        {
-            generation++;
-            listener?.Stop();
-            listener = null;
-            upstream?.Dispose();
-            upstream = null;
-            foreach (var peer in peers) peer.Dispose();
-            peers.Clear();
-            passports.Clear();
-            latestCamera = null;
-            State = SessionState.Disconnected;
-            LocalClientId = "local";
         }
     }
 }

@@ -35,9 +35,16 @@ namespace ShotField.EditorTools
             var avatar = AssetDatabase.LoadAllAssetsAtPath(modelPath).OfType<Avatar>().FirstOrDefault();
             if (!model || !avatar || !avatar.isHuman) throw new InvalidOperationException("Humanoid actor asset invalid.");
             var root = NewMarkedRoot("ActorA_Character", "actorA", SemanticMarker.Kind.ActorPrimary);
-            var visual = UnityEngine.Object.Instantiate(model, root.transform);
-            visual.name = "Visual";
-            FitExact(visual, new Vector3(0.52f, 1.72f, 0.42f));
+            // The idle clip animates Visual.localScale.y around one.
+            // Keep model normalization separate from that animated transform.
+            var normalization = new GameObject("Visual");
+            normalization.transform.SetParent(root.transform, false);
+            var visual = UnityEngine.Object.Instantiate(model, normalization.transform);
+            var renderers = visual.GetComponentsInChildren<Renderer>(true);
+            if (renderers.Length == 0 || BoundsOf(renderers).size.y < 0.001f)
+                throw new InvalidOperationException("Actor cannot be fitted: missing visual height.");
+            visual.transform.localScale *= 1.72f / BoundsOf(renderers).size.y;
+            visual.transform.position -= BoundsOf(renderers).center;
             ApplyActorClay(visual);
             var animator = root.AddComponent<Animator>();
             animator.avatar = avatar;

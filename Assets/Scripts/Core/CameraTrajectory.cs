@@ -82,28 +82,10 @@ namespace ShotField.Core
         {
             if (points == null || points.Count == 0)
                 return new TrajectoryPoint(0f, Vector3.zero, Quaternion.identity);
-            if (points.Count == 1 || t <= points[0].time)
-                return points[0];
-            if (t >= totalDuration)
-                return points[points.Count - 1];
-
-            int low = 0, high = points.Count - 1;
-            while (low <= high)
-            {
-                int mid = (low + high) / 2;
-                if (points[mid].time < t) low = mid + 1;
-                else high = mid - 1;
-            }
-
-            int indexA = Mathf.Clamp(low - 1, 0, points.Count - 1);
-            int indexB = Mathf.Clamp(low, 0, points.Count - 1);
-            if (indexA == indexB) return points[indexA];
-
-            var pA = points[indexA];
-            var pB = points[indexB];
-            float span = pB.time - pA.time;
-            float factor = span > 0.0001f ? (t - pA.time) / span : 0f;
-            return TrajectoryPoint.Lerp(pA, pB, factor);
+            if (t >= totalDuration) return points[points.Count - 1];
+            KeyframeTrack.FindSegment(points, p => p.time, t, out int idxA, out int idxB, out float alpha);
+            if (idxA < 0) return new TrajectoryPoint(0f, Vector3.zero, Quaternion.identity);
+            return idxA == idxB ? points[idxA] : TrajectoryPoint.Lerp(points[idxA], points[idxB], alpha);
         }
 
         public CameraTrajectory Smooth(int windowSize = 5, bool preserveEndpoints = true)

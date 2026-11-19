@@ -39,9 +39,7 @@ namespace ShotField.RuntimeUI
         public State CurrentState { get; private set; } = State.Idle;
 
         private Material ownedLineMaterial;
-        private float recordStartTime;
-        private float nextSampleTime;
-        private float playStartTime;
+        private readonly TimedCaptureClock clock = new TimedCaptureClock();
         private readonly InputAction recordAction = new InputAction("RecordMotion", InputActionType.Button);
 
         void Awake()
@@ -82,8 +80,7 @@ namespace ShotField.RuntimeUI
             CurrentState = State.Recording;
             rawTrajectory = new CameraTrajectory();
             smoothedTrajectory = new CameraTrajectory();
-            recordStartTime = Time.time;
-            nextSampleTime = recordStartTime + 1f / sampleRate;
+            clock.BeginRecording(Time.time, sampleRate);
             UpdateLineStyle(recordColor);
             RecordSample(0f);
             RefreshTrajectoryLine();
@@ -92,8 +89,7 @@ namespace ShotField.RuntimeUI
         public void StopRecording()
         {
             if (CurrentState != State.Recording) return;
-            float totalElapsed = Mathf.Max(0.001f, Time.time - recordStartTime);
-            RecordSample(totalElapsed);
+            RecordSample(clock.EndRecording(Time.time));
             CurrentState = State.Idle;
 
             if (smoothEnabled && rawTrajectory.Count > 2)
@@ -111,7 +107,7 @@ namespace ShotField.RuntimeUI
             var traj = ActiveTrajectory;
             if (traj == null || traj.Count == 0) return;
             CurrentState = State.Playing;
-            playStartTime = Time.time;
+            clock.BeginPlayback(Time.time);
         }
 
         public void StopPlayback()
@@ -121,11 +117,9 @@ namespace ShotField.RuntimeUI
 
         private void TickRecording()
         {
-            if (Time.time >= nextSampleTime)
+            if (clock.PollSample(Time.time, sampleRate, out float elapsed))
             {
-                float elapsed = Time.time - recordStartTime;
-                if (elapsed > 0.001f) RecordSample(elapsed);
-                nextSampleTime = recordStartTime + (Mathf.Floor(elapsed * sampleRate) + 1f) / sampleRate;
+                RecordSample(elapsed);
                 if (trajectoryLine != null)
                 {
                     trajectoryLine.positionCount = rawTrajectory.Count;
@@ -142,7 +136,7 @@ namespace ShotField.RuntimeUI
                 CurrentState = State.Idle;
                 return;
             }
-            float elapsed = Time.time - playStartTime;
+            float elapsed = clock.PlaybackElapsed(Time.time);
             var sample = traj.Evaluate(elapsed);
             if (elapsed >= traj.totalDuration) CurrentState = State.Idle;
             filmCamera.transform.SetPositionAndRotation(sample.position, sample.rotation);

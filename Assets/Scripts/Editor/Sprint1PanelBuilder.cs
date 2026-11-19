@@ -76,13 +76,16 @@ namespace ShotField.EditorTools
 
         private static void BuildTimelineControls(Transform root, DirectorTimeline timeline)
         {
-            var panel = MakePanel(root, "WindowF_Timeline", PanelBg, new Vector2(0f, -395f), new Vector2(760f, 76f));
+            var panel = MakePanel(root, "WindowF_Timeline", PanelBg, new Vector2(0f, -395f), new Vector2(880f, 76f));
             var ui = root.gameObject.AddComponent<TimelineControlsUI>();
             ui.timeline = timeline;
-            ui.playPauseBtn = MakeButton(panel.transform, "TL_Play", "播放/暂停", new Vector2(-315f, 12f), new Vector2(100f, 34f), AccentBg);
-            ui.motionPresetBtn = MakeButton(panel.transform, "TL_Motion", "运镜预设", new Vector2(-200f, 12f), new Vector2(100f, 34f), BtnBg);
-            ui.posePresetBtn = MakeButton(panel.transform, "TL_Pose", "姿态预设", new Vector2(-85f, 12f), new Vector2(100f, 34f), BtnBg);
-            ui.scrubber = MakeSlider(panel.transform, new Vector2(165f, 12f), new Vector2(360f, 16f));
+            ui.playPauseBtn = MakeButton(panel.transform, "TL_Play", "播放/暂停", new Vector2(-375f, 12f), new Vector2(96f, 34f), AccentBg);
+            ui.motionPresetBtn = MakeButton(panel.transform, "TL_Motion", "运镜预设", new Vector2(-270f, 12f), new Vector2(96f, 34f), BtnBg);
+            ui.posePresetBtn = MakeButton(panel.transform, "TL_Pose", "姿态预设", new Vector2(-165f, 12f), new Vector2(96f, 34f), BtnBg);
+            var lighting = root.gameObject.AddComponent<SceneLightingPresets>();
+            var moodBtn = MakeButton(panel.transform, "TL_Mood", "光影氛围", new Vector2(-60f, 12f), new Vector2(96f, 34f), BtnBg);
+            moodBtn.onClick.AddListener(lighting.CycleMood);
+            ui.scrubber = MakeSlider(panel.transform, new Vector2(185f, 12f), new Vector2(360f, 16f));
             ui.presetStatusText = MakeText(panel.transform, "TL_Status", "运镜:DollyPush | 姿态:Idle", 12, new Vector2(0f, -20f), Color.white);
             ui.Wire();
         }

@@ -43,11 +43,10 @@ namespace ShotField.EditorTools
                 Directory.CreateDirectory(evidence);
                 Directory.CreateDirectory(output);
 
-                EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
-                var root = Sc01Blockout.BuildIntoScene();
-                report.AppendLine("blockout=created root=" + root.name);
-
-                var camera = root.GetComponentInChildren<Camera>(true);
+                var scene = EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity");
+                var director = GameObject.Find("Director");
+                var camera = director && director.scene == scene ? director.GetComponent<Camera>() : null;
+                report.AppendLine("scene=" + scene.path + " camera=Director");
                 if (camera == null)
                 {
                     report.AppendLine("RESULT=FAIL reason=no camera in blockout");

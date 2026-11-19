@@ -863,7 +863,7 @@ Transform:
   - {fileID: 8818375850751220074}
   - {fileID: 4802831178508248328}
   - {fileID: 2040011059679738057}
-  m_Father: {fileID: 3287834277207380653}
+  m_Father: {fileID: 8728212139709612128}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2495356617175395384
 GameObject:
@@ -1554,7 +1554,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 5910788281859626133}
-  m_Father: {fileID: 3287834277207380653}
+  m_Father: {fileID: 8728212139709612128}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &4870859717401555086
 GameObject:
@@ -1937,6 +1937,62 @@ Transform:
   - {fileID: 9068760558768419012}
   m_Father: {fileID: 7392824265839239638}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &5718207536045974346
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 8728212139709612128}
+  - component: {fileID: 8742087682710171453}
+  m_Layer: 0
+  m_Name: Biped_Humanoid(Clone)
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &8728212139709612128
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5718207536045974346}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0.0025327802, y: -0.8314193, z: -0.15045089}
+  m_LocalScale: {x: 0.9711004, y: 0.9711004, z: 0.9711004}
+  m_ConstrainProportionsScale: 0
+  m_Children:
+  - {fileID: 3330215552456730343}
+  - {fileID: 211438769097244634}
+  m_Father: {fileID: 3287834277207380653}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!95 &8742087682710171453
+Animator:
+  serializedVersion: 7
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5718207536045974346}
+  m_Enabled: 1
+  m_Avatar: {fileID: 9000000, guid: 31fffecbd244bf84998af65efdb43eab, type: 3}
+  m_Controller: {fileID: 0}
+  m_CullingMode: 1
+  m_UpdateMode: 0
+  m_ApplyRootMotion: 1
+  m_LinearVelocityBlending: 0
+  m_StabilizeFeet: 0
+  m_AnimatePhysics: 0
+  m_WarningMessage: 
+  m_HasTransformHierarchy: 1
+  m_AllowConstantClipSamplingOptimization: 1
+  m_KeepAnimatorStateOnDisable: 0
+  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &5746162903656884963
 GameObject:
   m_ObjectHideFlags: 0
@@ -2713,7 +2769,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 3287834277207380653}
-  - component: {fileID: 5281485586449182735}
   m_Layer: 0
   m_Name: Visual
   m_TagString: Untagged
@@ -2729,37 +2784,14 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 8024127047449086994}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.0009781122, y: -0.8314193, z: -0.072257176}
-  m_LocalScale: {x: 0.37501782, y: 0.9711004, z: 0.4663913}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 3330215552456730343}
-  - {fileID: 211438769097244634}
+  - {fileID: 8728212139709612128}
   m_Father: {fileID: 7995491807613790425}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!95 &5281485586449182735
-Animator:
-  serializedVersion: 7
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8024127047449086994}
-  m_Enabled: 1
-  m_Avatar: {fileID: 9000000, guid: 31fffecbd244bf84998af65efdb43eab, type: 3}
-  m_Controller: {fileID: 0}
-  m_CullingMode: 1
-  m_UpdateMode: 0
-  m_ApplyRootMotion: 1
-  m_LinearVelocityBlending: 0
-  m_StabilizeFeet: 0
-  m_AnimatePhysics: 0
-  m_WarningMessage: 
-  m_HasTransformHierarchy: 1
-  m_AllowConstantClipSamplingOptimization: 1
-  m_KeepAnimatorStateOnDisable: 0
-  m_WriteDefaultValuesOnDisable: 0
 --- !u!1 &8062487096430860030
 GameObject:
   m_ObjectHideFlags: 0

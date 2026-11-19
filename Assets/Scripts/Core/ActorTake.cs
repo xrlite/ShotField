@@ -77,28 +77,10 @@ namespace ShotField.Core
         {
             if (keyframes == null || keyframes.Count == 0)
                 return new ActorKeyframe(0f, Vector3.zero, Quaternion.identity);
-            if (keyframes.Count == 1 || t <= keyframes[0].time)
-                return keyframes[0];
-            if (t >= duration)
-                return keyframes[keyframes.Count - 1];
-
-            int low = 0, high = keyframes.Count - 1;
-            while (low <= high)
-            {
-                int mid = (low + high) / 2;
-                if (keyframes[mid].time < t) low = mid + 1;
-                else high = mid - 1;
-            }
-
-            int idxA = Mathf.Clamp(low - 1, 0, keyframes.Count - 1);
-            int idxB = Mathf.Clamp(low, 0, keyframes.Count - 1);
-            if (idxA == idxB) return keyframes[idxA];
-
-            var kA = keyframes[idxA];
-            var kB = keyframes[idxB];
-            float span = kB.time - kA.time;
-            float factor = span > 0.0001f ? (t - kA.time) / span : 0f;
-            return ActorKeyframe.Lerp(kA, kB, factor);
+            if (t >= duration) return keyframes[keyframes.Count - 1];
+            KeyframeTrack.FindSegment(keyframes, k => k.time, t, out int idxA, out int idxB, out float alpha);
+            if (idxA < 0) return new ActorKeyframe(0f, Vector3.zero, Quaternion.identity);
+            return idxA == idxB ? keyframes[idxA] : ActorKeyframe.Lerp(keyframes[idxA], keyframes[idxB], alpha);
         }
 
         public ActorTakeDto ToDto()

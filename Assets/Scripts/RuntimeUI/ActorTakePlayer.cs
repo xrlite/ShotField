@@ -20,9 +20,7 @@ namespace ShotField.RuntimeUI
 
         public PlayState CurrentState { get; private set; } = PlayState.Idle;
 
-        private float recordStartTime;
-        private float nextSampleTime;
-        private float playStartTime;
+        private readonly TimedCaptureClock clock = new TimedCaptureClock();
 
         void Awake()
         {
@@ -41,15 +39,14 @@ namespace ShotField.RuntimeUI
             if (recordTake.WasPressedThisFrame()) StartRecordingTake();
             if (recordTake.WasReleasedThisFrame()) StopRecordingTake();
             if (CurrentState == PlayState.Recording) TickRecording();
-            else if (CurrentState == PlayState.Playing) AdvancePlayback(Time.time - playStartTime);
+            else if (CurrentState == PlayState.Playing) AdvancePlayback(clock.PlaybackElapsed(Time.time));
         }
 
         public void StartRecordingTake(string takeId = "Take_01")
         {
             if (actorTransform == null) return;
             currentTake = new ActorTake { takeId = takeId, actorId = actorId };
-            recordStartTime = Time.time;
-            nextSampleTime = recordStartTime + 1f / sampleRate;
+            clock.BeginRecording(Time.time, sampleRate);
             CurrentState = PlayState.Recording;
             RecordSample(0f);
         }
@@ -57,8 +54,7 @@ namespace ShotField.RuntimeUI
         public void StopRecordingTake()
         {
             if (CurrentState != PlayState.Recording) return;
-            float elapsed = Mathf.Max(0.001f, Time.time - recordStartTime);
-            RecordSample(elapsed);
+            RecordSample(clock.EndRecording(Time.time));
             CurrentState = PlayState.Idle;
         }
 
@@ -66,7 +62,7 @@ namespace ShotField.RuntimeUI
         {
             if (currentTake == null || currentTake.Count == 0 || actorTransform == null) return;
             CurrentState = PlayState.Playing;
-            playStartTime = Time.time;
+            clock.BeginPlayback(Time.time);
         }
 
         public void StopPlayback()
@@ -76,12 +72,8 @@ namespace ShotField.RuntimeUI
 
         private void TickRecording()
         {
-            if (Time.time >= nextSampleTime)
-            {
-                float elapsed = Time.time - recordStartTime;
-                if (elapsed > 0.001f) RecordSample(elapsed);
-                nextSampleTime = recordStartTime + (Mathf.Floor(elapsed * sampleRate) + 1f) / sampleRate;
-            }
+            if (clock.PollSample(Time.time, sampleRate, out float elapsed))
+                RecordSample(elapsed);
         }
 
         public void AdvancePlayback(float elapsed)

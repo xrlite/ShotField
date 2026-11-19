@@ -119,13 +119,18 @@ namespace ShotField.EditorTools
                 RenderTexture.active = target;
                 image.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
                 var pixels = image.GetRawTextureData<byte>();
+                int darkest = 255, brightest = 0;
                 for (int i = 0; i < pixels.Length; i += 3)
                 {
                     byte gray = (byte)((pixels[i] * 54 + pixels[i + 1] * 183 + pixels[i + 2] * 19 + 128) >> 8);
                     pixels[i] = gray;
                     pixels[i + 1] = gray;
                     pixels[i + 2] = gray;
+                    darkest = Mathf.Min(darkest, gray);
+                    brightest = Mathf.Max(brightest, gray);
                 }
+                if (brightest - darkest < 3)
+                    throw new System.InvalidOperationException("Clay capture produced a flat frame.");
                 image.Apply(false);
                 return image.EncodeToPNG();
             }
