@@ -25,7 +25,7 @@ namespace ShotField.Core
 
     /// <summary>
     /// 《镜场》五幕故事圣经与 AI 影视生成管线。
-    /// 承接剧本结构化、机位提示词生成，并与 Seedance 视频交接打通。
+    /// 承接剧本结构化、机位提示词生成，并与 ShotPackageDynamicExporter / Seedance 打通。
     /// </summary>
     public class FiveActsProductionPipeline
     {
@@ -95,6 +95,13 @@ namespace ShotField.Core
 
         public ActSceneDescriptor GetActDescriptor(ProductionAct act) => _acts[act];
 
+        public AiShotPromptSpec BuildShotPromptSpec(ProductionAct act, ShotData shot, int fps = 12, int frameCount = 36)
+        {
+            var desc = _acts[act];
+            var analysis = ParseActScript(act);
+            return AiPromptTemplateEngine.BuildSpec(shot, act, desc, analysis, fps, frameCount);
+        }
+
         public SeedanceTaskRequest GenerateSeedanceRequest(ProductionAct act, string clayRefPath, string aspect = "16:9")
         {
             var desc = _acts[act];
@@ -106,6 +113,20 @@ namespace ShotField.Core
                 durationSeconds = desc.defaultDuration,
                 aspectRatio = aspect,
                 cameraKeyframeCount = 10
+            };
+        }
+
+        public SeedanceTaskRequest GenerateSeedanceRequest(ProductionAct act, ShotData shot, string clayZipOrRefPath)
+        {
+            var spec = BuildShotPromptSpec(act, shot);
+            return new SeedanceTaskRequest
+            {
+                shotId = spec.shotId,
+                prompt = spec.seedancePrompt,
+                clayReferencePath = clayZipOrRefPath ?? string.Empty,
+                durationSeconds = spec.duration,
+                aspectRatio = spec.aspectRatio,
+                cameraKeyframeCount = spec.frameCount
             };
         }
 

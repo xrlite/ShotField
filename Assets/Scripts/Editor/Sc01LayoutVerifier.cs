@@ -14,7 +14,7 @@ namespace ShotField.EditorTools
     /// </summary>
     public static class Sc01LayoutVerifier
     {
-        private const int ExpectedAssertions = 13;
+        private const int ExpectedAssertions = 16;
         private const float FloorY = 0f;
         private const float ContactTolerance = 0.012f;
 
@@ -87,6 +87,11 @@ namespace ShotField.EditorTools
                 Mathf.Abs(tea.min.y - tableTop) < ContactTolerance);
 
             var actor = bounds.ContainsKey("ActorA") ? bounds["ActorA"] : new Bounds();
+            var cabinet = bounds.ContainsKey("ShoeCabinet") ? bounds["ShoeCabinet"] : new Bounds();
+            var plant = bounds.ContainsKey("Plant") ? bounds["Plant"] : new Bounds();
+            Assert($"coffee table height is 0.42-0.45m (actual {table.size.y:F3})", table.size.y >= 0.42f && table.size.y <= 0.45f);
+            Assert($"cabinet height is 0.80-0.90m (actual {cabinet.size.y:F3})", cabinet.size.y >= 0.80f && cabinet.size.y <= 0.90f);
+            Assert($"plant pot rests on floor (minY {plant.min.y:F3})", Mathf.Abs(plant.min.y - FloorY) < ContactTolerance);
             Assert($"角色身高接近 1.72m（实际 {actor.size.y:F2}）",
                 Mathf.Abs(actor.size.y - 1.72f) < 0.08f);
 

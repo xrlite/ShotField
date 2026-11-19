@@ -17,7 +17,7 @@ namespace ShotField.EditorTools
             EnsureFolders();
             BuildActor();
             BuildFurniture("Desk_Prop", "modern_coffee_table_01", "table", SemanticMarker.Kind.Prop,
-                new Vector3(1.2f, 0.8f, 0.6f));
+                new Vector3(1.2f, 0.44f, 0.6f));
             BuildFurniture("Chair_Prop", "modern_arm_chair_01", "chair", SemanticMarker.Kind.Prop,
                 new Vector3(0.8f, 0.9f, 0.8f));
             BuildFurniture("Sofa_Prop", "Sofa_01", "sofa", SemanticMarker.Kind.Prop,
@@ -37,7 +37,8 @@ namespace ShotField.EditorTools
             var root = NewMarkedRoot("ActorA_Character", "actorA", SemanticMarker.Kind.ActorPrimary);
             var visual = UnityEngine.Object.Instantiate(model, root.transform);
             visual.name = "Visual";
-            FitCentered(visual, new Vector3(0.52f, 1.72f, 0.42f));
+            FitExact(visual, new Vector3(0.52f, 1.72f, 0.42f));
+            ApplyActorClay(visual);
             var animator = root.AddComponent<Animator>();
             animator.avatar = avatar;
             animator.runtimeAnimatorController = BuildIdleController();
@@ -77,7 +78,7 @@ namespace ShotField.EditorTools
             var root = NewMarkedRoot(prefabName, markerId, kind);
             var visual = UnityEngine.Object.Instantiate(model, root.transform);
             visual.name = "Visual";
-            FitCentered(visual, targetBounds);
+            FitExact(visual, targetBounds);
             AddBoxCollider(root, targetBounds);
             Save(root, prefabName);
         }
@@ -92,17 +93,41 @@ namespace ShotField.EditorTools
             return root;
         }
 
-        private static void FitCentered(GameObject visual, Vector3 target)
+        private static void FitExact(GameObject visual, Vector3 target)
         {
             var renderers = visual.GetComponentsInChildren<Renderer>(true);
             if (renderers.Length == 0) throw new InvalidOperationException("Model has no renderers: " + visual.name);
-            Bounds bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
-            float scale = Mathf.Min(target.x / bounds.size.x, target.y / bounds.size.y, target.z / bounds.size.z);
-            visual.transform.localScale = Vector3.one * scale;
-            bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+            var bounds = BoundsOf(renderers);
+            var ratio = new Vector3(target.x / bounds.size.x, target.y / bounds.size.y, target.z / bounds.size.z);
+            visual.transform.localScale = Vector3.Scale(visual.transform.localScale, ratio);
+            bounds = BoundsOf(renderers);
             visual.transform.position -= bounds.center;
+        }
+
+        private static Bounds BoundsOf(Renderer[] renderers)
+        {
+            var bounds = renderers[0].bounds;
+            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
+            return bounds;
+        }
+
+        private static void ApplyActorClay(GameObject visual)
+        {
+            const string path = "Assets/Models/Characters/ActorA_Clay.mat";
+            var material = AssetDatabase.LoadAssetAtPath<Material>(path);
+            if (!material)
+            {
+                material = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+                material.SetColor("_BaseColor", new Color(0.72f, 0.70f, 0.66f, 1f));
+                material.SetFloat("_Smoothness", 0.12f);
+                AssetDatabase.CreateAsset(material, path);
+            }
+            foreach (var renderer in visual.GetComponentsInChildren<Renderer>(true))
+            {
+                var slots = renderer.sharedMaterials;
+                for (int i = 0; i < slots.Length; i++) slots[i] = material;
+                renderer.sharedMaterials = slots;
+            }
         }
 
         private static void AddBoxCollider(GameObject root, Vector3 size)

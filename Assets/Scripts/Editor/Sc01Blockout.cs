@@ -61,9 +61,17 @@ namespace ShotField.EditorTools
             Box(room, "EntryWallLeft", new Vector3(-1.325f, 1.4f, 0f), new Vector3(3.35f, 2.8f, 0.1f));
             Box(room, "EntryWallRight", new Vector3(2.125f, 1.4f, 0f), new Vector3(1.75f, 2.8f, 0.1f));
             Box(room, "EntryLintel", new Vector3(0.8f, 2.45f, 0f), new Vector3(0.9f, 0.7f, 0.1f));
+            Box(room, "Ceiling", new Vector3(0f, 2.85f, 2f), new Vector3(6f, 0.1f, 4f));
+            Box(room, "BackBaseboard", new Vector3(0f, 0.08f, 3.92f), new Vector3(5.8f, 0.16f, 0.05f));
+            Box(room, "LeftBaseboard", new Vector3(-2.92f, 0.08f, 2f), new Vector3(0.05f, 0.16f, 3.8f));
+            Box(room, "RightBaseboard", new Vector3(2.92f, 0.08f, 2f), new Vector3(0.05f, 0.16f, 3.8f));
             var door = Box(room, "Door", new Vector3(1.25f, 1.05f, 0.45f), new Vector3(0.9f, 2.1f, 0.04f));
             door.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
             Box(room, "WindowMarker", new Vector3(2.93f, 1.55f, 1.8f), new Vector3(0.04f, 1.2f, 1.6f));
+            Box(room, "WindowFrameTop", new Vector3(2.89f, 2.18f, 1.8f), new Vector3(0.08f, 0.08f, 1.75f));
+            Box(room, "WindowFrameBottom", new Vector3(2.89f, 0.92f, 1.8f), new Vector3(0.08f, 0.08f, 1.75f));
+            Box(room, "WindowFrameFront", new Vector3(2.89f, 1.55f, 0.92f), new Vector3(0.08f, 1.34f, 0.08f));
+            Box(room, "WindowFrameBack", new Vector3(2.89f, 1.55f, 2.68f), new Vector3(0.08f, 1.34f, 0.08f));
         }
 
         private static void BuildProps(Transform room)
@@ -76,9 +84,8 @@ namespace ShotField.EditorTools
             Mark(Primitive(room, PrimitiveType.Cylinder, "Tea", new Vector3(1.1f, teaCenterY, 2.3f),
                 new Vector3(0.08f, 0.045f, 0.08f)), "tea", SemanticMarker.Kind.Prop);
             // 女式单只拖鞋：制作包 §2 位置 (0.55, 0.05, 0.45)，文字说明是「鞋柜旁」。
-            // 实测鞋柜 AABB 为 X[-0.3,0.7] Z[0.395,0.605]，Z=0.45 会整只落在柜体内部，
-            // 故把 Z 前移到柜前地面 0.30，保持 X=0.55 与制作包一致。
-            Mark(Box(room, "Slipper", new Vector3(0.55f, 0.022f, 0.25f), new Vector3(0.085f, 0.045f, 0.24f)),
+            // 实测鞋柜 AABB 为 X[-0.3,0.7] Z[0.325,0.675]，将拖鞋置于柜旁地面 Z=0.16 避免穿模
+            Mark(Box(room, "Slipper", new Vector3(0.55f, 0.022f, 0.16f), new Vector3(0.085f, 0.045f, 0.24f)),
                 "slipper", SemanticMarker.Kind.Prop);
         }
 
@@ -90,19 +97,21 @@ namespace ShotField.EditorTools
             var moonLight = moon.AddComponent<Light>();
             moonLight.type = LightType.Directional;
             moonLight.color = new Color(0.68f, 0.82f, 1.0f);
-            moonLight.intensity = 1.2f;
+            moonLight.intensity = 0.75f;
             moonLight.shadows = LightShadows.Soft;
             moon.transform.rotation = Quaternion.Euler(25f, -115f, 0f);
 
             // 2. 茶几上方局部暖光（点光源：暖部提橙，高光打在信封与茶几焦点）
             var lamp = new GameObject("TableWarmLight");
             lamp.transform.SetParent(room, false);
-            lamp.transform.localPosition = new Vector3(1.2f, 1.25f, 2.2f);
+            lamp.transform.localPosition = new Vector3(1.15f, 2.35f, 1.45f);
+            lamp.transform.LookAt(Sc01ArtSceneBuilder.EnvelopePosition);
             var lampLight = lamp.AddComponent<Light>();
-            lampLight.type = LightType.Point;
+            lampLight.type = LightType.Spot;
             lampLight.color = new Color(1.0f, 0.72f, 0.40f);
-            lampLight.range = 3.2f;
-            lampLight.intensity = 1.8f;
+            lampLight.range = 4.0f;
+            lampLight.spotAngle = 58f;
+            lampLight.intensity = 3.2f;
             lampLight.shadows = LightShadows.Soft;
         }
 
@@ -111,8 +120,8 @@ namespace ShotField.EditorTools
             // 1. 头显观察机位（MainCamera：负责 VR 空间眼部渲染与 6DoF 跟踪）
             var hmd = new GameObject("XR_Headset");
             hmd.transform.SetParent(room, false);
-            hmd.transform.position = new Vector3(0.15f, 1.55f, 0.35f);
-            hmd.transform.LookAt(new Vector3(1.05f, 0.8f, 2.05f));
+            hmd.transform.position = new Vector3(2.7f, 1.48f, 0.35f);
+            hmd.transform.LookAt(new Vector3(1.0f, 0.72f, 2.35f));
             var hmdCam = hmd.AddComponent<Camera>();
             hmdCam.tag = "MainCamera";
             hmdCam.nearClipPlane = 0.05f;
@@ -136,8 +145,8 @@ namespace ShotField.EditorTools
             camera.fieldOfView = 45f;
             camera.aspect = ShotCameraState.DefaultAspect;
             camera.nearClipPlane = 0.05f;
-            director.transform.position = Sc01ArtSceneBuilder.EnvelopePosition + new Vector3(0.85f, -0.26f, -0.95f);
-            director.transform.LookAt(Sc01ArtSceneBuilder.EnvelopePosition);
+            director.transform.position = new Vector3(2.55f, 0.42f, 0.8f);
+            director.transform.LookAt(new Vector3(1.15f, 0.65f, 2.25f));
 
             var visibility = director.AddComponent<VisibilityConstraint>();
             visibility.ruleName = "信封正面不可见";

@@ -11,7 +11,7 @@ namespace ShotField.EditorTools
         // 单位米，原点 = 玄关内侧地面中心；+Z 向客厅纵深，+X 向窗。
         internal static readonly Vector3 TablePosition = new Vector3(1.4f, 0.4f, 2.2f);
         internal static readonly Vector3 EnvelopePosition = new Vector3(1.5f, 0.46f, 2.15f);
-        internal static readonly Vector3 ActorPosition = new Vector3(0.8f, 0.86f, 1.25f);
+        internal static readonly Vector3 ActorPosition = new Vector3(0.45f, 0f, 2.48f);
 
         // 椅子错开主角站位：制造包未列此件，保留但不许与人物同点。
         // 角色按 1.72m 等比缩放后 X 半径约 0.67m（中心 0.8 → 右边界 1.47），

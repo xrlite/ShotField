@@ -77,18 +77,24 @@ namespace ShotField.EditorTools
             foreach (string guid in AssetDatabase.FindAssets("t:Material", new[] { folder }))
             {
                 var material = AssetDatabase.LoadAssetAtPath<Material>(AssetDatabase.GUIDToAssetPath(guid));
-                if (material == null || material.shader == shader) continue;
-                var baseMap = material.HasProperty("_MainTex") ? material.GetTexture("_MainTex") : null;
-                var normalMap = material.HasProperty("_BumpMap") ? material.GetTexture("_BumpMap") : null;
-                var color = material.HasProperty("_Color") ? material.GetColor("_Color") : Color.white;
-                material.shader = shader;
-                material.SetColor("_BaseColor", color);
-                if (baseMap) material.SetTexture("_BaseMap", baseMap);
-                if (normalMap)
+                if (material == null) continue;
+                if (material.shader != shader)
                 {
-                    material.SetTexture("_BumpMap", normalMap);
-                    material.EnableKeyword("_NORMALMAP");
+                    var baseMap = material.HasProperty("_MainTex") ? material.GetTexture("_MainTex") : null;
+                    var normalMap = material.HasProperty("_BumpMap") ? material.GetTexture("_BumpMap") : null;
+                    var color = material.HasProperty("_Color") ? material.GetColor("_Color") : Color.white;
+                    material.shader = shader;
+                    material.SetColor("_BaseColor", color);
+                    if (baseMap) material.SetTexture("_BaseMap", baseMap);
+                    if (normalMap)
+                    {
+                        material.SetTexture("_BumpMap", normalMap);
+                        material.EnableKeyword("_NORMALMAP");
+                    }
                 }
+                material.SetFloat("_Cull", 0f);
+                material.SetFloat("_Smoothness", 0.18f);
+                material.doubleSidedGI = true;
                 EditorUtility.SetDirty(material);
             }
         }

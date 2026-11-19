@@ -57,7 +57,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2917938348929292261, guid: 31fffecbd244bf84998af65efdb43eab, type: 3}
+  - {fileID: 2100000, guid: 833d2dabf93826f4192238cc8e1c231e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1239,7 +1239,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2917938348929292261, guid: 31fffecbd244bf84998af65efdb43eab, type: 3}
+  - {fileID: 2100000, guid: 833d2dabf93826f4192238cc8e1c231e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -1805,7 +1805,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 828893872514390396, guid: 31fffecbd244bf84998af65efdb43eab, type: 3}
+  - {fileID: 2100000, guid: 833d2dabf93826f4192238cc8e1c231e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2094,7 +2094,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2917938348929292261, guid: 31fffecbd244bf84998af65efdb43eab, type: 3}
+  - {fileID: 2100000, guid: 833d2dabf93826f4192238cc8e1c231e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2284,7 +2284,7 @@ SkinnedMeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 828893872514390396, guid: 31fffecbd244bf84998af65efdb43eab, type: 3}
+  - {fileID: 2100000, guid: 833d2dabf93826f4192238cc8e1c231e, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0
@@ -2730,8 +2730,8 @@ Transform:
   m_GameObject: {fileID: 8024127047449086994}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0.0009781122, y: -0.32107604, z: -0.05810085}
-  m_LocalScale: {x: 0.37501782, y: 0.37501782, z: 0.37501782}
+  m_LocalPosition: {x: 0.0009781122, y: -0.8314193, z: -0.072257176}
+  m_LocalScale: {x: 0.37501782, y: 0.9711004, z: 0.4663913}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 3330215552456730343}
