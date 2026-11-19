@@ -6,64 +6,58 @@ using UnityEngine;
 
 namespace ShotField.EditorTools
 {
-    /// <summary>
-    /// 超标资产轻量化（S2）。两条独立手段，都不改场景布局：
-    /// 1) 导入器优化：optimizeMesh=true + MeshCompression.Medium，立即可生效且不影响外观；
-    /// 2) LOD 网格烘焙：顶点聚类生成 LOD1/LOD2 网格资产与 LODGroup 变体 prefab，
-    ///    是否切到 LOD 变体由调用方决定，本工具不自动替换 Sc01PrefabFactory 的引用。
-    ///
-    /// 只处理队长点名的两件：potted_plant_02(约 5.4 万面) 与 modern_wooden_cabinet(约 1.84 万面)。
-    /// </summary>
+    /// 超标资产轻量化（S2）：导入器优化 + LOD 烘焙（按目标面数反推体素边长聚类，逐 submesh 保留三角形）。
+    /// 门禁：每级三角数须落在目标区间且严格少于上一级，否则 FAIL，绝不把空壳网格报成成功。
     internal static class AssetLodBaker
     {
+        // 队长点名的两件：potted_plant_02(约 5.4 万面) 与 modern_wooden_cabinet(约 1.84 万面)
         private static readonly string[] Targets =
         {
             "Assets/Models/Furniture/potted_plant_02/Imported/potted_plant_02.prefab",
             "Assets/Models/Furniture/modern_wooden_cabinet/Imported/modern_wooden_cabinet.prefab",
         };
-
-        private static readonly float[] Ratios = { 1f, 0.32f, 0.14f };
+        private const float Lod1Ratio = 0.34f;
+        private const float Lod2Ratio = 0.12f;
+        private const int MinStageTris = 400;
+        private static int _stageTotal;
+        private static int _stagePass;
 
         public static void Run()
         {
             int ok = 0;
+            _stageTotal = _stagePass = 0;
             for (int i = 0; i < Targets.Length; i++)
-            {
                 if (Bake(Targets[i])) ok++;
-            }
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log("LOD-BAKE-RESULT=Done (" + ok + "/" + Targets.Length + ")");
+            bool pass = ok == Targets.Length && _stagePass == _stageTotal;
+            Debug.Log("LOD-BAKE-RESULT=" + (pass ? "PASS" : "FAIL") + " (prefabs " + ok + "/"
+                + Targets.Length + ", stages " + _stagePass + "/" + _stageTotal + ")");
         }
 
         private static bool Bake(string prefabPath)
         {
             var root = AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
-            if (root == null)
-            {
-                Debug.LogWarning("[LOD-BAKE-SKIP] prefab 不存在: " + prefabPath);
-                return false;
-            }
-
+            if (root == null) { Debug.LogError("[LOD-BAKE-SKIP] prefab 不存在: " + prefabPath); return false; }
             TuneImporter(prefabPath);
             return BuildLodPrefab(root, prefabPath);
         }
 
-        /// <summary>把源模型导入设置改成"优化顶点 + 中等压缩"，不改面数但减内存与顶点重复。</summary>
+        /// 导入设置改成"优化顶点/多边形 + 中等压缩"，不改面数，只减重复顶点与内存。
         private static void TuneImporter(string prefabPath)
         {
             string folder = Path.GetDirectoryName(prefabPath).Replace('\\', '/');
-            var guids = AssetDatabase.FindAssets("t:Model", new[] { folder });
-            foreach (var guid in guids)
+            foreach (var guid in AssetDatabase.FindAssets("t:Model", new[] { folder }))
             {
                 var path = AssetDatabase.GUIDToAssetPath(guid);
-                var importer = AssetImporter.GetAtPath(path) as ModelImporter;
-                if (importer == null) continue;
-                if (importer.optimizeMeshVertices && importer.optimizeMeshPolygons && importer.meshCompression == ModelImporterMeshCompression.Medium) continue;
-                importer.optimizeMeshVertices = true;
-                importer.optimizeMeshPolygons = true;
-                importer.meshCompression = ModelImporterMeshCompression.Medium;
-                importer.SaveAndReimport();
+                var imp = AssetImporter.GetAtPath(path) as ModelImporter;
+                if (imp == null) continue;
+                if (imp.optimizeMeshVertices && imp.optimizeMeshPolygons
+                    && imp.meshCompression == ModelImporterMeshCompression.Medium) continue;
+                imp.optimizeMeshVertices = true;
+                imp.optimizeMeshPolygons = true;
+                imp.meshCompression = ModelImporterMeshCompression.Medium;
+                imp.SaveAndReimport();
                 Debug.Log("[LOD-BAKE-IMPORT] 已优化导入设置: " + path);
             }
         }
@@ -75,67 +69,81 @@ namespace ShotField.EditorTools
             var srcMesh = filters[0].sharedMesh;
             var srcRenderer = filters[0].GetComponent<Renderer>();
             if (srcMesh == null || srcRenderer == null) return false;
-
             string dir = Path.GetDirectoryName(prefabPath).Replace('\\', '/');
             string name = Path.GetFileNameWithoutExtension(prefabPath);
             string lodDir = dir + "/LOD";
             if (!AssetDatabase.IsValidFolder(lodDir)) AssetDatabase.CreateFolder(dir, "LOD");
 
-            var lods = new LOD[Ratios.Length];
+            int srcTris = CountTris(srcMesh);
             var root = new GameObject(name + "_LOD");
             var group = root.AddComponent<LODGroup>();
-
-            for (int i = 0; i < Ratios.Length; i++)
+            var lods = new LOD[3];
+            bool allOk = true;
+            for (int i = 0; i < 3; i++)
             {
                 var stage = new GameObject("LOD" + i);
                 stage.transform.SetParent(root.transform, false);
                 var filter = stage.AddComponent<MeshFilter>();
                 var renderer = stage.AddComponent<MeshRenderer>();
                 renderer.sharedMaterials = srcRenderer.sharedMaterials;
-
                 Mesh mesh = srcMesh;
                 if (i > 0)
                 {
-                    mesh = Cluster(srcMesh, Ratios[i]);
+                    float ratio = i == 1 ? Lod1Ratio : Lod2Ratio;
+                    int target = Mathf.Max(MinStageTris, Mathf.RoundToInt(srcTris * ratio));
+                    mesh = Cluster(srcMesh, ratio, target, srcTris);
+                    _stageTotal++;
+                    int got = mesh == null ? 0 : CountTris(mesh);
+                    bool okStage = got >= target * 0.5f && got <= target * 2f && got < srcTris * (i == 1 ? 0.72f : 0.42f);
+                    if (okStage) _stagePass++; else allOk = false;
+                    Debug.Log("[LOD-BAKE-STAGE] " + name + " LOD" + i + " target=" + target + " got=" + got
+                        + " -> " + (okStage ? "OK" : "FAIL"));
                     if (mesh == null) mesh = srcMesh;
-                    else AssetDatabase.CreateAsset(mesh, $"{lodDir}/{name}_LOD{i}.asset");
+                    else AssetDatabase.CreateAsset(mesh, lodDir + "/" + name + "_LOD" + i + ".asset");
                 }
                 filter.sharedMesh = mesh;
                 lods[i] = new LOD(i == 0 ? 0.55f : (i == 1 ? 0.18f : 0.06f), new[] { renderer });
             }
-
             group.SetLODs(lods);
-            string outPath = $"{lodDir}/{name}_LOD.prefab";
-            PrefabUtility.SaveAsPrefabAsset(root, outPath);
+            PrefabUtility.SaveAsPrefabAsset(root, lodDir + "/" + name + "_LOD.prefab");
             Object.DestroyImmediate(root);
-            Debug.Log($"[LOD-BAKE] {name}: {srcMesh.triangles.Length / 3} tris -> LOD 变体已生成 {outPath}");
-            return true;
+            Debug.Log("[LOD-BAKE] " + name + ": " + srcTris + " tris -> 变体 " + lodDir + "/" + name + "_LOD.prefab");
+            return allOk;
         }
 
-        /// <summary>
-        /// 顶点聚类简化：把包围盒按 cell 分格，每格取代表顶点，重建三角形并丢弃退化面。
-        /// UV 按代表顶点复制（会轻微错位，属 LOD 远景可接受代价）。
-        /// </summary>
-        private static Mesh Cluster(Mesh src, float ratio)
+        /// 按目标面数反推体素边长（表面网格面数约与边长平方成反比），最多自适应 3 轮。
+        private static Mesh Cluster(Mesh src, float ratio, int target, int srcTris)
         {
             var verts = src.vertices;
             var uvs = src.uv;
-            var tris = src.triangles;
-            if (verts.Length == 0 || tris.Length == 0) return null;
+            if (verts.Length == 0) return null;
+            float diag = src.bounds.size.magnitude;
+            if (diag <= 0.0001f) return null;
+            float cell = diag * Mathf.Sqrt(6f / (Mathf.Max(1, srcTris) * ratio));
+            for (int attempt = 0; attempt < 3; attempt++)
+            {
+                var mesh = BuildClustered(src, verts, uvs, cell);
+                if (mesh == null) return null;
+                int got = CountTris(mesh);
+                if (got >= target * 0.6f && got <= target * 1.7f) return mesh;
+                Object.DestroyImmediate(mesh);
+                cell *= Mathf.Sqrt(Mathf.Max(got, 1) / (float)target);
+                if (cell <= 0.0001f) return null;
+            }
+            Debug.LogWarning("[LOD-BAKE-CLUSTER] 三轮未收敛，target=" + target);
+            return null;
+        }
 
-            var b = src.bounds;
-            float cell = Mathf.Max(b.size.x, Mathf.Max(b.size.y, b.size.z)) * ratio;
-            if (cell <= 0.0001f) return null;
-
+        private static Mesh BuildClustered(Mesh src, Vector3[] verts, Vector2[] uvs, float cell)
+        {
             var cellToNew = new Dictionary<long, int>(verts.Length);
             var newVerts = new List<Vector3>(verts.Length);
             var newUvs = new List<Vector2>(verts.Length);
             var map = new int[verts.Length];
-
             for (int i = 0; i < verts.Length; i++)
             {
                 var p = verts[i];
-                long key = Hash((int)(p.x / cell), (int)(p.y / cell), (int)(p.z / cell));
+                long key = Hash(Mathf.FloorToInt(p.x / cell), Mathf.FloorToInt(p.y / cell), Mathf.FloorToInt(p.z / cell));
                 int idx;
                 if (!cellToNew.TryGetValue(key, out idx))
                 {
@@ -146,26 +154,36 @@ namespace ShotField.EditorTools
                 }
                 map[i] = idx;
             }
-
-            var newTris = new List<int>(tris.Length);
-            for (int i = 0; i < tris.Length; i += 3)
-            {
-                int a = map[tris[i]], bb = map[tris[i + 1]], c = map[tris[i + 2]];
-                if (a == bb || bb == c || a == c) continue;
-                newTris.Add(a); newTris.Add(bb); newTris.Add(c);
-            }
-            if (newTris.Count == 0) return null;
-
             var mesh = new Mesh { name = src.name + "_LOD" };
-            mesh.indexFormat = newVerts.Count > 65000
-                ? UnityEngine.Rendering.IndexFormat.UInt32
-                : UnityEngine.Rendering.IndexFormat.UInt16;
+            mesh.indexFormat = newVerts.Count > 65000 ? UnityEngine.Rendering.IndexFormat.UInt32 : UnityEngine.Rendering.IndexFormat.UInt16;
             mesh.SetVertices(newVerts);
             mesh.SetUVs(0, newUvs);
-            mesh.SetTriangles(newTris, 0);
+            mesh.subMeshCount = src.subMeshCount;
+            int kept = 0;
+            for (int s = 0; s < src.subMeshCount; s++)
+            {
+                var tris = src.GetTriangles(s);
+                var outTris = new List<int>(tris.Length);
+                for (int i = 0; i + 2 < tris.Length; i += 3)
+                {
+                    int a = map[tris[i]], b = map[tris[i + 1]], c = map[tris[i + 2]];
+                    if (a == b || b == c || a == c) continue;
+                    outTris.Add(a); outTris.Add(b); outTris.Add(c);
+                }
+                mesh.SetTriangles(outTris, s);
+                kept += outTris.Count;
+            }
+            if (kept == 0) { Object.DestroyImmediate(mesh); return null; }
             mesh.RecalculateNormals();
             mesh.RecalculateBounds();
             return mesh;
+        }
+
+        private static int CountTris(Mesh mesh)
+        {
+            int n = 0;
+            for (int s = 0; s < mesh.subMeshCount; s++) n += mesh.GetTriangles(s).Length;
+            return n / 3;
         }
 
         private static long Hash(int x, int y, int z)
