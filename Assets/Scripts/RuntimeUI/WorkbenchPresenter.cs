@@ -108,9 +108,8 @@ namespace ShotField.RuntimeUI
                 $"{shot.shotId}_rev{shot.revision:D3}.zip");
             try
             {
-                var clayPng = RuntimeClayCapture.Capture(monitor);
-                ShotPackageExporter.ExportPackageToFile(shot, clayPng, path);
-                ShowNotify("参考包已导出: " + path);
+                string msg = SpatialStudioLayout.ExportDynamicOrStatic(this, shot, monitor, path);
+                ShowNotify(msg);
             }
             catch (Exception ex) { ShowNotify("导出失败: " + ex.Message); }
         }
@@ -118,10 +117,13 @@ namespace ShotField.RuntimeUI
         public void PlayReviewVideo(string source)
         {
             var player = EnsureReview();
-            if (!string.IsNullOrWhiteSpace(source)) player.LoadVideo(source);
+            string resolved = !string.IsNullOrWhiteSpace(source)
+                ? source : SpatialStudioLayout.ResolveReferenceClipPath("sc01_seedance.mp4");
+            if (!string.IsNullOrWhiteSpace(resolved)) player.LoadVideo(resolved);
             if (!player.HasSource) { ShowNotify("No review video source"); return; }
             player.Play();
-            ShowNotify("成片播放: " + (string.IsNullOrWhiteSpace(source) ? "当前源" : source));
+            SpatialStudioLayout.ApplyDualScreenLayout(this, true);
+            ShowNotify("成片播放: " + resolved);
         }
 
         public void CycleCompareMode()
