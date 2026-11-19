@@ -2,8 +2,6 @@ using System.IO;
 using ShotField.Core;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.Rendering;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace ShotField.RuntimeUI
@@ -32,10 +30,10 @@ namespace ShotField.RuntimeUI
         private bool _placing;
         private bool _blocked;
 
-        public bool IsPlacing { get { return _placing; } }
-        public bool IsBlocked { get { return _blocked; } }
-        public string PendingPropId { get { return _entry != null ? _entry.id : null; } }
-        public Vector3 GhostPosition { get { return _ghost != null ? _ghost.transform.position : Vector3.zero; } }
+        public bool IsPlacing => _placing;
+        public bool IsBlocked => _blocked;
+        public string PendingPropId => _entry != null ? _entry.id : null;
+        public Vector3 GhostPosition => _ghost != null ? _ghost.transform.position : Vector3.zero;
 
         /// <summary>进入放置模式；取不到条目或 prefab 时返回 false。</summary>
         public bool BeginPlacement(string propId)
@@ -49,10 +47,10 @@ namespace ShotField.RuntimeUI
             _ghost = Instantiate(prefab, spawnRoot);
             _ghost.name = "Ghost_" + entry.id;
             _ghost.transform.rotation = Quaternion.identity;
-            StripInteraction(_ghost);
-            _ghostMaterial = BuildGhostMaterial();
+            PropGhostVisualizer.StripGhost(_ghost);
+            _ghostMaterial = PropGhostVisualizer.BuildGhostMaterial();
             _ghostRenderers = _ghost.GetComponentsInChildren<Renderer>(true);
-            ApplyMaterial();
+            PropGhostVisualizer.ApplyGhost(_ghostRenderers, _ghostMaterial);
             _placing = true;
             return true;
         }
@@ -104,7 +102,7 @@ namespace ShotField.RuntimeUI
             t.position = pos;
 
             _blocked = HasObstruction();
-            SetTint(_blocked ? BlockedTint : NormalTint);
+            PropGhostVisualizer.SetTint(_ghostMaterial, _blocked ? BlockedTint : NormalTint);
         }
 
         private Bounds ComputeBounds()
@@ -148,50 +146,6 @@ namespace ShotField.RuntimeUI
             if (string.IsNullOrEmpty(entry.prefabPath)) return null;
             var name = Path.GetFileNameWithoutExtension(entry.prefabPath);
             return Resources.Load<GameObject>("Props/" + name) ?? Resources.Load<GameObject>(name);
-        }
-
-        private static void StripInteraction(GameObject go)
-        {
-            foreach (var c in go.GetComponentsInChildren<Collider>(true)) c.enabled = false;
-            foreach (var b in go.GetComponentsInChildren<Rigidbody>(true)) { b.isKinematic = true; b.detectCollisions = false; }
-            foreach (var x in go.GetComponentsInChildren<XRGrabInteractable>(true)) x.enabled = false;
-            foreach (var s in go.GetComponentsInChildren<ScenePropGrab>(true)) s.enabled = false;
-        }
-
-        private void ApplyMaterial()
-        {
-            if (_ghostRenderers == null || _ghostMaterial == null) return;
-            for (int i = 0; i < _ghostRenderers.Length; i++)
-            {
-                var r = _ghostRenderers[i];
-                if (r == null) continue;
-                var slots = r.sharedMaterials;
-                for (int s = 0; s < slots.Length; s++) slots[s] = _ghostMaterial;
-                r.sharedMaterials = slots;
-            }
-        }
-
-        private void SetTint(Color color)
-        {
-            if (_ghostMaterial == null) return;
-            if (_ghostMaterial.HasProperty("_BaseColor")) _ghostMaterial.SetColor("_BaseColor", color);
-            if (_ghostMaterial.HasProperty("_Color")) _ghostMaterial.SetColor("_Color", color);
-        }
-
-        private static Material BuildGhostMaterial()
-        {
-            var shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null) shader = Shader.Find("Unlit/Color");
-            var m = new Material(shader) { name = "GhostPlacement" };
-            m.SetOverrideTag("RenderType", "Transparent");
-            m.SetFloat("_Surface", 1f);
-            m.SetFloat("_Blend", 0f);
-            m.SetFloat("_SrcBlend", (float)BlendMode.SrcAlpha);
-            m.SetFloat("_DstBlend", (float)BlendMode.OneMinusSrcAlpha);
-            m.SetFloat("_ZWrite", 0f);
-            m.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
-            m.renderQueue = (int)RenderQueue.Transparent;
-            return m;
         }
     }
 }
