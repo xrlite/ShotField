@@ -70,6 +70,16 @@ namespace ShotField.RuntimeUI
             btn.onClick.AddListener(() => SpawnProp(propId));
         }
 
+        /// <summary>
+        /// 取某条目的绑定 Prefab（只读，不实例化）。放置交互器用它拿预览源，
+        /// 避免重复维护一份"哪个 id 对应哪个 prefab"的映射。
+        /// </summary>
+        public GameObject FindPrefab(string propId)
+        {
+            var binding = FindBinding(propId);
+            return binding != null ? binding.prefab : null;
+        }
+
         private PropPrefabBinding FindBinding(string propId)
         {
             if (string.IsNullOrEmpty(propId) || bindings == null) return null;
@@ -80,7 +90,11 @@ namespace ShotField.RuntimeUI
             return null;
         }
 
-        private static void EnsureGrabReady(GameObject go, string propId)
+        /// <summary>
+        /// 给实例补齐抓取三件套（非 trigger Collider + Rigidbody + XRGrabInteractable）
+        /// 并挂 ScenePropGrab / SemanticMarker。放置交互器确认落地时复用同一套。
+        /// </summary>
+        public static void EnsureGrabReady(GameObject go, string propId)
         {
             if (go.GetComponentInChildren<Collider>() == null)
             {

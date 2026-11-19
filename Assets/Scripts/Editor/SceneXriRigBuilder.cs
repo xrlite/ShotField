@@ -31,6 +31,24 @@ namespace ShotField.EditorTools
             BuildHand(origin.transform, manager, "XRController_Right", new Vector3(0.22f, 1.2f, 0.25f));
             AttachGrabbables(root.transform);
             UpgradeWorkbenchCanvas();
+            BuildPlacement(root.transform);
+        }
+
+        /// <summary>
+        /// 装配道具放置交互器：复用右手射线做瞄准，复用 PropBrowserUI 做预览源与落地生成。
+        /// 场景里没有 PropBrowserUI 时跳过（放置仍可用 Resources 兜底，但缺绑定列表更慢）。
+        /// </summary>
+        private static void BuildPlacement(Transform root)
+        {
+            var rayTf = root.Find("XR_Origin/XRController_Right/XRController_Right_Ray");
+            if (rayTf == null) return;
+
+            var go = new GameObject("PropPlacement");
+            go.transform.SetParent(root, false);
+            var placement = go.AddComponent<PropPlacementInteractor>();
+            placement.rayInteractor = rayTf.GetComponent<XRRayInteractor>();
+            placement.browser = UnityEngine.Object.FindFirstObjectByType<PropBrowserUI>();
+            placement.spawnRoot = root;
         }
 
         private static XRInteractionManager BuildManager(Transform parent)
