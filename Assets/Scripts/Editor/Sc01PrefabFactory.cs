@@ -8,9 +8,18 @@ using UnityEngine;
 
 namespace ShotField.EditorTools
 {
-    internal static class Sc01PrefabFactory
+    public static class Sc01PrefabFactory
     {
         private const string Root = "Assets/Prefabs/SC01";
+
+        public static void Run()
+        {
+            BuildAll();
+            AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
+            Debug.Log("SC01-PREFAB-RESULT=PASS");
+            if (Application.isBatchMode) EditorApplication.Exit(0);
+        }
 
         internal static void BuildAll()
         {
@@ -79,9 +88,11 @@ namespace ShotField.EditorTools
         private static void BuildFurniture(string prefabName, string modelFolder, string markerId,
             SemanticMarker.Kind kind, Vector3 targetBounds)
         {
-            string modelPath = $"Assets/Models/Furniture/{modelFolder}/Imported/{modelFolder}.prefab";
-            var model = AssetDatabase.LoadAssetAtPath<GameObject>(modelPath);
-            if (!model) throw new InvalidOperationException("Furniture prefab missing: " + modelPath);
+            string lodPath = $"Assets/Models/Furniture/{modelFolder}/Imported/LOD/{modelFolder}_LOD.prefab";
+            string rawPath = $"Assets/Models/Furniture/{modelFolder}/Imported/{modelFolder}.prefab";
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>(lodPath) ??
+                        AssetDatabase.LoadAssetAtPath<GameObject>(rawPath);
+            if (!model) throw new InvalidOperationException("Furniture prefab missing: " + rawPath);
             var root = NewMarkedRoot(prefabName, markerId, kind);
             var visual = UnityEngine.Object.Instantiate(model, root.transform);
             visual.name = "Visual";

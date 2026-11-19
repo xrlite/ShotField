@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace ShotField.EditorTools
 {
-    internal static class Sc01Blockout
+    public static class Sc01Blockout
     {
         [MenuItem("镜场 ShotField/创建 SC01 客厅白模")]
         private static void Build()
@@ -50,6 +50,7 @@ namespace ShotField.EditorTools
             SceneXriRigBuilder.BuildRig(root);
             EditorSceneManager.SaveScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene(), "Assets/Scenes/SC01_Blockout.unity");
             Debug.Log("[SC01] 场景已更新并保存至 Assets/Scenes/SC01_Blockout.unity");
+            if (Application.isBatchMode) EditorApplication.Exit(0);
         }
 
         private static void BuildRoom(Transform room)

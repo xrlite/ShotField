@@ -151,6 +151,8 @@ namespace ShotField.EditorTools
         {
             var t = FindDescendant(root, name);
             if (t == null) return null;
+            var col = name == "ActorA" ? t.GetComponent<Collider>() : null;
+            if (col != null) return col.bounds;
             var renderers = t.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0) return null;
             var b = renderers[0].bounds;
