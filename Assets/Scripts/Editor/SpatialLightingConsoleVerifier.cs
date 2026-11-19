@@ -1,13 +1,14 @@
 #if UNITY_EDITOR
 using ShotField.RuntimeUI;
 using UnityEditor;
+using UnityEditor.SceneManagement;
 using UnityEngine;
 
 namespace ShotField.EditorTools
 {
     public static class SpatialLightingConsoleVerifier
     {
-        private const int Expected = 6;
+        private const int Expected = 8;
 
         [MenuItem("ShotField/Verifiers/Run Spatial Lighting Console Verifier")]
         public static void Run()
@@ -69,6 +70,15 @@ namespace ShotField.EditorTools
             {
                 UnityEngine.Object.DestroyImmediate(root);
             }
+
+            // 7. 装配断言：SC01 场景里必须真的挂了这个控制台（前 6 条只是单元行为，不验装配）
+            EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity", OpenSceneMode.Single);
+            var inScene = UnityEngine.Object.FindAnyObjectByType<SpatialLightingConsole>();
+            VerifyAssert.Require("Lighting console is assembled inside SC01_Blockout scene", inScene != null, ref passed);
+            VerifyAssert.Require("Assembled console has 3 light slots bound",
+                inScene != null && inScene.slots != null && inScene.slots.Length == 3 &&
+                inScene.slots[0].lightSource != null && inScene.slots[1].lightSource != null &&
+                inScene.slots[2].lightSource != null, ref passed);
 
             VerifyAssert.Finish("LIGHTING-CONSOLE-RESULT", passed, Expected);
         }

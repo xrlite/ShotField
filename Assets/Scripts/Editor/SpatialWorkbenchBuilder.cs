@@ -66,6 +66,9 @@ namespace ShotField.EditorTools
             wb.toggleAspectBtn = CreateButton(controlPanel.transform, "AspectBtn", "画幅", new Vector2(165f, 0f));
             wb.savePassportBtn = CreateButton(controlPanel.transform, "SaveBtn", "存护照", new Vector2(275f, 0f));
 
+            // 5. 窗口 D：片场灯光控制台（此前只有单元测试，场景内 0 引用）
+            SpatialLightingConsoleBuilder.Build(canvasGo);
+
             // 4. 窗口 C：约束质检抬头卡片（右侧浮窗）
             var hudPanel = CreatePanel(canvasGo.transform, "WindowC_HUD", PicoCard, new Vector2(430f, 80f), new Vector2(200f, 220f));
             CreateText(hudPanel.transform, "HUD_Title", "空间质检扫描", 16, FontStyle.Bold, new Vector2(0f, 75f), Color.white);
@@ -124,7 +127,7 @@ namespace ShotField.EditorTools
             return canvasGo;
         }
 
-        private static GameObject CreatePanel(Transform parent, string name, Color color, Vector2 pos, Vector2 size)
+        internal static GameObject CreatePanel(Transform parent, string name, Color color, Vector2 pos, Vector2 size)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
@@ -136,7 +139,7 @@ namespace ShotField.EditorTools
             return go;
         }
 
-        private static Button CreateButton(Transform parent, string name, string label, Vector2 pos, Color? bg = null)
+        internal static Button CreateButton(Transform parent, string name, string label, Vector2 pos, Color? bg = null)
         {
             var go = CreatePanel(parent, name, bg ?? new Color(0.24f, 0.26f, 0.30f, 0.95f), pos, new Vector2(95f, 45f));
             var btn = go.AddComponent<Button>();
@@ -145,7 +148,7 @@ namespace ShotField.EditorTools
             return btn;
         }
 
-        private static Text CreateText(Transform parent, string name, string content, int size, FontStyle style, Vector2 pos, Color color)
+        internal static Text CreateText(Transform parent, string name, string content, int size, FontStyle style, Vector2 pos, Color color)
         {
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
