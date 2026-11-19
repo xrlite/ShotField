@@ -113,6 +113,9 @@ namespace ShotField.EditorTools
             audience.audienceHead = head.transform;
             audience.screeningCamera = dirCam;
             canvasGo.AddComponent<DesktopStudioPanel>();
+            var timeline = canvasGo.AddComponent<DirectorTimeline>();
+            timeline.cameraRecorder = motion;
+            timeline.actorPlayer = actor;
             wb.playMotion = CreateButton(canvasGo.transform, "PlayMotion", "运镜回放", new Vector2(-180,-255));
             wb.toggleBoard = CreateButton(canvasGo.transform, "ToggleBoard", "沙盘", new Vector2(-60,-255));
             wb.playActor = CreateButton(canvasGo.transform, "PlayActor", "表演回放", new Vector2(60,-255));
