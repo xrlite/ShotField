@@ -3,7 +3,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
-using UnityEngine.InputSystem.UI;
+using UnityEngine.XR.Interaction.Toolkit.UI;
 using ShotField.RuntimeUI;
 using ShotField.Core;
 
@@ -31,8 +31,7 @@ namespace ShotField.EditorTools
             var canvasGo = new GameObject("Spatial_Workbench_Canvas");
             var canvas = canvasGo.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
-            canvasGo.AddComponent<GraphicRaycaster>();
-            canvasGo.AddComponent<TrackedDeviceRaycaster>();
+            canvasGo.AddComponent<TrackedDeviceGraphicRaycaster>();
             
             var canvasRt = canvasGo.GetComponent<RectTransform>();
             canvasRt.position = new Vector3(2.35f, 1.35f, 1.55f);
@@ -166,7 +165,7 @@ namespace ShotField.EditorTools
             {
                 var esGo = new GameObject("EventSystem");
                 esGo.AddComponent<EventSystem>();
-                esGo.AddComponent<InputSystemUIInputModule>();
+                esGo.AddComponent<XRUIInputModule>();
                 Undo.RegisterCreatedObjectUndo(esGo, "创建 EventSystem");
                 Debug.Log("[镜场 ShotField] 已自动补充 EventSystem 与 InputSystemUIInputModule");
             }

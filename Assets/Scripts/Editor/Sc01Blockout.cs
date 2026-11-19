@@ -111,8 +111,8 @@ namespace ShotField.EditorTools
             // 1. 头显观察机位（MainCamera：负责 VR 空间眼部渲染与 6DoF 跟踪）
             var hmd = new GameObject("XR_Headset");
             hmd.transform.SetParent(room, false);
-            hmd.transform.position = new Vector3(0.5f, 1.4f, 0.6f);
-            hmd.transform.LookAt(Sc01ArtSceneBuilder.EnvelopePosition);
+            hmd.transform.position = new Vector3(0.15f, 1.55f, 0.35f);
+            hmd.transform.LookAt(new Vector3(1.05f, 0.8f, 2.05f));
             var hmdCam = hmd.AddComponent<Camera>();
             hmdCam.tag = "MainCamera";
             hmdCam.nearClipPlane = 0.05f;

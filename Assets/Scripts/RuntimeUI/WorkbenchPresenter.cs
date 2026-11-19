@@ -24,6 +24,7 @@ namespace ShotField.RuntimeUI
             : $"撤销 {library.UndoStack.UndoCount}/{library.UndoStack.Capacity} · 重做 {library.UndoStack.RedoCount}";
 
         public string AiState => aiStatus;
+        public bool ReviewIsPlaying => reviewPlayer != null && reviewPlayer.IsPlaying;
         public string ReviewState => reviewPlayer != null && reviewPlayer.IsPlaying ? "成片播放中" : "成片未加载";
         public string CompareModeName => reviewPlayer != null ? reviewPlayer.displayMode.ToString() : "未初始化";
 
@@ -41,9 +42,9 @@ namespace ShotField.RuntimeUI
         public void EnsureRuntimeButtons(Canvas canvas)
         {
             if (canvas == null) return;
-            if (undoBtn == null) undoBtn = MakeButton(canvas.transform, "UndoBtn", "撤销", new Vector2(-330f, -255f));
-            if (redoBtn == null) redoBtn = MakeButton(canvas.transform, "RedoBtn", "重做", new Vector2(-220f, -255f));
-            if (historyText == null) historyText = MakeText(canvas.transform, "HistoryText", new Vector2(0f, -255f));
+            if (undoBtn == null) undoBtn = MakeButton(canvas.transform, "UndoBtn", "Undo", new Vector2(-440f, -310f));
+            if (redoBtn == null) redoBtn = MakeButton(canvas.transform, "RedoBtn", "Redo", new Vector2(-330f, -310f));
+            if (historyText == null) historyText = MakeText(canvas.transform, "HistoryText", new Vector2(340f, -310f));
             BindHistoryButtons();
         }
 
@@ -95,7 +96,7 @@ namespace ShotField.RuntimeUI
         {
             if (pipeline == null) pipeline = new FiveActsProductionPipeline();
             var result = pipeline.ParseActScript(ProductionAct.Act2_Shooting);
-            aiStatus = $"故事圣经: {result.sceneTitle} / {result.characters.Count} 角色 / {result.beats.Count} 节拍";
+            aiStatus = $"Offline outline: {result.sceneTitle} / {result.characters.Count} actors / {result.beats.Count} beats";
             ShowNotify(aiStatus);
         }
 
@@ -107,7 +108,8 @@ namespace ShotField.RuntimeUI
                 $"{shot.shotId}_rev{shot.revision:D3}.zip");
             try
             {
-                ShotPackageExporter.ExportPackageToFile(shot, null, path);
+                var clayPng = RuntimeClayCapture.Capture(monitor);
+                ShotPackageExporter.ExportPackageToFile(shot, clayPng, path);
                 ShowNotify("参考包已导出: " + path);
             }
             catch (Exception ex) { ShowNotify("导出失败: " + ex.Message); }
@@ -117,6 +119,7 @@ namespace ShotField.RuntimeUI
         {
             var player = EnsureReview();
             if (!string.IsNullOrWhiteSpace(source)) player.LoadVideo(source);
+            if (!player.HasSource) { ShowNotify("No review video source"); return; }
             player.Play();
             ShowNotify("成片播放: " + (string.IsNullOrWhiteSpace(source) ? "当前源" : source));
         }
@@ -126,19 +129,13 @@ namespace ShotField.RuntimeUI
             var player = EnsureReview();
             var next = (ComparisonDisplayMode)(((int)player.displayMode + 1) % 3);
             player.SetMode(next);
+            reviewPanel?.ApplyMode(next);
             ShowNotify("比对模式: " + next);
         }
 
         public void SeekReview(float t)
         {
             if (reviewPlayer != null) reviewPlayer.SeekNormalized(t);
-        }
-
-        private VideoComparisonPlayer EnsureReview()
-        {
-            if (reviewPlayer == null) reviewPlayer = GetComponent<VideoComparisonPlayer>();
-            if (reviewPlayer == null) reviewPlayer = gameObject.AddComponent<VideoComparisonPlayer>();
-            return reviewPlayer;
         }
 
         public void RefreshUI()

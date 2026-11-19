@@ -64,7 +64,7 @@ namespace ShotField.EditorTools
 
             // 机位 2：危险机位（茶几上方 1.45m 俯冲俯拍信封正面）
             cam.transform.position = envelopeCenter + envelope.CriticalFaceNormalWorld * 1f;
-            cam.transform.LookAt(envelopeCenter);
+            cam.transform.LookAt(envelopeCenter, Vector3.forward);
             var s02 = lib.CreateShot(SceneCaptureMode.InheritLatestOrCapture, "S02 危险机位：正上方俯拍信封，正面完全泄露");
             var r2 = vis.Evaluate(s02, s01);
             Log($"  [DETAIL S02] status={r2.status}, detail={r2.detail}");

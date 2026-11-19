@@ -85,6 +85,14 @@ namespace ShotField.EditorTools
 
         private static Bounds ComputeBounds(GameObject go)
         {
+            Physics.SyncTransforms();
+            var colliders = go.GetComponentsInChildren<Collider>();
+            if (colliders.Length > 0)
+            {
+                var cb = colliders[0].bounds;
+                for (int i = 1; i < colliders.Length; i++) cb.Encapsulate(colliders[i].bounds);
+                return cb;
+            }
             var renderers = go.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0)
             {

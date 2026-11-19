@@ -9,6 +9,7 @@ using UnityEngine.XR.Interaction.Toolkit.Locomotion;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Movement;
 using UnityEngine.XR.Interaction.Toolkit.Locomotion.Turning;
 using UnityEngine.XR.Interaction.Toolkit.UI;
+using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 
 namespace ShotField.EditorTools
 {
@@ -70,6 +71,7 @@ namespace ShotField.EditorTools
             moveGo.transform.SetParent(originGo.transform, false);
             var move = moveGo.AddComponent<ContinuousMoveProvider>();
             move.moveSpeed = DirectorLocomotion.DefaultMoveSpeed;
+            XriInputBindings.BindLocomotion(snap, move);
 
             originGo.AddComponent<DirectorLocomotion>();
         }
@@ -93,6 +95,12 @@ namespace ShotField.EditorTools
             rayGo.transform.SetParent(hand.transform, false);
             var ray = rayGo.AddComponent<XRRayInteractor>();
             ray.interactionManager = manager;
+            ray.maxRaycastDistance = 8f;
+            var line = rayGo.AddComponent<LineRenderer>();
+            line.widthMultiplier = 0.004f;
+            line.material = new Material(Shader.Find("Sprites/Default"));
+            rayGo.AddComponent<XRInteractorLineVisual>();
+            XriInputBindings.BindHand(hand, direct, ray, name.Contains("Left"));
         }
 
         private static void AttachGrabbables(Transform root)

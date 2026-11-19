@@ -60,6 +60,7 @@ namespace ShotField.RuntimeUI
             var board = GetComponent<TabletopDirector>();
             var actor = GetComponent<ActorTakePlayer>();
             var lab = GetComponent<AudienceLab>();
+            EnsureAdvancedControls(GetComponent<Canvas>());
             if (motion && playMotion) playMotion.onClick.AddListener(motion.StartPlayback);
             if (actor && playActor) playActor.onClick.AddListener(() => actor.StartPlayback());
             if (board && toggleBoard) toggleBoard.onClick.AddListener(() =>
@@ -77,6 +78,8 @@ namespace ShotField.RuntimeUI
 
         void LateUpdate()
         {
+            if (reviewProgressSlider != null && reviewPlayer != null)
+                reviewProgressSlider.SetValueWithoutNotify(ReviewProgress);
             if (!captureAction.WasPressedThisFrame()) return;
             var device = captureAction.activeControl?.device;
             if (device != null && !(device is Keyboard) && EventSystem.current != null &&

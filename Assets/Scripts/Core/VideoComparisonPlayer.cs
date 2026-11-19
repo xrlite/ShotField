@@ -26,6 +26,8 @@ namespace ShotField.Core
         public bool IsPlaying => videoPlayer != null && videoPlayer.isPlaying;
         public double CurrentTime => videoPlayer != null ? videoPlayer.time : 0.0;
         public double Duration => videoPlayer != null ? videoPlayer.length : 0.0;
+        public bool HasSource => videoPlayer != null &&
+            (videoPlayer.clip != null || !string.IsNullOrWhiteSpace(videoPlayer.url));
 
         void Awake() => Initialize();
 
