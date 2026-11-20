@@ -7,6 +7,7 @@
     "UnityEngine.UI",
     "Unity.InputSystem",
     "ByteDance.PICO.XR",
+    "ByteDance.PICO.Platform",
     "Unity.XR.Interaction.Toolkit",
     "Unity.XR.CoreUtils",
     "Compiler"
