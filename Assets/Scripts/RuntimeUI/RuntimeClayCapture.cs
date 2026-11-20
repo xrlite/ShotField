@@ -55,6 +55,12 @@ namespace ShotField.RuntimeUI
                 RenderTexture.active = source;
                 image.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0);
                 image.Apply(false);
+                var pixels = image.GetRawTextureData<byte>();
+                bool varied = false;
+                for (int i = 3; i < pixels.Length && !varied; i++)
+                    varied = pixels[i] != pixels[i % 3];
+                if (!varied)
+                    throw new System.InvalidOperationException("Director rendered a uniform frame.");
                 return image.EncodeToPNG();
             }
             finally

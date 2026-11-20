@@ -11,7 +11,7 @@ namespace ShotField.EditorTools
 {
     public static class ShotPackageDynamicVerifier
     {
-        private const int Expected = 5;
+        private const int Expected = 6;
 
         [MenuItem("ShotField/Verifiers/Run Dynamic Package Verifier")]
         public static void Run()
@@ -28,6 +28,7 @@ namespace ShotField.EditorTools
             string zipPath = Path.Combine(tempDir, "SC01_dynamic_pack.zip");
             try
             {
+                Check("SC01 export button bound", WorkbenchExportBinding.SavedBindingExists());
                 var shot = new ShotData
                 {
                     shotId = "SC01-DYN",

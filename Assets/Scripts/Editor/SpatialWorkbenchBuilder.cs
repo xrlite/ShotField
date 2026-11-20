@@ -124,6 +124,7 @@ namespace ShotField.EditorTools
             wb.playActor = CreateButton(canvasGo.transform, "PlayActor", "表演回放", new Vector2(60,-255));
             wb.screenShot = CreateButton(canvasGo.transform, "ScreenShot", "观众试看", new Vector2(180,-255));
             Sprint1PanelBuilder.Attach(canvasGo, wb, timeline);
+            WorkbenchExportBinding.Attach(wb);
             return canvasGo;
         }
 

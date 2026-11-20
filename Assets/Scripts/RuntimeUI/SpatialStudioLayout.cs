@@ -67,7 +67,8 @@ namespace ShotField.RuntimeUI
             string outputZipPath)
         {
             var timeline = wb != null ? wb.GetComponent<DirectorTimeline>() : null;
-            if (timeline != null && timeline.duration > 0.1f)
+            if (timeline != null && timeline.duration > 0.1f &&
+                (timeline.cameraRecorder?.ActiveTrajectory?.Count > 1 || timeline.actorPlayer?.currentTake?.Count > 1))
             {
                 var frames = SampleTimelineFrames(monitor, timeline, 12, 36);
                 if (frames.Count > 1)

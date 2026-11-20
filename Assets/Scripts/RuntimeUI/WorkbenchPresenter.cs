@@ -100,15 +100,20 @@ namespace ShotField.RuntimeUI
             ShowNotify(aiStatus);
         }
 
+        public string LastExportPath { get; private set; }
         public void ExportReferencePackage()
         {
+            LastExportPath = null;
             var shot = SelectedShot;
             if (shot == null) { ShowNotify("请先选择镜头"); return; }
-            var path = Path.Combine(ShotPassportStore.ProjectFolder, "Exports",
-                $"{shot.shotId}_rev{shot.revision:D3}.zip");
+            var folder = Application.isEditor
+                ? Path.GetFullPath(Path.Combine(Application.dataPath, "../../../07_提交包"))
+                : Path.Combine(Application.persistentDataPath, "Exports");
+            var path = Path.Combine(folder, $"ShotField_{DateTime.Now:yyyyMMdd_HHmm_ssfff}_{Guid.NewGuid():N}.zip");
             try
             {
                 string msg = SpatialStudioLayout.ExportDynamicOrStatic(this, shot, monitor, path);
+                LastExportPath = path;
                 ShowNotify(msg);
             }
             catch (Exception ex) { ShowNotify("导出失败: " + ex.Message); }

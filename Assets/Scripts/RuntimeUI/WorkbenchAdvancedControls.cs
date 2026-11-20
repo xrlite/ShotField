@@ -22,7 +22,8 @@ namespace ShotField.RuntimeUI
             if (reviewProgressSlider == null) reviewProgressSlider = MakeProgressSlider(canvas.transform);
             if (advancedControlsBound) return;
             storyBtn.onClick.AddListener(ParseStoryBible);
-            exportBtn.onClick.AddListener(ExportReferencePackage);
+            if (exportBtn.onClick.GetPersistentEventCount() == 0)
+                exportBtn.onClick.AddListener(ExportReferencePackage);
             playReviewBtn.onClick.AddListener(() => PlayReviewVideo(reviewVideoSource));
             compareBtn.onClick.AddListener(CycleCompareMode);
             reviewProgressSlider.onValueChanged.AddListener(SeekReview);

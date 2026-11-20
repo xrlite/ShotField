@@ -13,7 +13,9 @@ namespace ShotField.EditorTools
         public static void Run()
         {
             int passCount = 0;
-            int totalTests = 5;
+            int totalTests = 6;
+            if (WorkbenchExportBinding.SavedBindingExists()) passCount++;
+            else Debug.LogError("Missing SC01 export button binding");
             string tempDir = Path.Combine(Application.temporaryCachePath, "ExportTest_" + Guid.NewGuid().ToString("N"));
             string zipPath = Path.Combine(tempDir, "SC01_01_reference_pack.zip");
             var markerGo = new GameObject("TestEnvelopeMarker");
