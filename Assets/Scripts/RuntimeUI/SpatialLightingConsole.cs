@@ -15,6 +15,7 @@ namespace ShotField.RuntimeUI
         {
             public string slotName = "槽位1";
             public Light lightSource;
+            public SpatialStudioLightFixture fixture;
             public Transform focusTarget;
             public float innerSpotAngle = 10f;
             public int modeIndex = 2; // 0:主光 1/3, 1:辅光 2/3, 2:环境 3/3
@@ -137,6 +138,9 @@ namespace ShotField.RuntimeUI
             }
             if (slot.focusTarget != null)
                 slot.lightSource.transform.LookAt(slot.focusTarget.position);
+
+            if (slot.fixture != null)
+                slot.fixture.UpdateFixture(slot.innerSpotAngle, slot.lightSource.range, c, slot.focusTarget);
 
             OnSlotUpdated?.Invoke(currentSlotIndex, slot);
         }

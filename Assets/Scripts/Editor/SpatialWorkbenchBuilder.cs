@@ -66,8 +66,13 @@ namespace ShotField.EditorTools
             wb.toggleAspectBtn = CreateButton(controlPanel.transform, "AspectBtn", "画幅", new Vector2(165f, 0f));
             wb.savePassportBtn = CreateButton(controlPanel.transform, "SaveBtn", "存护照", new Vector2(275f, 0f));
 
-            // 5. 窗口 D：片场灯光控制台（此前只有单元测试，场景内 0 引用）
+            // 5. 窗口 D：片场灯光控制台（带 3D 四叶遮光斗白模与动态光锥）
             SpatialLightingConsoleBuilder.Build(canvasGo);
+
+            // 6. 窗口 E：导演舒适度与防晕设置面板
+            var cp = ComfortSettingsPanel.CreatePanel(canvasGo.transform, null);
+            var rt = cp.GetComponent<RectTransform>();
+            if (rt != null) rt.anchoredPosition = new Vector2(-430f, -100f);
 
             // 4. 窗口 C：约束质检抬头卡片（右侧浮窗）
             var hudPanel = CreatePanel(canvasGo.transform, "WindowC_HUD", PicoCard, new Vector2(430f, 80f), new Vector2(200f, 220f));

@@ -74,8 +74,11 @@ namespace ShotField.EditorTools
             var focus = GameObject.Find("Envelope") != null ? GameObject.Find("Envelope").transform : null;
             console.slots[0].lightSource = warm;
             console.slots[0].focusTarget = focus;
+            console.slots[0].fixture = SpatialStudioLightFixture.AttachToLight(warm, "StudioFixture_Slot1");
             console.slots[1].lightSource = MakeSpot(host.transform, "FillLight_A", new Vector3(-2.0f, 2.3f, 1.4f), focus);
+            console.slots[1].fixture = SpatialStudioLightFixture.AttachToLight(console.slots[1].lightSource, "StudioFixture_Slot2");
             console.slots[2].lightSource = MakeSpot(host.transform, "FillLight_B", new Vector3(2.4f, 2.2f, 3.0f), focus);
+            console.slots[2].fixture = SpatialStudioLightFixture.AttachToLight(console.slots[2].lightSource, "StudioFixture_Slot3");
 
             console.focusTargetText = SpatialWorkbenchBuilder.CreateText(panel.transform, "FocusInfo",
                 "灯光聚焦的对象。", 11, FontStyle.Normal, new Vector2(0f, -158f), new Color(0.6f, 0.65f, 0.72f));

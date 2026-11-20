@@ -91,7 +91,11 @@ namespace ShotField.EditorTools
             move.moveSpeed = DirectorLocomotion.DefaultMoveSpeed;
             XriInputBindings.BindLocomotion(snap, move);
 
-            originGo.AddComponent<DirectorLocomotion>();
+            var dirLoco = originGo.AddComponent<DirectorLocomotion>();
+            var comfort = originGo.AddComponent<LocomotionComfortController>();
+            comfort.directorLocomotion = dirLoco;
+            var headset = originGo.transform.Find("XR_Headset");
+            if (headset != null) comfort.cameraRigOffsetNode = headset;
         }
 
         private static void BuildHand(Transform origin, XRInteractionManager manager,
