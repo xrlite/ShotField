@@ -1,6 +1,8 @@
 {
   "name": "ShotField.Editor",
   "references": [
+    "Unity.AI.Navigation",
+    "Unity.AI.Navigation.Editor",
     "ShotField.Core",
     "ShotField.Constraints",
     "ShotField.RuntimeUI",

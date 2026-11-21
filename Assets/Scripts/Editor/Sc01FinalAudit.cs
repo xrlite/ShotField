@@ -173,20 +173,13 @@ namespace ShotField.EditorTools
             Sc01PatchCore.Check(total > 0 && ok == total, "A15 灯光夹具全部换材质", ok + "/" + total);
         }
 
-        private static Light LightAt(string name)
-        {
-            var t = Sc01PatchCore.FindDeep(name);
-            return t == null ? null : t.GetComponent<Light>();
-        }
+        private static Light LightAt(string name) => Sc01PatchCore.FindDeep(name)?.GetComponent<Light>();
 
         private static float Exposure()
         {
             foreach (var asset in AssetDatabase.LoadAllAssetsAtPath("Assets/Models/Studio/SC01StudioVolume.asset"))
             {
-                var so = new SerializedObject(asset);
-                var p = so.FindProperty("postExposure");
-                if (p == null) continue;
-                var v = p.FindPropertyRelative("m_Value");
+                var v = new SerializedObject(asset).FindProperty("postExposure")?.FindPropertyRelative("m_Value");
                 if (v != null) return v.floatValue;
             }
             return float.NaN;

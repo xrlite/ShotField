@@ -171,11 +171,9 @@ namespace ShotField.EditorTools
 
         private static SemanticMarker Mark(GameObject obj, string id, SemanticMarker.Kind kind)
         {
-            var marker = obj.AddComponent<SemanticMarker>();
-            marker.markerId = id;
-            marker.displayName = obj.name;
-            marker.kind = kind;
-            return marker;
+            var m = obj.AddComponent<SemanticMarker>();
+            m.markerId = id; m.displayName = obj.name; m.kind = kind;
+            return m;
         }
 
         private static GameObject Box(Transform parent, string name, Vector3 position, Vector3 size) =>
@@ -185,11 +183,8 @@ namespace ShotField.EditorTools
             Vector3 position, Vector3 size)
         {
             var obj = GameObject.CreatePrimitive(type);
-            obj.name = name;
-            obj.transform.SetParent(parent, false);
-            obj.transform.localPosition = position;
-            obj.transform.localScale = size;
-            // The envelope root owns its collider. Trim and the window marker are visual only.
+            obj.name = name; obj.transform.SetParent(parent, false);
+            obj.transform.localPosition = position; obj.transform.localScale = size;
             if (name is "Envelope_Body" or "Envelope_Flap" or "Letter_Edge" or "WindowMarker")
                 obj.GetComponent<Collider>().enabled = false;
             return obj;

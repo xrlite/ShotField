@@ -2,6 +2,7 @@
   "name": "ShotField.RuntimeUI",
   "rootNamespace": "ShotField.RuntimeUI",
   "references": [
+    "Unity.AI.Navigation",
     "ShotField.Core",
     "ShotField.Constraints",
     "UnityEngine.UI",

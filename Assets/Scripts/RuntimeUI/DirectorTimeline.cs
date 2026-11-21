@@ -12,16 +12,24 @@ namespace ShotField.RuntimeUI
     public class DirectorTimeline : MonoBehaviour
     {
         [Header("时间与状态")]
-        [Min(0.1f)] public float duration = 5.0f;
+        [Min(0.1f)] public float duration = 60.0f;
         public float currentTime = 0.0f;
         public bool isPlaying = false;
-        public bool loop = true;
+        public bool loop = false;
         [Range(0.25f, 3.0f)] public float playbackSpeed = 1.0f;
 
         [Header("联动管线")]
         public CameraMotionRecorder cameraRecorder;
         public ActorTakePlayer actorPlayer;
         public VideoComparisonPlayer videoPlayer;
+        public UnityEngine.Playables.PlayableDirector playableDirector;
+        public ActorNavigator actorA;
+        public ActorNavigator actorB;
+
+        public static readonly float[] ShotCutTimes = { 0.0f, 8.0f, 17.0f, 25.0f, 34.0f, 43.0f, 52.0f, 60.0f };
+        public static readonly string[] ShotNames = { "SH_01", "SH_02", "SH_03", "SH_04", "SH_05", "SH_06", "SH_07" };
+        public int CurrentShotIndex => Sc01PrevisShotData.GetShotIndex(currentTime);
+        public string CurrentShotId => ShotNames[CurrentShotIndex];
 
         public float NormalizedTime => duration > 0.001f ? Mathf.Clamp01(currentTime / duration) : 0f;
 
@@ -35,6 +43,17 @@ namespace ShotField.RuntimeUI
             if (cameraRecorder == null) cameraRecorder = FindAnyObjectByType<CameraMotionRecorder>();
             if (actorPlayer == null) actorPlayer = FindAnyObjectByType<ActorTakePlayer>();
             if (videoPlayer == null) videoPlayer = FindAnyObjectByType<VideoComparisonPlayer>();
+            if (playableDirector == null) playableDirector = FindAnyObjectByType<UnityEngine.Playables.PlayableDirector>();
+            if (actorA == null)
+            {
+                var goA = GameObject.Find("SC01_Performer_A");
+                if (goA != null) actorA = goA.GetComponent<ActorNavigator>();
+            }
+            if (actorB == null)
+            {
+                var goB = GameObject.Find("SC01_Performer_B");
+                if (goB != null) actorB = goB.GetComponent<ActorNavigator>();
+            }
         }
 
         void Update()
@@ -108,7 +127,6 @@ namespace ShotField.RuntimeUI
 
         public void ApplyCurrentFrame()
         {
-            // 1. 驱动摄影机轨迹回放
             if (cameraRecorder != null && cameraRecorder.filmCamera != null)
             {
                 var traj = cameraRecorder.ActiveTrajectory;
@@ -121,22 +139,29 @@ namespace ShotField.RuntimeUI
                 }
             }
 
-            // 2. 驱动演员位姿回放
-            if (actorPlayer != null && actorPlayer.actorTransform != null && actorPlayer.currentTake != null)
+            if (actorPlayer != null && actorPlayer.actorTransform != null && actorPlayer.currentTake != null && actorPlayer.currentTake.Count > 0)
             {
                 var take = actorPlayer.currentTake;
-                if (take.Count > 0)
-                {
-                    float sampleTime = NormalizedTime * take.duration;
-                    var sample = take.Evaluate(sampleTime);
-                    actorPlayer.actorTransform.SetPositionAndRotation(sample.position, sample.rotation);
-                }
+                var sample = take.Evaluate(NormalizedTime * take.duration);
+                actorPlayer.actorTransform.SetPositionAndRotation(sample.position, sample.rotation);
+            }
+            if (actorA != null)
+            {
+                actorA.transform.position = Sc01PrevisShotData.EvaluateActorA(currentTime);
+                actorA.transform.rotation = Sc01PrevisShotData.EvaluateActorARotation(currentTime);
+            }
+            if (actorB != null)
+            {
+                actorB.transform.position = Sc01PrevisShotData.EvaluateActorB(currentTime);
+                actorB.transform.rotation = Sc01PrevisShotData.EvaluateActorBRotation(currentTime);
             }
 
-            // 3. 驱动成片比对播放器寻道
-            if (videoPlayer != null && videoPlayer.HasSource)
+            if (videoPlayer != null && videoPlayer.HasSource) videoPlayer.SeekNormalized(NormalizedTime);
+
+            if (playableDirector != null && playableDirector.playableAsset != null)
             {
-                videoPlayer.SeekNormalized(NormalizedTime);
+                playableDirector.time = currentTime;
+                playableDirector.Evaluate();
             }
         }
     }

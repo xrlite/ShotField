@@ -171,9 +171,7 @@ namespace ShotField.Core
             {
                 case nameof(PacketType.JoinResponse):
                     var resp = packet.Unpack<JoinResponseData>();
-                    LocalClientId = resp.clientId;
-                    InitialShotIndex = resp.currentShotIndex;
-                    State = SessionState.Connected;
+                    LocalClientId = resp.clientId; InitialShotIndex = resp.currentShotIndex; State = SessionState.Connected;
                     break;
                 case nameof(PacketType.Heartbeat): HandleHeartbeat(); break;
                 case nameof(PacketType.CameraSync): OnCameraSyncReceived?.Invoke(packet.Unpack<CameraSyncData>()); break;
@@ -182,15 +180,13 @@ namespace ShotField.Core
             }
         }
 
-        private void Post(int epoch, Action action) =>
-            incoming.Enqueue(() => { if (epoch == generation) action(); });
+        private void Post(int epoch, Action action) => incoming.Enqueue(() => { if (epoch == generation) action(); });
 
         public void Tick()
         {
             for (int i = 0; i < 64 && incoming.TryDequeue(out var action); i++)
             {
-                try { action(); }
-                catch (Exception ex) { Debug.LogWarning(ex.Message); }
+                try { action(); } catch (Exception ex) { Debug.LogWarning(ex.Message); }
             }
         }
     }

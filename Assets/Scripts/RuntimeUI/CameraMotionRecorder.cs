@@ -9,12 +9,9 @@ namespace ShotField.RuntimeUI
         public enum State { Idle, Recording, Playing }
 
         [Header("三路明确绑定（禁止Camera.main自动回退）")]
-        [Tooltip("录制位姿源：手柄/摄影机手持Rig/位姿采集器")]
-        public Transform poseSource;
-        [Tooltip("影片回放相机：片场电影机镜头")]
-        public Camera filmCamera;
-        [Tooltip("头显观察相机：导演VR自由视角（独立观察，不强制视角绑架）")]
-        public Camera hmdObserver;
+        [Tooltip("录制位姿源")] public Transform poseSource;
+        [Tooltip("影片回放相机")] public Camera filmCamera;
+        [Tooltip("头显观察相机")] public Camera hmdObserver;
         public bool useDeviceInput = true;
 
         [Header("采样与滤波设置")]
@@ -25,8 +22,9 @@ namespace ShotField.RuntimeUI
 
         [Header("轨迹渲染")]
         public LineRenderer trajectoryLine;
-        public Color recordColor = new Color(1f, 0.2f, 0.2f, 0.8f);
-        public Color readyColor = new Color(0.2f, 0.9f, 0.3f, 0.8f);
+        public static readonly Color AmberColor = new Color(0.949f, 0.639f, 0.235f, 0.85f);
+        public Color recordColor = AmberColor;
+        public Color readyColor = AmberColor;
 
         [Header("轨迹双缓存（原始 + 平滑）")]
         public CameraTrajectory rawTrajectory = new CameraTrajectory();
@@ -51,11 +49,7 @@ namespace ShotField.RuntimeUI
 
         void OnEnable() => recordAction.Enable();
         void OnDisable() => recordAction.Disable();
-        void OnDestroy()
-        {
-            recordAction.Dispose();
-            if (ownedLineMaterial != null) Destroy(ownedLineMaterial);
-        }
+        void OnDestroy() { recordAction.Dispose(); if (ownedLineMaterial != null) Destroy(ownedLineMaterial); }
 
         public void LoadAndPlay(CameraTrajectory trajectory)
         {
@@ -110,10 +104,7 @@ namespace ShotField.RuntimeUI
             clock.BeginPlayback(Time.time);
         }
 
-        public void StopPlayback()
-        {
-            if (CurrentState == State.Playing) CurrentState = State.Idle;
-        }
+        public void StopPlayback() { if (CurrentState == State.Playing) CurrentState = State.Idle; }
 
         private void TickRecording()
         {
@@ -150,24 +141,26 @@ namespace ShotField.RuntimeUI
             rawTrajectory.AddPoint(timeOffset, poseSource.position, poseSource.rotation, fov);
         }
 
-        public void ApplyToShot(ShotData shot)
-        {
-            if (shot == null) return;
-            shot.trajectory = ActiveTrajectory?.Clone();
-        }
+        public void ApplyToShot(ShotData shot) { if (shot != null) shot.trajectory = ActiveTrajectory?.Clone(); }
 
-        private void EnsureLineRenderer()
+        public void EnsureLineRenderer()
         {
             if (trajectoryLine == null) trajectoryLine = GetComponent<LineRenderer>();
-            if (trajectoryLine == null)
+            if (trajectoryLine == null) trajectoryLine = gameObject.AddComponent<LineRenderer>();
+            trajectoryLine.startWidth = 0.012f;
+            trajectoryLine.endWidth = 0.012f;
+            trajectoryLine.useWorldSpace = true;
+            trajectoryLine.alignment = LineAlignment.View;
+            trajectoryLine.numCornerVertices = 4;
+            trajectoryLine.numCapVertices = 4;
+            trajectoryLine.gameObject.layer = 0;
+            if (ownedLineMaterial == null)
             {
-                trajectoryLine = gameObject.AddComponent<LineRenderer>();
-                trajectoryLine.startWidth = 0.012f;
-                trajectoryLine.endWidth = 0.012f;
-                trajectoryLine.useWorldSpace = true;
-                ownedLineMaterial = new Material(Shader.Find("Sprites/Default"));
-                trajectoryLine.sharedMaterial = ownedLineMaterial;
+                var s = Shader.Find("Sprites/Default") ?? Shader.Find("Universal Render Pipeline/Unlit");
+                ownedLineMaterial = new Material(s) { color = AmberColor };
             }
+            trajectoryLine.sharedMaterial = ownedLineMaterial;
+            UpdateLineStyle(AmberColor);
         }
 
         private void UpdateLineStyle(Color color)
@@ -175,6 +168,7 @@ namespace ShotField.RuntimeUI
             if (trajectoryLine == null) return;
             trajectoryLine.startColor = color;
             trajectoryLine.endColor = color;
+            if (trajectoryLine.sharedMaterial != null) trajectoryLine.sharedMaterial.color = color;
         }
 
         public void RefreshTrajectoryLine()
@@ -185,6 +179,7 @@ namespace ShotField.RuntimeUI
             trajectoryLine.positionCount = count;
             for (int i = 0; i < count; i++)
                 trajectoryLine.SetPosition(i, traj.points[i].position);
+            UpdateLineStyle(AmberColor);
         }
     }
 }
