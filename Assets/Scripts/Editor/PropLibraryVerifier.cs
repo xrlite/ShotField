@@ -13,7 +13,7 @@ namespace ShotField.EditorTools
     /// </summary>
     public static class PropLibraryVerifier
     {
-        // 12 条真实条目 + 6 条结构性断言 = 10 条（其中 1 条聚合覆盖 12 条路径）
+        // 18 条真实条目（12 原有 + 6 六色角色）+ 6 条结构性断言
         private const int ExpectedAssertions = 10;
 
         [MenuItem("镜场 ShotField/验证/验证道具库 PropLibrary")]
@@ -36,7 +36,7 @@ namespace ShotField.EditorTools
 
             var all = PropLibrary.All;
 
-            Assert("条目总数为 12", PropLibrary.Count == 12);
+            Assert("条目总数为 18", PropLibrary.Count == 18);
 
             var ids = new HashSet<string>();
             bool idUnique = true;

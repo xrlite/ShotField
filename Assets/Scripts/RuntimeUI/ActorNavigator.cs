@@ -1,6 +1,7 @@
 using System;
 using UnityEngine;
 using UnityEngine.AI;
+using ShotField.Core;
 
 namespace ShotField.RuntimeUI
 {
@@ -33,7 +34,6 @@ namespace ShotField.RuntimeUI
         private bool _isMoving;
         private bool _isRunning;
         private NavMeshPath _path;
-        private static readonly Color AmberColor = new Color(0.949f, 0.639f, 0.235f, 0.95f);
 
         public bool IsMoving => _isMoving;
         public float RemainingDistance => (agent != null && agent.isOnNavMesh) ? agent.remainingDistance : 0f;
@@ -171,7 +171,7 @@ namespace ShotField.RuntimeUI
                 if (rend != null)
                 {
                     var shader = Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Sprites/Default");
-                    var mat = new Material(shader) { color = AmberColor };
+                    var mat = new Material(shader) { color = PrevisPalette.AmberTrajectory };
                     rend.material = mat;
                 }
                 targetMarker = go.transform;

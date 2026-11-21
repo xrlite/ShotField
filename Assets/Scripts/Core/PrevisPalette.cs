@@ -26,12 +26,32 @@ namespace ShotField.Core
 
         private static readonly Dictionary<string, string> HexByKey = new Dictionary<string, string>
         {
+            // 六色演员
             { "Red", "#FF0000" },
             { "Blue", "#0055FF" },
             { "Yellow", "#FFCC00" },
             { "Green", "#00CC44" },
             { "Violet", "#8A3BE2" },
             { "Magenta", "#E23BB0" },
+
+            // 关键道具
+            { "Envelope", "#F5F5F0" },
+            { "Seal", "#D92525" },
+
+            // 两级中性灰模
+            { "StageWallGray", "#D8D8D8" },
+            { "StageFloorGray", "#9A9A9A" },
+
+            // 预演导向层
+            { "AmberTrajectory", "#F2A33C" },
+            { "SlateBlueGuideline", "#4A90E2" },
+
+            // 空间布光矩阵
+            { "AmbientSky", "#B8B3A8" },
+            { "AmbientGround", "#423D36" },
+            { "WindowMoonlight", "#AED1FF" },
+            { "TableWarmLight", "#FFB866" },
+            { "FilmBounce", "#FFE0C2" },
         };
 
         /// <summary>演员键名，顺序即 A-F。</summary>
@@ -56,6 +76,7 @@ namespace ShotField.Core
         /// <summary>键名对应的颜色。键名写错时直接抛错，不静默回落到白色。</summary>
         public static Color ColorOf(string key)
         {
+            if (key == "AmberTrajectory") return AmberTrajectory;
             var hex = HexOf(key);
             if (hex == null)
             {
@@ -80,11 +101,29 @@ namespace ShotField.Core
             return "Assets/Prefabs/SC01/Actor" + System.Convert.ToChar('A' + index) + "_" + KeyAt(index) + ".prefab";
         }
 
-        /// <summary>导出层的中性灰：墙面。与演员色分开定义，免得灰模层污染色板。</summary>
-        public static Color StageWallGray => ColorUtility.TryParseHtmlString("#D8D8D8", out var c) ? c : Color.white;
+        /// <summary>导出层的中性灰：墙面。</summary>
+        public static Color StageWallGray => ColorOf("StageWallGray");
 
         /// <summary>导出层的中性灰：地面。</summary>
-        public static Color StageFloorGray => ColorUtility.TryParseHtmlString("#9A9A9A", out var c) ? c : Color.white;
+        public static Color StageFloorGray => ColorOf("StageFloorGray");
+
+        /// <summary>关键道具：信封底色纸张。</summary>
+        public static Color Envelope => ColorOf("Envelope");
+
+        /// <summary>关键道具：火漆印章。</summary>
+        public static Color Seal => ColorOf("Seal");
+
+        /// <summary>预演导向层：摄影机琥珀色轨迹（带 0.85f 半透明度，符合 M3 判定规范）。</summary>
+        public static Color AmberTrajectory => new Color(0.949f, 0.639f, 0.235f, 0.850f);
+
+        /// <summary>预演导向层：演员 NavMesh 走位导向线（板岩蓝）。</summary>
+        public static Color SlateBlueGuideline => ColorOf("SlateBlueGuideline");
+
+        /// <summary>三点天光：天顶环境光（暖灰）。</summary>
+        public static Color AmbientSky => ColorOf("AmbientSky");
+
+        /// <summary>三点天光：地面反弹环境光（冷深褐）。</summary>
+        public static Color AmbientGround => ColorOf("AmbientGround");
 
         /// <summary>
         /// 两两色相角差的最小值，单位「度」。

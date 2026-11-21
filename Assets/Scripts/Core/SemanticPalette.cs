@@ -6,23 +6,24 @@ namespace ShotField.Core
     /// 语义视觉色板（Semantic Palette）。
     /// 严格对照 PRD 附录 F4 与《语义视觉系统_SemanticVision.md》约定。
     /// 核心原则："颜色是线索，数据是基础"；仅用于工作台人眼质检与评审展示，喂模型的永远是 Clay 灰白。
+    /// 桥接 PrevisPalette 唯一真相来源，彻底杜绝平行色板分化。
     /// </summary>
     public static class SemanticPalette
     {
         // ---------- 模式 1：标准白模（Clay）----------
-        public static readonly Color ClayColor = new Color(0.85f, 0.85f, 0.85f, 1.0f);
+        public static Color ClayColor => PrevisPalette.StageWallGray;
 
-        // ---------- 模式 2：固定语义色板（不随主题变）----------
-        // 主角 A（青蓝）
-        public static readonly Color ActorPrimaryColor = new Color(0.15f, 0.72f, 0.88f, 1.0f);
-        // 主角 B（暖橙）
-        public static readonly Color ActorSecondaryColor = new Color(1.00f, 0.55f, 0.15f, 1.0f);
-        // 关键道具（警示黄 - 如信封）
-        public static readonly Color KeyPropColor = new Color(1.00f, 0.88f, 0.20f, 1.0f);
-        // 普通道具（辅助紫）
-        public static readonly Color PropColor = new Color(0.67f, 0.35f, 0.75f, 1.0f);
-        // 环境结构（中性中灰）
-        public static readonly Color EnvironmentColor = new Color(0.65f, 0.65f, 0.67f, 1.0f);
+        // ---------- 模式 2：固定语义色板（桥接 PrevisPalette 唯一源头）----------
+        // 主角 A（预演红 #FF0000）
+        public static Color ActorPrimaryColor => PrevisPalette.ColorOf("Red");
+        // 主角 B（预演蓝 #0055FF）
+        public static Color ActorSecondaryColor => PrevisPalette.ColorOf("Blue");
+        // 关键道具（预演信封 #F5F5F0）
+        public static Color KeyPropColor => PrevisPalette.Envelope;
+        // 普通道具（预演辅助紫 #8A3BE2）
+        public static Color PropColor => PrevisPalette.ColorOf("Violet");
+        // 环境结构（中性深灰/地灰 #9A9A9A）
+        public static Color EnvironmentColor => PrevisPalette.StageFloorGray;
 
         /// <summary>
         /// 根据标记类型获取对应的语义显示颜色。

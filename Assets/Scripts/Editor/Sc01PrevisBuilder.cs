@@ -16,7 +16,6 @@ namespace ShotField.EditorTools
         private const string RedMatPath = "Assets/Models/Characters/MAT_Actor_Red.mat";
         private const string BlueMatPath = "Assets/Models/Characters/MAT_Actor_Blue.mat";
         private const string PlayablePath = "Assets/Scenes/SC01_UnopenedLetter.playable";
-        private static readonly Color AmberColor = new Color(0.949f, 0.639f, 0.235f, 0.85f);
 
         [MenuItem("ShotField/Previs/Run Batch Assembly (M3)")]
         public static void RunBatch()
@@ -122,8 +121,8 @@ namespace ShotField.EditorTools
             lr.gameObject.layer = 0;
 
             var shader = Shader.Find("Sprites/Default") ?? Shader.Find("Universal Render Pipeline/Unlit");
-            lr.sharedMaterial = new Material(shader) { color = AmberColor };
-            lr.startColor = lr.endColor = AmberColor;
+            lr.sharedMaterial = new Material(shader) { color = PrevisPalette.AmberTrajectory };
+            lr.startColor = lr.endColor = PrevisPalette.AmberTrajectory;
 
             var traj = Sc01PrevisShotData.CreateSequenceTrajectory();
             lr.positionCount = traj.Count;
@@ -134,8 +133,8 @@ namespace ShotField.EditorTools
             {
                 recorder.filmCamera = cam;
                 recorder.trajectoryLine = lr;
-                recorder.recordColor = AmberColor;
-                recorder.readyColor = AmberColor;
+                recorder.recordColor = PrevisPalette.AmberTrajectory;
+                recorder.readyColor = PrevisPalette.AmberTrajectory;
                 recorder.rawTrajectory = traj;
                 recorder.smoothedTrajectory = traj.Clone();
                 recorder.useSmoothedForPlayback = false;

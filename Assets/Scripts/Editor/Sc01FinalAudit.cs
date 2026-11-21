@@ -3,11 +3,12 @@ using Unity.XR.CoreUtils;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
+using ShotField.Core;
 
 namespace ShotField.EditorTools
 {
     /// <summary>主场景（SC01_Main）结构审计（只读，绝不修改场景）。判据全部来自设计值。</summary>
-    internal static class Sc01FinalAudit
+    public static class Sc01FinalAudit
     {
         private static readonly string[] WallFaces =
             { "RightWall", "EntryWallLeft", "EntryWallRight", "EntryLintel",
@@ -19,6 +20,7 @@ namespace ShotField.EditorTools
         private static readonly string[] Edges =
             { "SETW_OpenCapTop", "SETW_OpenPostFront", "SETW_OpenPostBack" };
 
+        [MenuItem("ShotField/Verifiers/Run SC01 Final Audit")]
         public static void Run()
         {
             Sc01PatchCore.Begin();
@@ -72,9 +74,9 @@ namespace ShotField.EditorTools
             Sc01PatchCore.Check(RenderSettings.ambientMode == AmbientMode.Trilight, "A18 环境光 Trilight",
                 RenderSettings.ambientMode.ToString());
             Sc01PatchCore.Check(Sc01PatchCore.Near(RenderSettings.ambientSkyColor,
-                new Color(0.72f, 0.70f, 0.66f)), "A19 天顶色", RenderSettings.ambientSkyColor.ToString());
+                PrevisPalette.AmbientSky), "A19 天顶色", RenderSettings.ambientSkyColor.ToString());
             Sc01PatchCore.Check(Sc01PatchCore.Near(RenderSettings.ambientGroundColor,
-                new Color(0.26f, 0.24f, 0.21f)), "A20 地面色", RenderSettings.ambientGroundColor.ToString());
+                PrevisPalette.AmbientGround), "A20 地面色", RenderSettings.ambientGroundColor.ToString());
             Sc01PatchCore.Check(Mathf.Abs(Exposure()) < 0.001f, "A21 曝光补偿 0",
                 Exposure().ToString("F2"));
         }

@@ -97,6 +97,28 @@ namespace ShotField.Core
                 "Assets/Prefabs/SC01/ActorA_Character.prefab",
                 "Biped_Humanoid.fbx 来源待确权（裁定项 12）");
 
+            // M1 六步链第 2 步要"从资源列表选一个人物"。原先库里只有 actorA 一条，
+            // 用户点开面板只能看到同一个人。以下六色是 scenario-01 的正式阵容，
+            // 直接登记进库，面板才选得出来。
+            Add(list, "actorRed", "角色 红（Protagonist）", PropCategory.Actor,
+                SemanticMarker.Kind.ActorSecondary,
+                "Assets/Prefabs/SC01/ActorA_Red.prefab", "六色阵容 · #FF2D2D");
+            Add(list, "actorBlue", "角色 蓝（Antagonist）", PropCategory.Actor,
+                SemanticMarker.Kind.ActorSecondary,
+                "Assets/Prefabs/SC01/ActorB_Blue.prefab", "六色阵容 · #0055FF");
+            Add(list, "actorYellow", "角色 黄", PropCategory.Actor,
+                SemanticMarker.Kind.ActorSecondary,
+                "Assets/Prefabs/SC01/ActorC_Yellow.prefab", "六色阵容");
+            Add(list, "actorGreen", "角色 绿", PropCategory.Actor,
+                SemanticMarker.Kind.ActorSecondary,
+                "Assets/Prefabs/SC01/ActorD_Green.prefab", "六色阵容");
+            Add(list, "actorViolet", "角色 紫", PropCategory.Actor,
+                SemanticMarker.Kind.ActorSecondary,
+                "Assets/Prefabs/SC01/ActorE_Violet.prefab", "六色阵容");
+            Add(list, "actorMagenta", "角色 品红", PropCategory.Actor,
+                SemanticMarker.Kind.ActorSecondary,
+                "Assets/Prefabs/SC01/ActorF_Magenta.prefab", "六色阵容");
+
             Add(list, "sofa", "沙发", PropCategory.Furniture,
                 SemanticMarker.Kind.Prop,
                 "Assets/Prefabs/SC01/Sofa_Prop.prefab", "");

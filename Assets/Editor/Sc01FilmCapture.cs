@@ -10,7 +10,7 @@ using UnityEngine.Timeline;
 
 public static class Sc01FilmCapture
 {
-    private const string ScenePath = "Assets/Scenes/SC01_Final.unity";
+    private const string ScenePath = BuildAndroid.ScenePath;
     private const string TimelinePath = "Assets/Scenes/SC01_UnopenedLetter.playable";
     private const int Width = 1920, Height = 1080, Fps = 30, FrameCount = 450;
     private static EditorApplication.CallbackFunction job;
@@ -19,7 +19,7 @@ public static class Sc01FilmCapture
     public static void Start()
     {
         if (job != null || EditorApplication.isPlaying || SceneManager.GetActiveScene().path != ScenePath)
-            throw new InvalidOperationException("Open SC01_Final in Edit Mode with no other capture running.");
+            throw new InvalidOperationException("Open SC01_Main in Edit Mode with no other capture running.");
         var actorA = GameObject.Find("SC01_Performer_A").GetComponentInChildren<Animator>();
         var actorB = GameObject.Find("SC01_Performer_B").GetComponentInChildren<Animator>();
         var letter = GameObject.Find("Envelope").transform;

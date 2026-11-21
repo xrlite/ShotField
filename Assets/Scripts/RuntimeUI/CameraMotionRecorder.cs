@@ -22,9 +22,9 @@ namespace ShotField.RuntimeUI
 
         [Header("轨迹渲染")]
         public LineRenderer trajectoryLine;
-        public static readonly Color AmberColor = new Color(0.949f, 0.639f, 0.235f, 0.85f);
-        public Color recordColor = AmberColor;
-        public Color readyColor = AmberColor;
+        public static Color AmberColor => PrevisPalette.AmberTrajectory;
+        public Color recordColor = PrevisPalette.AmberTrajectory;
+        public Color readyColor = PrevisPalette.AmberTrajectory;
 
         [Header("轨迹双缓存（原始 + 平滑）")]
         public CameraTrajectory rawTrajectory = new CameraTrajectory();
@@ -157,10 +157,10 @@ namespace ShotField.RuntimeUI
             if (ownedLineMaterial == null)
             {
                 var s = Shader.Find("Sprites/Default") ?? Shader.Find("Universal Render Pipeline/Unlit");
-                ownedLineMaterial = new Material(s) { color = AmberColor };
+                ownedLineMaterial = new Material(s) { color = PrevisPalette.AmberTrajectory };
             }
             trajectoryLine.sharedMaterial = ownedLineMaterial;
-            UpdateLineStyle(AmberColor);
+            UpdateLineStyle(PrevisPalette.AmberTrajectory);
         }
 
         private void UpdateLineStyle(Color color)
@@ -179,7 +179,7 @@ namespace ShotField.RuntimeUI
             trajectoryLine.positionCount = count;
             for (int i = 0; i < count; i++)
                 trajectoryLine.SetPosition(i, traj.points[i].position);
-            UpdateLineStyle(AmberColor);
+            UpdateLineStyle(PrevisPalette.AmberTrajectory);
         }
     }
 }

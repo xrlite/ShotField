@@ -1,7 +1,7 @@
 # SC01 Visual Palette & Shading Specification
 
 **Project**: ShotField Previs Cinematic System  
-**Scene**: SC01_Final.unity | **Standard**: Pure Whitebox Previs & Chromatic Actor Mapping  
+**Scene**: SC01_Main.unity | **Standard**: Pure Whitebox Previs & Chromatic Actor Mapping  
 **Constraint**: Strict <= 195 lines per file. All whitebox surfaces pure untextured flat diffuse.
 
 ---
@@ -14,8 +14,12 @@
 | **Antagonist B** | Set Guardian | `#0055FF` | `(0, 85, 255)` | `(0.000, 0.089, 1.000)` | `MAT_Actor_Blue.mat` | Cold institutional control, calculated authority, stoicism |
 | **Supporting C** | Intermediary | `#FFCC00` | `(255, 204, 0)` | `(1.000, 0.604, 0.000)` | `MAT_Actor_Yellow.mat` | Volatility, hazard warning, ambiguous allegiance |
 | **Supporting D** | Observer / Guard | `#00CC44` | `(0, 204, 68)` | `(0.000, 0.604, 0.063)` | `MAT_Actor_Green.mat` | Neutrality, surveillance, environmental balance |
+| **Supporting E** | Specialist / Intruder | `#8A3BE2` | `(138, 59, 226)` | `(0.254, 0.044, 0.761)` | `MAT_Actor_Violet.mat` | Covert intervention, deep strategic intrigue, tactical reserve |
+| **Supporting F** | Wildcard / Catalyst | `#E23BB0` | `(226, 59, 176)` | `(0.761, 0.044, 0.434)` | `MAT_Actor_Magenta.mat` | Disruptive volatility, acute tension, unpredictable escalation |
 | **Focal Prop** | Contested Envelope | `#F5F5F0` | `(245, 245, 240)` | `(0.910, 0.910, 0.867)` | `EnvelopePaper.mat` | High-contrast target focal element against dark table |
 | **Focal Seal** | Wax Letter Seal | `#D92525` | `(217, 37, 37)` | `(0.694, 0.017, 0.017)` | `SealRed.mat` | Irreversible breach warning, point of no return |
+
+> **Chromatic Separation Note**: Violet (`#8A3BE2`, 268° hue) and Magenta (`#E23BB0`, 318° hue) are calibrated to maintain minimum hue separation >= 40.0° (`MinHueSeparationDegrees`) and RGB Euclidean distance >= 0.35 (`MinRgbDistance`) against pure Red (0°) and Blue (220°). Nominal web colors (`#8A2BE2` & `#FF00FF`) produce delta hue 28.9°, failing spatial threshold criteria.
 
 ---
 
@@ -66,3 +70,4 @@ Previs camera paths and director movement vectors are rendered in real-time with
 - [ ] **Agent B (ActorNavigator.cs)**: Verify Actor A is assigned `MAT_Actor_Red` (#FF0000) and Actor B is assigned `MAT_Actor_Blue` (#0055FF).
 - [ ] **Agent C (DirectorTimeline.cs)**: Confirm `LineRenderer` uses `#F2A33C` amber material for all 7 shot motion curves.
 - [ ] **Agent D (Reviewer & Audit)**: Verify 0 missing textures, 0 specular glare, two-tier gray contrast ratio >= 2.1:1 on whitebox stage.
+- [ ] **PrevisPalette Synchronization**: Verify all 6 actors (A-F), key props (Envelope, Seal), two-tier grays (Wall, Floor), and overlays (AmberTrajectory, SlateBlueGuideline) match 100% between `SC01_VisualPalette.md` and `PrevisPalette.cs`.

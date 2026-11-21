@@ -7,6 +7,7 @@ using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.AI;
 using ShotField.RuntimeUI;
+using ShotField.Core;
 
 namespace ShotField.EditorTools
 {
@@ -57,15 +58,23 @@ namespace ShotField.EditorTools
             var matB = perfB.GetComponentInChildren<Renderer>()?.sharedMaterial;
             Color colA = matA != null && matA.HasProperty("_BaseColor") ? matA.GetColor("_BaseColor") : Color.black;
             Color colB = matB != null && matB.HasProperty("_BaseColor") ? matB.GetColor("_BaseColor") : Color.black;
+            Color wantRed = PrevisPalette.ColorOf("Red");
+            Color wantBlue = PrevisPalette.ColorOf("Blue");
+            bool aMatch = Mathf.Abs(colA.r - wantRed.r) < 0.05f && Mathf.Abs(colA.g - wantRed.g) < 0.05f && Mathf.Abs(colA.b - wantRed.b) < 0.05f;
+            bool bMatch = Mathf.Abs(colB.r - wantBlue.r) < 0.05f && Mathf.Abs(colB.g - wantBlue.g) < 0.05f && Mathf.Abs(colB.b - wantBlue.b) < 0.05f;
             VerifyAssert.Require("Previs color materials wired: Protagonist Red (#FF0000), Antagonist Blue (#0055FF)",
-                colA.r > 0.8f && colA.b < 0.2f && colB.b > 0.8f && colB.r < 0.2f, ref passed);
+                aMatch && bMatch, ref passed);
 
             var wallMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Models/Studio/Materials/MAT_STU_Wall_v05.mat");
             var floorMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Models/Studio/Materials/MAT_STU_Floor_v05.mat");
             Color wallCol = wallMat != null ? wallMat.GetColor("_BaseColor") : Color.black;
             Color floorCol = floorMat != null ? floorMat.GetColor("_BaseColor") : Color.black;
+            Color wantWall = PrevisPalette.StageWallGray;
+            Color wantFloor = PrevisPalette.StageFloorGray;
+            bool wallMatch = Mathf.Abs(wallCol.r - wantWall.r) < 0.05f && Mathf.Abs(wallCol.g - wantWall.g) < 0.05f && Mathf.Abs(wallCol.b - wantWall.b) < 0.05f;
+            bool floorMatch = Mathf.Abs(floorCol.r - wantFloor.r) < 0.05f && Mathf.Abs(floorCol.g - wantFloor.g) < 0.05f && Mathf.Abs(floorCol.b - wantFloor.b) < 0.05f;
             VerifyAssert.Require("Stage two-tier gray wired: Wall #D8D8D8 and Floor #9A9A9A",
-                Mathf.Abs(wallCol.r - 0.847f) < 0.05f && Mathf.Abs(floorCol.r - 0.604f) < 0.05f, ref passed);
+                wallMatch && floorMatch, ref passed);
 
             bool metaIntact = true;
             bool noLineOverflow = true;
