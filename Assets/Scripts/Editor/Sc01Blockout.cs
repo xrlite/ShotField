@@ -59,14 +59,15 @@ namespace ShotField.EditorTools
             Box(room, "BackWall", new Vector3(0f, 1.4f, 4f), new Vector3(6f, 2.8f, 0.1f));
             Box(room, "LeftWall", new Vector3(-3f, 1.4f, 2f), new Vector3(0.1f, 2.8f, 4f));
             Box(room, "RightWall", new Vector3(3f, 1.4f, 2f), new Vector3(0.1f, 2.8f, 4f));
-            Box(room, "EntryWallLeft", new Vector3(-1.325f, 1.4f, 0f), new Vector3(3.35f, 2.8f, 0.1f));
-            Box(room, "EntryWallRight", new Vector3(2.125f, 1.4f, 0f), new Vector3(1.75f, 2.8f, 0.1f));
-            Box(room, "EntryLintel", new Vector3(0.8f, 2.45f, 0f), new Vector3(0.9f, 0.7f, 0.1f));
+            // 门洞按 Blender 口径搬到左半区（门洞 X -2.65 .. -1.75，宽 0.9）。
+            Box(room, "EntryWallLeft", new Vector3(-2.825f, 1.4f, 0f), new Vector3(0.35f, 2.8f, 0.1f));
+            Box(room, "EntryWallRight", new Vector3(0.625f, 1.4f, 0f), new Vector3(4.75f, 2.8f, 0.1f));
+            Box(room, "EntryLintel", new Vector3(-2.2f, 2.45f, 0f), new Vector3(0.9f, 0.7f, 0.1f));
             Box(room, "Ceiling", new Vector3(0f, 2.85f, 2f), new Vector3(6f, 0.1f, 4f));
             Box(room, "BackBaseboard", new Vector3(0f, 0.08f, 3.92f), new Vector3(5.8f, 0.16f, 0.05f));
             Box(room, "LeftBaseboard", new Vector3(-2.92f, 0.08f, 2f), new Vector3(0.05f, 0.16f, 3.8f));
             Box(room, "RightBaseboard", new Vector3(2.92f, 0.08f, 2f), new Vector3(0.05f, 0.16f, 3.8f));
-            var door = Box(room, "Door", new Vector3(1.25f, 1.05f, 0.45f), new Vector3(0.9f, 2.1f, 0.04f));
+            var door = Box(room, "Door", new Vector3(-1.75f, 1.05f, 0.45f), new Vector3(0.9f, 2.1f, 0.04f));
             door.transform.localRotation = Quaternion.Euler(0f, 90f, 0f);
             Box(room, "WindowMarker", new Vector3(2.93f, 1.55f, 1.8f), new Vector3(0.04f, 1.2f, 1.6f));
             Box(room, "WindowFrameTop", new Vector3(2.89f, 2.18f, 1.8f), new Vector3(0.08f, 0.08f, 1.75f));
@@ -78,15 +79,14 @@ namespace ShotField.EditorTools
         private static void BuildProps(Transform room)
         {
             Sc01ArtSceneBuilder.BuildProps(room);
-            Box(room, "Fridge", new Vector3(-0.6f, 0.9f, 3.6f), new Vector3(0.6f, 1.8f, 0.6f));
-            // 半杯凉茶：制作包 §2 给茶几面 (1.1, 0.46, 2.3)、r=0.04 h=0.09。
-            // 桌面高度取茶几实测顶面（当前写实茶几仅 0.19m 高，硬用 0.45 会悬空 26cm）。
+            // 冰箱在右墙后角（Blender 5.55/3.60 → Unity 2.55/3.60）。
+            Box(room, "Fridge", new Vector3(2.55f, 0.9f, 3.6f), new Vector3(0.6f, 1.8f, 0.6f));
+            // 半杯凉茶：放在茶几面上（Blender 1.10/2.30 → Unity -1.90/2.30）。
             float teaCenterY = Sc01ArtSceneBuilder.LastTableTopY + 0.045f;
-            Mark(Primitive(room, PrimitiveType.Cylinder, "Tea", new Vector3(1.1f, teaCenterY, 2.3f),
+            Mark(Primitive(room, PrimitiveType.Cylinder, "Tea", new Vector3(-1.9f, teaCenterY, 2.3f),
                 new Vector3(0.08f, 0.045f, 0.08f)), "tea", SemanticMarker.Kind.Prop);
-            // 女式单只拖鞋：制作包 §2 位置 (0.55, 0.05, 0.45)，文字说明是「鞋柜旁」。
-            // 实测鞋柜 AABB 为 X[-0.3,0.7] Z[0.325,0.675]，将拖鞋置于柜旁地面 Z=0.16 避免穿模
-            Mark(Box(room, "Slipper", new Vector3(0.55f, 0.022f, 0.16f), new Vector3(0.085f, 0.045f, 0.24f)),
+            // 女式单只拖鞋：玄关柜旁地面（Blender 0.62/0.52 → Unity -2.38/0.52）。
+            Mark(Box(room, "Slipper", new Vector3(-2.38f, 0.028f, 0.52f), new Vector3(0.155f, 0.055f, 0.42f)),
                 "slipper", SemanticMarker.Kind.Prop);
         }
 
@@ -143,15 +143,30 @@ namespace ShotField.EditorTools
             var camera = director.AddComponent<Camera>();
             camera.enabled = false; // 严守单活动主相机，避免抢占 VR 视口
             library.ShotCamera = camera;
-            camera.fieldOfView = 45f;
+            FrameLetter(camera);
             camera.aspect = ShotCameraState.DefaultAspect;
             camera.nearClipPlane = 0.05f;
-            director.transform.position = new Vector3(2.55f, 0.42f, 0.8f);
-            director.transform.LookAt(new Vector3(1.15f, 0.65f, 2.25f));
 
             var visibility = director.AddComponent<VisibilityConstraint>();
             visibility.ruleName = "信封正面不可见";
             visibility.targetMarkerId = "envelope";
+        }
+
+        private static void FrameLetter(Camera camera)
+        {
+            camera.fieldOfView = 65f;
+            camera.transform.position = new Vector3(1.00f, 0.442f, 0.94f);
+            camera.transform.LookAt(new Vector3(1.00f, 0.84f, 2.32f));
+        }
+
+        public static void SaveDirectorFraming()
+        {
+            var scene = EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity");
+            FrameLetter(GameObject.Find("Director").GetComponent<Camera>());
+            EditorSceneManager.MarkSceneDirty(scene);
+            if (!EditorSceneManager.SaveScene(scene)) throw new System.IO.IOException(scene.path);
+            Debug.Log("SC01-DIRECTOR-SAVED=" + scene.path);
+            if (Application.isBatchMode) EditorApplication.Exit(0);
         }
 
         private static SemanticMarker Mark(GameObject obj, string id, SemanticMarker.Kind kind)

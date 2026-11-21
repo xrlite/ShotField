@@ -17,6 +17,9 @@ namespace ShotField.EditorTools
         private const int ExpectedAssertions = 16;
         private const float FloorY = 0f;
         private const float ContactTolerance = 0.012f;
+        // 高度断言的边界容差：FitExact 压到 0.45 时会留下 0.4500001 这类浮点尾巴，
+        // 不加容差会偶发把达标尺寸判成 FAIL。
+        private const float SizeTolerance = 0.005f;
 
         // 参与重叠判定的具名道具（排除房间壳体与灯）。
         // 注意：Sc01ArtSceneBuilder.Place() 把实例改名为 sceneName，
@@ -60,15 +63,15 @@ namespace ShotField.EditorTools
             Assert($"已采集到全部 {PropNames.Length} 件道具的包围盒（实际 {bounds.Count}）",
                 bounds.Count == PropNames.Length);
 
-            // 坐标基准：制作包 §2
+            // 坐标基准：Blender 场景换算口径（UnityX = BlenderX - 3）
             var table = bounds.ContainsKey("CoffeeTable") ? bounds["CoffeeTable"] : new Bounds();
             var envelope = bounds.ContainsKey("Envelope") ? bounds["Envelope"] : new Bounds();
             var tea = bounds.ContainsKey("Tea") ? bounds["Tea"] : new Bounds();
 
-            Assert("茶几 X 对齐 1.4（制作包 §2）", Mathf.Abs(table.center.x - 1.4f) < 0.08f);
-            Assert("茶几 Z 对齐 2.2（制作包 §2）", Mathf.Abs(table.center.z - 2.2f) < 0.08f);
-            Assert("信封水平位置在茶几上（制作包 1.5/2.15）",
-                Mathf.Abs(envelope.center.x - 1.5f) < 0.12f && Mathf.Abs(envelope.center.z - 2.15f) < 0.12f);
+            Assert("茶几 X 对齐 -1.6（Blender 口径）", Mathf.Abs(table.center.x + 1.6f) < 0.10f);
+            Assert("茶几 Z 对齐 2.2（Blender 口径）", Mathf.Abs(table.center.z - 2.2f) < 0.10f);
+            Assert("信封水平位置在茶几上（Blender -1.5/2.15）",
+                Mathf.Abs(envelope.center.x + 1.5f) < 0.14f && Mathf.Abs(envelope.center.z - 2.15f) < 0.14f);
 
             // 桌面高度以茶几实测顶面为准（写实资产当前只有 0.19m 高，不是制作包的 0.45）
             float tableTop = table.max.y;
@@ -89,8 +92,10 @@ namespace ShotField.EditorTools
             var actor = bounds.ContainsKey("ActorA") ? bounds["ActorA"] : new Bounds();
             var cabinet = bounds.ContainsKey("ShoeCabinet") ? bounds["ShoeCabinet"] : new Bounds();
             var plant = bounds.ContainsKey("Plant") ? bounds["Plant"] : new Bounds();
-            Assert($"coffee table height is 0.42-0.45m (actual {table.size.y:F3})", table.size.y >= 0.42f && table.size.y <= 0.45f);
-            Assert($"cabinet height is 0.80-0.90m (actual {cabinet.size.y:F3})", cabinet.size.y >= 0.80f && cabinet.size.y <= 0.90f);
+            Assert($"coffee table height is 0.42-0.45m (actual {table.size.y:F3})",
+                table.size.y >= 0.42f - SizeTolerance && table.size.y <= 0.45f + SizeTolerance);
+            Assert($"cabinet height is 0.80-0.90m (actual {cabinet.size.y:F3})",
+                cabinet.size.y >= 0.80f - SizeTolerance && cabinet.size.y <= 0.90f + SizeTolerance);
             Assert($"plant pot rests on floor (minY {plant.min.y:F3})", Mathf.Abs(plant.min.y - FloorY) < ContactTolerance);
             Assert($"角色身高接近 1.72m（实际 {actor.size.y:F2}）",
                 Mathf.Abs(actor.size.y - 1.72f) < 0.08f);

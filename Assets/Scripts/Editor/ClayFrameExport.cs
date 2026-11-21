@@ -69,6 +69,7 @@ namespace ShotField.EditorTools
             var originals = new Dictionary<Renderer, Material[]>();
             try
             {
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(sceneObject, source.gameObject.scene);
                 ReplaceMaterials(source.gameObject.scene, material, originals);
                 var capture = sceneObject.AddComponent<Camera>();
                 capture.enabled = false;
@@ -98,7 +99,8 @@ namespace ShotField.EditorTools
         private static void ReplaceMaterials(UnityEngine.SceneManagement.Scene scene, Material clay,
             Dictionary<Renderer, Material[]> originals)
         {
-            foreach (var renderer in Object.FindObjectsByType<Renderer>(FindObjectsInactive.Exclude))
+            foreach (var root in scene.GetRootGameObjects())
+            foreach (var renderer in root.GetComponentsInChildren<Renderer>())
             {
                 if (!(renderer is MeshRenderer || renderer is SkinnedMeshRenderer) ||
                     renderer.gameObject.scene != scene) continue;

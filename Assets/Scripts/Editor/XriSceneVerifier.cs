@@ -25,17 +25,17 @@ namespace ShotField.EditorTools
             Report.Length = 0;
             EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity");
 
-            var hands = Object.FindObjectsByType<TrackedPoseDriver>(FindObjectsSortMode.None);
-            var directs = Object.FindObjectsByType<XRDirectInteractor>(FindObjectsSortMode.None);
-            var rays = Object.FindObjectsByType<XRRayInteractor>(FindObjectsSortMode.None);
+            var hands = Object.FindObjectsByType<TrackedPoseDriver>();
+            var directs = Object.FindObjectsByType<XRDirectInteractor>();
+            var rays = Object.FindObjectsByType<XRRayInteractor>();
             Check("two tracked controller poses", ControllerPoseCount(hands) == 2);
             Check("two direct interactors", directs.Length == 2);
             Check("two ray interactors", rays.Length == 2);
             Check("direct grip bindings", AllDirectBindings(directs));
             Check("ray trigger UI bindings", AllRayBindings(rays));
-            Check("two visible ray lines", Object.FindObjectsByType<XRInteractorLineVisual>(FindObjectsSortMode.None).Length == 2);
-            Check("XR UI input module", Object.FindFirstObjectByType<XRUIInputModule>() != null);
-            Check("tracked-device canvas raycaster", Object.FindFirstObjectByType<TrackedDeviceGraphicRaycaster>() != null);
+            Check("two visible ray lines", Object.FindObjectsByType<XRInteractorLineVisual>().Length == 2);
+            Check("XR UI input module", Object.FindAnyObjectByType<XRUIInputModule>() != null);
+            Check("tracked-device canvas raycaster", Object.FindAnyObjectByType<TrackedDeviceGraphicRaycaster>() != null);
             Check("left thumbstick move", MoveBound());
             Check("right thumbstick snap turn", TurnBound());
 
@@ -77,13 +77,13 @@ namespace ShotField.EditorTools
 
         private static bool MoveBound()
         {
-            var p = Object.FindFirstObjectByType<ContinuousMoveProvider>();
+            var p = Object.FindAnyObjectByType<ContinuousMoveProvider>();
             return p && XriInputBindings.HasBinding(p.leftHandMoveInput.inputAction, "{LeftHand}/primary2DAxis");
         }
 
         private static bool TurnBound()
         {
-            var p = Object.FindFirstObjectByType<SnapTurnProvider>();
+            var p = Object.FindAnyObjectByType<SnapTurnProvider>();
             return p && XriInputBindings.HasBinding(p.rightHandTurnInput.inputAction, "{RightHand}/primary2DAxis");
         }
 

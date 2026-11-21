@@ -25,14 +25,17 @@ namespace ShotField.EditorTools
             var collider = root.AddComponent<BoxCollider>();
             collider.size = new Vector3(0.16f, 0.11f, 0.006f);
 
-            AddMesh(root.transform, "Envelope_Body", BoxMesh(0.16f, 0.11f, 0.004f), paper);
-            AddMesh(root.transform, "Envelope_Flap", FlapMesh(), paper);
-            AddMesh(root.transform, "Red_Wax_Seal", CylinderMesh(0.014f, 0.002f, 24), red);
+            var body = AddMesh(root.transform, "Envelope_Body", BoxMesh(0.16f, 0.11f, 0.004f), paper);
+            body.localPosition = Vector3.back * 0.001f; // Align paper bottom with the support collider.
+            var flap = AddMesh(root.transform, "Envelope_Flap", FlapMesh(), paper);
+            flap.localPosition = Vector3.back * 0.002f;
+            var seal = AddMesh(root.transform, "Red_Wax_Seal", CylinderMesh(0.014f, 0.002f, 24), red);
+            seal.localPosition = Vector3.forward * 0.0029f; // Embed the base 0.1 mm into the flap.
             PrefabUtility.SaveAsPrefabAsset(root, "Assets/Prefabs/SC01/Envelope_Prop.prefab");
             Object.DestroyImmediate(root);
         }
 
-        private static void AddMesh(Transform parent, string name, Mesh mesh, Material material)
+        private static Transform AddMesh(Transform parent, string name, Mesh mesh, Material material)
         {
             string meshPath = $"{AssetRoot}/{name}.asset";
             var saved = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
@@ -46,6 +49,7 @@ namespace ShotField.EditorTools
             child.transform.SetParent(parent, false);
             child.AddComponent<MeshFilter>().sharedMesh = saved;
             child.AddComponent<MeshRenderer>().sharedMaterial = material;
+            return child.transform;
         }
 
         private static Material CreateMaterial(string name, Color color, float smoothness)

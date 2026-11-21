@@ -24,7 +24,7 @@ namespace ShotField.EditorTools
             }
 
             EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity");
-            var workbench = UnityEngine.Object.FindFirstObjectByType<SpatialWorkbench>();
+            var workbench = UnityEngine.Object.FindAnyObjectByType<SpatialWorkbench>();
             Check("saved SC01 contains SpatialWorkbench", workbench != null);
             var canvas = workbench.GetComponent<Canvas>();
             Check("workbench uses WorldSpace canvas", canvas && canvas.renderMode == RenderMode.WorldSpace);

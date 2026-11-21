@@ -39,6 +39,19 @@
       },
       "hash": "673b0f84355585c45aaf0ba477d48f480472e51d"
     },
+    "com.kitwright.unity.mcp": {
+      "version": "file:com.kitwright.unity.mcp",
+      "depth": 0,
+      "source": "embedded",
+      "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "3.2.1",
+        "com.unity.ugui": "1.0.0",
+        "com.unity.test-framework": "1.4.6",
+        "com.unity.modules.imageconversion": "1.0.0",
+        "com.unity.modules.uielements": "1.0.0",
+        "com.unity.modules.unitywebrequest": "1.0.0"
+      }
+    },
     "com.plattar.unitygltf": {
       "version": "https://github.com/Pico-Developer/gltf-exporter.git?path=package/com.plattar.unitygltf#master",
       "depth": 0,

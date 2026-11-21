@@ -47,7 +47,7 @@ namespace ShotField.EditorTools
             go.transform.SetParent(root, false);
             var placement = go.AddComponent<PropPlacementInteractor>();
             placement.rayInteractor = rayTf.GetComponent<XRRayInteractor>();
-            placement.browser = UnityEngine.Object.FindFirstObjectByType<PropBrowserUI>();
+            placement.browser = UnityEngine.Object.FindAnyObjectByType<PropBrowserUI>();
             placement.spawnRoot = root;
         }
 
@@ -153,7 +153,7 @@ namespace ShotField.EditorTools
 
         private static void UpgradeWorkbenchCanvas()
         {
-            var canvas = Object.FindFirstObjectByType<Canvas>();
+            var canvas = Object.FindAnyObjectByType<Canvas>();
             if (canvas == null) return;
             if (canvas.renderMode != RenderMode.WorldSpace) return;
             if (canvas.GetComponent<TrackedDeviceGraphicRaycaster>() != null) return;

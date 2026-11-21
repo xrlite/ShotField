@@ -96,7 +96,8 @@ namespace ShotField.RuntimeUI
                 bool supported = false;
                 int modesCount = 0;
                 var modes = new EyeTrackingMode[4];
-                int ret = PXR_MotionTracking.GetEyeTrackingSupported(ref supported, ref modesCount, modes);
+                // PICO SDK 6.2.0 的签名是 (ref bool, ref int, ref EyeTrackingMode[])，第三个参数必须带 ref
+                int ret = PXR_MotionTracking.GetEyeTrackingSupported(ref supported, ref modesCount, ref modes);
                 if (supported && ret == 0)
                 {
                     var info = new EyeTrackingStartInfo { mode = EyeTrackingMode.PXR_ETM_BOTH };

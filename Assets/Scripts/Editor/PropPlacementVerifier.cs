@@ -25,7 +25,7 @@ namespace ShotField.EditorTools
             var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             VerifyAssert.Require("SC01 场景可打开", scene.IsValid(), ref passed);
 
-            var placement = Object.FindFirstObjectByType<PropPlacementInteractor>();
+            var placement = Object.FindAnyObjectByType<PropPlacementInteractor>();
             VerifyAssert.Require("场景存在 PropPlacementInteractor", placement != null, ref passed);
 
             VerifyAssert.Require("放置器持有 XRRayInteractor 引用",
@@ -34,7 +34,7 @@ namespace ShotField.EditorTools
             VerifyAssert.Require("放置器持有 PropBrowserUI 引用",
                 placement != null && placement.browser != null, ref passed);
 
-            var browser = Object.FindFirstObjectByType<PropBrowserUI>();
+            var browser = Object.FindAnyObjectByType<PropBrowserUI>();
             VerifyAssert.Require("PropBrowserUI 至少有 1 条 Prefab 绑定",
                 browser != null && browser.BindingCount >= 1, ref passed);
 

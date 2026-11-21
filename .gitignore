@@ -30,3 +30,50 @@
 Passports/
 
 *.log
+*.tmp
+
+# Temporary screenshots, records and captures
+/[Ss]creenshots/
+/[Rr]ecord/
+/[Rr]ecords/
+/[Cc]aptures/
+/[Tt]est[Cc]aptures/
+
+# Local AI assistant runtimes & session tokens
+.codex/
+.kitwright/
+
+# >>> pico-cli managed: do not edit >>>
+/.agents/skills/pico-unity-buildingblocks/
+/.agents/skills/pico-unity-init/
+/.agents/skills/pico-unity-package-manager/
+/.agents/skills/pico-unity-spatial/
+/.agents/skills/spatialadapter-camera-window-api/
+/.agents/skills/spatialadapter-components-api/
+/.agents/skills/spatialadapter-input-api/
+/.agents/skills/spatialadapter-runtime-core-api/
+/.agents/skills/spatialadapter-runtime-overview/
+/.agents/skills/spatialadapter-scene-setup/
+/.agents/skills/spatialadapter-spatial-camera-focus/
+/.agents/skills/spatialml-debugging/
+/.agents/skills/spatialml/
+/.agents/skills/update-pico-unity-sdk/
+/.cursor/skills/pico-unity-buildingblocks/
+/.cursor/skills/pico-unity-init/
+/.cursor/skills/pico-unity-package-manager/
+/.cursor/skills/pico-unity-spatial/
+/.cursor/skills/spatialadapter-camera-window-api/
+/.cursor/skills/spatialadapter-components-api/
+/.cursor/skills/spatialadapter-input-api/
+/.cursor/skills/spatialadapter-runtime-core-api/
+/.cursor/skills/spatialadapter-runtime-overview/
+/.cursor/skills/spatialadapter-scene-setup/
+/.cursor/skills/spatialadapter-spatial-camera-focus/
+/.cursor/skills/spatialml-debugging/
+/.cursor/skills/spatialml/
+/.cursor/skills/update-pico-unity-sdk/
+/PICO-UNITY-AGENTIC-TOOLS.AGENTS.md
+/.pico-env.json
+/.pico/
+/.pico-setup-resources.*.tmp/
+# <<< pico-cli managed <<<

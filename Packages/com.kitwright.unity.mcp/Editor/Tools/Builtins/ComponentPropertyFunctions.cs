@@ -1,0 +1,213 @@
+// Copyright (C) KitWright. Licensed under MIT.
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using DescriptionAttribute = System.ComponentModel.DescriptionAttribute;
+using KitWright.Editor.Tools.Helpers;
+using Newtonsoft.Json.Linq;
+using UnityEditor;
+using UnityEngine;
+
+namespace KitWright.Editor.Tools.Builtins
+{
+    /// <summary>
+    /// Read and write component fields through SerializedObject — picks up
+    /// <c>[SerializeField] private</c>, supports Object references via
+    /// <c>{"fileID": instanceId}</c>, returns per-field success so agents can
+    /// recover from partial writes.
+    /// </summary>
+    [ToolProvider("GameObject")]
+    internal static class ComponentPropertyFunctions
+    {
+        [Description("Get all serialized properties on a component, including [SerializeField] private fields. " +
+                     "Component can be addressed by type name on a GameObject, or directly by component instanceId. " +
+                     "On a component with many properties, pass name_filter to return only the ones you need — " +
+                     "the response then reports how many were left out, so a filtered read is never mistaken for the whole component. " +
+                     "An enum reads as its name (a [Flags] mask as { name, value }), Type is given only where the value's shape " +
+                     "does not show it, and an object reference carries assetPath, so a read can be fed back to " +
+                     "set_component_properties. descend also returns nested and array element properties, capped by max_properties.")]
+        [ReadOnlyTool]
+        public static object GetComponentProperties(
+            [ToolParam("GameObject identifier (omit if using component_instance_id)", Required = false)] string target = null,
+            [ToolParam("Component type name (e.g. 'Rigidbody'). Omit if using component_instance_id.", Required = false)] string component = null,
+            [ToolParam("Component instanceId (alternative to target+component)", Required = false)] string component_instance_id = null,
+            [ToolParam("How to resolve target: " + ObjectsHelper.FindMethodValues, Required = false)] string find_method = null,
+            [ToolParam("Comma-separated name substrings; a property is kept if it contains any of them (case-insensitive). Matches Unity's serialized names, so 'resolution' finds 'm_ReferenceResolution'. Empty = every property.", Required = false)] string name_filter = null,
+            [ToolParam("Also return nested and array/list element properties, named by full path (e.g. 'm_Sizes.Array.data[0]'). Off by default: arrays then read as '<Array length=N>'.", Required = false)] bool descend = false,
+            [ToolParam("Stop after this many properties (1-5000). Mostly matters with descend, where an array of a few thousand elements is one property per element. The response reports the untruncated total.", Required = false)] int max_properties = 400,
+            [ToolParam(Paging.CursorParam, Required = false)] int cursor = 0)
+        {
+            var resolved = ResolveComponent(target, component, component_instance_id, find_method);
+            if (resolved.Error != null) return resolved.Error;
+
+            max_properties = Mathf.Clamp(max_properties, 1, 5000);
+            cursor = Mathf.Clamp(cursor, 0, 1000000);
+            var terms = SplitFilterTerms(name_filter);
+            Func<string, bool> keep = null;
+            if (terms.Length > 0)
+                keep = name => MatchesAnyTerm(name, terms);
+            var window = ComponentSerializer.ReadProperties(resolved.Component, out var total, out var kept, keep,
+                descend: descend, maxProperties: cursor + max_properties);
+            // The window already stops at cursor + max_properties, so skipping is the whole page.
+            var props = window.Skip(cursor).ToList();
+
+            var typeName = resolved.Component.GetType().Name;
+            var pageSuffix = Paging.Suffix(cursor, props.Count, kept);
+            var message = terms.Length > 0
+                ? $"{props.Count} of {total} properties on {typeName} (filter: {name_filter}).{pageSuffix}"
+                : total > props.Count
+                    ? $"{props.Count} of {total} properties on {typeName}.{pageSuffix}"
+                    : $"{props.Count} properties on {typeName}.";
+
+            return Response.Success(message,
+                new
+                {
+                    componentInstanceId = ObjectIdCodec.GetSerializableId(resolved.Component),
+                    type = typeName,
+                    gameObject = new { instanceId = ObjectIdCodec.GetSerializableId(resolved.Component.gameObject), name = resolved.Component.gameObject.name },
+                    properties = props.Select(Lean).ToList()
+                });
+        }
+
+        // The value's own shape already says number, bool, text, vector or colour, so Type is kept only
+        // where it does not (references, structs, arrays). A plain enum reads as its name, which
+        // set_component_properties takes back; a [Flags] mask has no single name and keeps {name, value}.
+        private static readonly HashSet<string> SelfEvidentTypes = new HashSet<string>
+        {
+            "Integer", "Boolean", "Float", "String", "Color", "Enum", "Vector2", "Vector3", "Vector4",
+            "Vector2Int", "Vector3Int", "Rect", "RectInt", "Bounds", "BoundsInt", "Quaternion"
+        };
+
+        internal static object Lean(ComponentSerializer.PropertySnapshot property)
+        {
+            var value = property.Value;
+            if (property.Type == "Enum" && value != null)
+            {
+                var name = JObject.FromObject(value)["name"];
+                if (name != null && name.Type == JTokenType.String)
+                    value = name.ToString();
+            }
+
+            return SelfEvidentTypes.Contains(property.Type)
+                ? (object)new { property.Name, Value = value }
+                : new { property.Name, property.Type, Value = value };
+        }
+
+        internal static string[] SplitFilterTerms(string filter)
+        {
+            if (string.IsNullOrWhiteSpace(filter))
+                return Array.Empty<string>();
+            return filter.Split(',')
+                .Select(t => t.Trim())
+                .Where(t => t.Length > 0)
+                .ToArray();
+        }
+
+        internal static bool MatchesAnyTerm(string name, string[] terms)
+        {
+            foreach (var term in terms)
+            {
+                if (name != null && name.IndexOf(term, StringComparison.OrdinalIgnoreCase) >= 0)
+                    return true;
+            }
+            return false;
+        }
+
+        [Description("Set multiple properties on a component in one call. " +
+                     "Pass `properties` as a JSON object: {\"mass\": 5, \"isKinematic\": true, \"material\": {\"fileID\": 12345}}. " +
+                     "{\"enabled\": false} toggles a Behaviour, Renderer or Collider. With several components of one type, pass " +
+                     "component_instance_id (get_game_object_info lists them). Returns per-field success so partial failures are diagnosable.")]
+        public static object SetComponentProperties(
+            [ToolParam("JSON object of property→value pairs")] string properties,
+            [ToolParam("GameObject identifier (omit if using component_instance_id)", Required = false)] string target = null,
+            [ToolParam("Component type name (omit if using component_instance_id)", Required = false)] string component = null,
+            [ToolParam("Component instanceId (alternative to target+component)", Required = false)] string component_instance_id = null,
+            [ToolParam("How to resolve target: " + ObjectsHelper.FindMethodValues, Required = false)] string find_method = null)
+        {
+            if (string.IsNullOrWhiteSpace(properties))
+                return Response.Error("PROPERTIES_REQUIRED");
+
+            var resolved = ResolveComponent(target, component, component_instance_id, find_method);
+            if (resolved.Error != null) return resolved.Error;
+
+            JObject jobj;
+            try { jobj = JsonParse.Object(properties); }
+            catch (Exception ex) { return Response.Error("INVALID_PROPERTIES_JSON", new { message = ex.Message }); }
+
+            var results = ComponentSerializer.WriteProperties(resolved.Component, jobj,
+                $"Set properties on {resolved.Component.GetType().Name}");
+
+            int success = results.Count(r => r.Success);
+            int fail = results.Count - success;
+            if (success == 0)
+                return Response.Error("PROPERTY_SET_FAILED", new { fields = results });
+
+            return Response.Success(
+                $"Applied {success} of {results.Count} field(s) on {resolved.Component.GetType().Name}.",
+                new
+                {
+                    componentInstanceId = ObjectIdCodec.GetSerializableId(resolved.Component),
+                    successCount = success,
+                    failCount = fail,
+                    fields = results
+                });
+        }
+
+        // -------- Helpers --------
+
+        private struct ResolvedComponent
+        {
+            public Component Component;
+            public object Error;
+        }
+
+        private static ResolvedComponent ResolveComponent(string target, string componentName, string componentInstanceId, string findMethod)
+        {
+            // Direct component instanceId path (preferred when GameObject has multiple of same type)
+            if (!string.IsNullOrEmpty(componentInstanceId))
+            {
+                var c = ObjectsHelper.FindComponentById(componentInstanceId);
+                if (c == null)
+                    return new ResolvedComponent { Error = Response.Error("COMPONENT_NOT_FOUND",
+                        new { component_instance_id = componentInstanceId }) };
+                return new ResolvedComponent { Component = c };
+            }
+
+            if (string.IsNullOrEmpty(target))
+                return new ResolvedComponent { Error = Response.Error("TARGET_REQUIRED",
+                    new { hint = "Pass either target+component or component_instance_id." }) };
+
+            var go = ObjectsHelper.FindObject(target, findMethod, searchInactive: true);
+            if (go == null)
+                return new ResolvedComponent { Error = ObjectsHelper.NotFound("target", target, findMethod) };
+
+            if (string.IsNullOrEmpty(componentName))
+                return new ResolvedComponent { Error = Response.Error("COMPONENT_REQUIRED") };
+
+            // Try TypeResolver-driven exact lookup first (handles full names, namespaced types)
+            var type = TypeResolver.ResolveComponent(componentName);
+            if (type != null)
+            {
+                var c = go.GetComponent(type);
+                if (c != null) return new ResolvedComponent { Component = c };
+            }
+
+            // Fallback: case-insensitive name match across attached components
+            foreach (var c in go.GetComponents<Component>())
+            {
+                if (c == null) continue;
+                if (string.Equals(c.GetType().Name, componentName, StringComparison.OrdinalIgnoreCase) ||
+                    string.Equals(c.GetType().FullName, componentName, StringComparison.OrdinalIgnoreCase))
+                    return new ResolvedComponent { Component = c };
+            }
+
+            var available = string.Join(", ", go.GetComponents<Component>()
+                .Where(c => c != null).Select(c => c.GetType().Name));
+            return new ResolvedComponent
+            {
+                Error = Response.Error("COMPONENT_NOT_FOUND_ON_TARGET",
+                    new { target = go.name, component = componentName, available })
+            };
+        }
+    }
+}

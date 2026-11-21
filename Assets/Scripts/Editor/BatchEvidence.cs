@@ -22,6 +22,61 @@ namespace ShotField.EditorTools
         private const string EvidenceRelative = "../../../05_验证记录/2026-11";
         private const string AssetRelative = "../../../06_素材/白模";
 
+        // Called in a fresh graphical Editor process to save the camera and capture actual scene views.
+        public static void ApplyAndReviewDirector()
+        {
+            if (Application.isBatchMode) throw new InvalidOperationException("Use a graphical Editor for this entry point.");
+            Sc01Blockout.SaveDirectorFraming();
+            ExportReviewViews();
+        }
+
+        [MenuItem("镜场 ShotField/导出 SC01 三视图")]
+        public static void ExportReviewViews()
+        {
+            const string path = "Assets/Scenes/SC01_Blockout.unity";
+            var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
+            if (scene.path != path)
+            {
+                if (!Application.isBatchMode) throw new InvalidOperationException("请先打开 SC01 场景。");
+                scene = EditorSceneManager.OpenScene(path);
+            }
+            ExportSceneViews(scene);
+            if (Application.isBatchMode) EditorApplication.Exit(0);
+        }
+
+        internal static void ExportSceneViews(UnityEngine.SceneManagement.Scene scene)
+        {
+            Camera director = null;
+            foreach (var root in scene.GetRootGameObjects())
+                foreach (var camera in root.GetComponentsInChildren<Camera>(true))
+                    if (camera.name == "Director") director = camera;
+            if (!director) throw new InvalidOperationException("SC01 缺少 Director。");
+            var folder = Path.Combine(ToProjectPath(EvidenceRelative), "unity_views_" + DateTime.Now.ToString("yyyyMMdd_HHmmss_fff"));
+            var holder = new GameObject("Review Camera") { hideFlags = HideFlags.HideAndDontSave };
+            try
+            {
+                UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(holder, scene);
+                var cam = holder.AddComponent<Camera>();
+                cam.CopyFrom(director);
+                cam.enabled = false;
+                cam.aspect = 16f / 9f;
+                cam.transform.SetPositionAndRotation(director.transform.position, director.transform.rotation);
+                ClayFrameExport.SaveToPath(cam, Path.Combine(folder, "director.png"));
+                cam.orthographic = true;
+                cam.orthographicSize = 1.85f;
+                // Clip from just inside the walls so the elevations show the furniture.
+                cam.transform.SetPositionAndRotation(new Vector3(0, 1.1f, 0.065f), Quaternion.identity);
+                ClayFrameExport.SaveToPath(cam, Path.Combine(folder, "front.png"));
+                cam.transform.SetPositionAndRotation(new Vector3(2.84f, 1.1f, 2), Quaternion.LookRotation(Vector3.left));
+                ClayFrameExport.SaveToPath(cam, Path.Combine(folder, "side.png"));
+                cam.orthographicSize = 2.1f;
+                cam.transform.SetPositionAndRotation(new Vector3(0, 2.75f, 2), Quaternion.LookRotation(Vector3.down, Vector3.forward));
+                ClayFrameExport.SaveToPath(cam, Path.Combine(folder, "top.png"));
+                Debug.Log("SC01-REVIEW-FILES=" + folder);
+            }
+            finally { UnityEngine.Object.DestroyImmediate(holder); }
+        }
+
         /// <summary>
         /// 建 SC01 白模，然后按 16:9 和 9:16 各导出一张灰度 Clay 静帧，
         /// 最后写一份结果文件把两张图的尺寸和路径记下来。

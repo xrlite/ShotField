@@ -25,10 +25,10 @@ namespace ShotField.EditorTools
             }
 
             EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity");
-            var wb = UnityEngine.Object.FindFirstObjectByType<SpatialWorkbench>();
-            var browser = UnityEngine.Object.FindFirstObjectByType<PropBrowserUI>();
-            var inspector = UnityEngine.Object.FindFirstObjectByType<SceneObjectInspector>();
-            var tlUi = UnityEngine.Object.FindFirstObjectByType<TimelineControlsUI>();
+            var wb = UnityEngine.Object.FindAnyObjectByType<SpatialWorkbench>();
+            var browser = UnityEngine.Object.FindAnyObjectByType<PropBrowserUI>();
+            var inspector = UnityEngine.Object.FindAnyObjectByType<SceneObjectInspector>();
+            var tlUi = UnityEngine.Object.FindAnyObjectByType<TimelineControlsUI>();
 
             Check("workbench and Sprint1 UI panels exist in SC01", wb != null && browser != null && inspector != null && tlUi != null);
             Check("PropBrowserUI bound all 6 real SC01 prefabs", browser.BindingCount >= 6);

@@ -38,8 +38,10 @@ namespace ShotField.RuntimeUI
 #if !UNITY_EDITOR && UNITY_ANDROID
             try
             {
+                // AsrEngineInitResult 定义在 ByteDance.PICO.Platform.CLIB 命名空间，不在 Service/Models 下
                 var initRes = SpeechService.InitAsrEngine();
-                if (initRes == AsrEngineInitResult.Success || initRes == AsrEngineInitResult.AlreadyInitialized)
+                if (initRes == ByteDance.PICO.Platform.CLIB.AsrEngineInitResult.Success
+                    || initRes == ByteDance.PICO.Platform.CLIB.AsrEngineInitResult.AlreadyInitialized)
                 {
                     SpeechService.SetOnAsrResultCallback(OnNativeAsrResult);
                     SpeechService.SetOnSpeechErrorCallback(OnNativeSpeechError);

@@ -32,9 +32,9 @@ namespace ShotField.RuntimeUI
 
         public void AutoWireReferences()
         {
-            if (cameraRecorder == null) cameraRecorder = FindFirstObjectByType<CameraMotionRecorder>();
-            if (actorPlayer == null) actorPlayer = FindFirstObjectByType<ActorTakePlayer>();
-            if (videoPlayer == null) videoPlayer = FindFirstObjectByType<VideoComparisonPlayer>();
+            if (cameraRecorder == null) cameraRecorder = FindAnyObjectByType<CameraMotionRecorder>();
+            if (actorPlayer == null) actorPlayer = FindAnyObjectByType<ActorTakePlayer>();
+            if (videoPlayer == null) videoPlayer = FindAnyObjectByType<VideoComparisonPlayer>();
         }
 
         void Update()

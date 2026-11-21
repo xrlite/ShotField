@@ -50,17 +50,17 @@ namespace ShotField.EditorTools
             SpatialWorkbenchBuilder.BuildWorkbench();
             SceneXriRigBuilder.BuildRig(root);
 
-            Assert("场景存在 XROrigin", Object.FindFirstObjectByType<XROrigin>() != null);
-            var origin = Object.FindFirstObjectByType<XROrigin>();
+            Assert("场景存在 XROrigin", Object.FindAnyObjectByType<XROrigin>() != null);
+            var origin = Object.FindAnyObjectByType<XROrigin>();
             Assert("XROrigin 绑定了主相机（未新增第二个主相机）",
                 origin != null && origin.Camera != null
-                && Object.FindObjectsByType<Camera>(FindObjectsSortMode.None).Length <= 2);
+                && Object.FindObjectsByType<Camera>().Length <= 2);
 
-            Assert("存在 XRInteractionManager", Object.FindFirstObjectByType<XRInteractionManager>() != null);
-            Assert("存在 LocomotionMediator", Object.FindFirstObjectByType<LocomotionMediator>() != null);
+            Assert("存在 XRInteractionManager", Object.FindAnyObjectByType<XRInteractionManager>() != null);
+            Assert("存在 LocomotionMediator", Object.FindAnyObjectByType<LocomotionMediator>() != null);
 
-            var directs = Object.FindObjectsByType<XRDirectInteractor>(FindObjectsSortMode.None);
-            var rays = Object.FindObjectsByType<XRRayInteractor>(FindObjectsSortMode.None);
+            var directs = Object.FindObjectsByType<XRDirectInteractor>();
+            var rays = Object.FindObjectsByType<XRRayInteractor>();
             Assert($"每只手一个近距 Interactor（实际 {directs.Length}）", directs.Length >= 2);
             Assert($"每只手一个射线 Interactor（实际 {rays.Length}）", rays.Length >= 2);
 
@@ -108,13 +108,13 @@ namespace ShotField.EditorTools
 
         private static bool TurnAngleIs(float expected)
         {
-            var snap = Object.FindFirstObjectByType<SnapTurnProvider>();
+            var snap = Object.FindAnyObjectByType<SnapTurnProvider>();
             return snap != null && Mathf.Abs(snap.turnAmount - expected) < 0.5f;
         }
 
         private static bool MoveSpeedIs(float expected)
         {
-            var move = Object.FindFirstObjectByType<ContinuousMoveProvider>();
+            var move = Object.FindAnyObjectByType<ContinuousMoveProvider>();
             return move != null && Mathf.Abs(move.moveSpeed - expected) < 0.05f;
         }
 
@@ -145,7 +145,7 @@ namespace ShotField.EditorTools
 
         private static bool CanvasHasRaycaster()
         {
-            var canvas = Object.FindFirstObjectByType<Canvas>();
+            var canvas = Object.FindAnyObjectByType<Canvas>();
             if (canvas == null || canvas.renderMode != RenderMode.WorldSpace) return false;
             return canvas.GetComponent<TrackedDeviceGraphicRaycaster>() != null;
         }

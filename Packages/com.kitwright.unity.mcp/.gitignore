@@ -1,0 +1,54 @@
+# Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Mm]emoryCaptures/
+[Uu]serSettings/
+[Uu]serSettings.meta
+
+# IDE
+.idea/
+.vs/
+.vscode/
+*.csproj
+*.sln
+*.suo
+*.tmp
+*.user
+*.userprefs
+*.pidb
+*.booproj
+*.svd
+*.pdb
+*.mdb
+*.opendb
+*.VC.db
+
+# OS
+.DS_Store
+Thumbs.db
+!Documentation~/
+
+# Builds
+*.apk
+*.aab
+*.unitypackage
+*.unitypackage.meta
+*.app
+
+# Local private release/agent files
+.mcpregistry_*_token
+.codegraph/
+CLAUDE.md
+CLAUDE.md.meta
+
+# internal docs (not shipped)
+docs/
+docs.meta
+
+# python tooling
+__pycache__/
+__pycache__.meta

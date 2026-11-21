@@ -22,7 +22,7 @@ namespace ShotField.RuntimeUI
         private void Start()
         {
             if (controller == null)
-                controller = FindObjectOfType<LocomotionComfortController>();
+                controller = FindAnyObjectByType<LocomotionComfortController>();
             RefreshUI();
         }
 

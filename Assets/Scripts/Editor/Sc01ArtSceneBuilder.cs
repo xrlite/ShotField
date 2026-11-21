@@ -7,16 +7,15 @@ namespace ShotField.EditorTools
 {
     internal static class Sc01ArtSceneBuilder
     {
-        // 坐标基准以 03_制作/SC01_占位场次制作包.md §2 为唯一真相源（2026-11-18 裁定项 13 已拍板）。
-        // 单位米，原点 = 玄关内侧地面中心；+Z 向客厅纵深，+X 向窗。
-        internal static readonly Vector3 TablePosition = new Vector3(1.4f, 0.4f, 2.2f);
-        internal static readonly Vector3 EnvelopePosition = new Vector3(1.5f, 0.46f, 2.15f);
-        internal static readonly Vector3 ActorPosition = new Vector3(0.45f, 0f, 2.48f);
+        // 坐标基准改为 06_素材/白模/SC01_Blender场景_20261120.blend（用户认可的布局）。
+        // 换算三式：UnityX = BlenderX - 3；UnityZ = BlenderY；UnityY = BlenderZ。
+        // 原「制作包 §2」口径把 Blender 的 X 原值直接搬来用，导致整屋家具挤在右半区。
+        internal static readonly Vector3 TablePosition = new Vector3(-1.6f, 0.225f, 2.2f);
+        internal static readonly Vector3 EnvelopePosition = new Vector3(-1.5f, 0.455f, 2.15f);
+        internal static readonly Vector3 ActorPosition = new Vector3(-2.55f, 0f, 2.48f);
 
-        // 椅子错开主角站位：制造包未列此件，保留但不许与人物同点。
-        // 角色按 1.72m 等比缩放后 X 半径约 0.67m（中心 0.8 → 右边界 1.47），
-        // 故椅子 X 放到 2.0 才留出间隙。
-        internal static readonly Vector3 ChairPosition = new Vector3(2.0f, 0.45f, 1.35f);
+        // 单人椅在茶几右下（Blender 2.05/1.32）。
+        internal static readonly Vector3 ChairPosition = new Vector3(-0.95f, 0.43f, 1.32f);
 
         // 信封平放茶几面（制作包 y=0.46 = 茶几面 0.45 + 半个厚度），长边指向 -X。
         // 构造侧 criticalFaceNormal=+Z、X 轴为 0.16m 长边，故先绕 X 转 -90 使法线朝上，再绕 Y 转 180 让长边朝 -X。
@@ -28,12 +27,14 @@ namespace ShotField.EditorTools
 
         internal static void BuildProps(Transform room)
         {
-            Place(room, "Cabinet_Prop", "ShoeCabinet", new Vector3(0.2f, 0.45f, 0.5f), Quaternion.identity);
-            // 沙发 X 从 0 改到 0.7：制作包只规定 Z=3.2，未规定 X；实测 AABB 下 X=0 会与冰箱（X=-0.6/Z=3.6）重叠 0.54m
-            Place(room, "Sofa_Prop", "Sofa", new Vector3(0.7f, 0.425f, 3.2f), Quaternion.identity);
+            // 玄关柜贴左墙、门洞左侧（Blender 0.17/0.95 → Unity -2.83/0.95）。
+            Place(room, "Cabinet_Prop", "ShoeCabinet", new Vector3(-2.83f, 0.45f, 0.95f), Quaternion.identity);
+            // 沙发靠后墙居中（Blender 3.0/3.45 → Unity 0/3.45）。
+            Place(room, "Sofa_Prop", "Sofa", new Vector3(0f, 0.41f, 3.45f), Quaternion.identity);
             Place(room, "Desk_Prop", "CoffeeTable", TablePosition, Quaternion.identity);
             Place(room, "Chair_Prop", "Chair", ChairPosition, Quaternion.identity);
-            Place(room, "Plant_Prop", "Plant", new Vector3(-2.2f, 0.6f, 3.2f), Quaternion.identity);
+            // 绿植靠左后角（Blender 0.72/3.45 → Unity -2.28/3.45）。
+            Place(room, "Plant_Prop", "Plant", new Vector3(-2.28f, 0.72f, 3.45f), Quaternion.identity);
             // 角色目标身高 1.72m：实测 prefab 仅 0.66m 高且悬空 0.53m，按等比缩放后落地
             Place(room, "ActorA_Character", "ActorA", ActorPosition, Quaternion.identity, 1.72f);
             // 信封贴在"茶几实际顶面"而不是制作包的 0.45：实测量茶几只有 0.19m 高，
@@ -86,6 +87,15 @@ namespace ShotField.EditorTools
         private static Bounds ComputeBounds(GameObject go)
         {
             Physics.SyncTransforms();
+            // 以渲染几何为准：Collider 是预制品里写死的近似框，等比缩放后与真实模型对不上，
+            // 会算出错误的底面高度（沿地导致悬空）。
+            var renderers = go.GetComponentsInChildren<Renderer>();
+            if (renderers.Length > 0)
+            {
+                var rb = renderers[0].bounds;
+                for (int i = 1; i < renderers.Length; i++) rb.Encapsulate(renderers[i].bounds);
+                return rb;
+            }
             var colliders = go.GetComponentsInChildren<Collider>();
             if (colliders.Length > 0)
             {
@@ -93,15 +103,7 @@ namespace ShotField.EditorTools
                 for (int i = 1; i < colliders.Length; i++) cb.Encapsulate(colliders[i].bounds);
                 return cb;
             }
-            var renderers = go.GetComponentsInChildren<Renderer>();
-            if (renderers.Length == 0)
-            {
-                var empty = new Bounds(go.transform.position, Vector3.zero);
-                return empty;
-            }
-            var b = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++) b.Encapsulate(renderers[i].bounds);
-            return b;
+            return new Bounds(go.transform.position, Vector3.zero);
         }
     }
 }
