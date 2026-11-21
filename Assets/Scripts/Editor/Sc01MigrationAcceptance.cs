@@ -35,7 +35,7 @@ namespace ShotField.EditorTools
             Application.logMessageReceived += Record;
             try
             {
-                var preview = EditorSceneManager.OpenPreviewScene("Assets/Scenes/SC01_Blockout.unity");
+                var preview = EditorSceneManager.OpenPreviewScene(BuildAndroid.ScenePath);
                 try { BatchEvidence.ExportSceneViews(preview); }
                 finally { EditorSceneManager.ClosePreviewScene(preview); }
             }

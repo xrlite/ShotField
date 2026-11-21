@@ -23,7 +23,7 @@ namespace ShotField.EditorTools
             _pass = 0;
             _total = 0;
             Report.Length = 0;
-            EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity");
+            EditorSceneManager.OpenScene(BuildAndroid.ScenePath);
 
             var hands = Object.FindObjectsByType<TrackedPoseDriver>();
             var directs = Object.FindObjectsByType<XRDirectInteractor>();

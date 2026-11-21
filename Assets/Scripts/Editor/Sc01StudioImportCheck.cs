@@ -9,7 +9,7 @@ namespace ShotField.EditorTools
     internal static class Sc01StudioImportCheck
     {
         private const string ModelPath = "Assets/Models/Studio/SC01_Studio_Shell.fbx";
-        private const string ScenePath = "Assets/Scenes/SC01_Blockout.unity";
+        private const string ScenePath = BuildAndroid.ScenePath;
 
         [MenuItem("ShotField/SC01/Verify Studio Import and Capture")]
         public static void Run()

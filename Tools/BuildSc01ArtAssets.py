@@ -4,8 +4,16 @@ import os
 import sys
 
 
-PROJECT = r"F:\pico\04_Project\ShotField"
-SOURCE = r"F:\pico\06_素材\参考"
+# Paths come from the environment, falling back to locations relative to this
+# script, so the repo carries no machine-specific directory or username.
+#   SHOTFIELD_PROJECT  = Unity project root (default: the parent of Tools/)
+#   SHOTFIELD_SOURCE   = folder holding the source glTF files
+#   SHOTFIELD_WORKSPACE = repo root that contains 04_Project and 06_* (default: project/..)
+_HERE = os.path.dirname(os.path.abspath(__file__))
+PROJECT = os.environ.get("SHOTFIELD_PROJECT") or os.path.normpath(os.path.join(_HERE, ".."))
+_WORKSPACE = os.environ.get("SHOTFIELD_WORKSPACE") or os.path.normpath(os.path.join(PROJECT, ".."))
+SOURCE = os.environ.get("SHOTFIELD_SOURCE") or os.path.join(
+    _WORKSPACE, u"06_\u7d20\u6750", u"\u53c2\u8003")
 FURNITURE = {
     "modern_arm_chair_01": "modern_arm_chair_01_1k.gltf",
     "modern_coffee_table_01": "modern_coffee_table_01_1k.gltf",

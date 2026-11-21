@@ -24,7 +24,7 @@ namespace ShotField.EditorTools
                 Debug.Log("[Sprint1UiVerifier] PASS: " + label);
             }
 
-            EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity");
+            EditorSceneManager.OpenScene(BuildAndroid.ScenePath);
             var wb = UnityEngine.Object.FindAnyObjectByType<SpatialWorkbench>();
             var browser = UnityEngine.Object.FindAnyObjectByType<PropBrowserUI>();
             var inspector = UnityEngine.Object.FindAnyObjectByType<SceneObjectInspector>();

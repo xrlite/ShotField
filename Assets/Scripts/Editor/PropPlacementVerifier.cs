@@ -16,7 +16,7 @@ namespace ShotField.EditorTools
     public static class PropPlacementVerifier
     {
         private const int ExpectedAssertions = 6;
-        private const string ScenePath = "Assets/Scenes/SC01_Blockout.unity";
+        private const string ScenePath = BuildAndroid.ScenePath;
 
         public static void Run()
         {

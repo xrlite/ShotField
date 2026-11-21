@@ -14,7 +14,9 @@ namespace ShotField.Core
     public partial class ShotLibrary : MonoBehaviour
     {
         [SerializeField] private List<ShotData> shots = new List<ShotData>();
-        [SerializeField] private string defaultUpdatedBy = "yangl";
+        // 署名默认值不能写具体人名：这是公开仓库，且 Inspector 会把它当成默认作者。
+        // 真实署名由调用方在保存镜头时填入（ShotPassport 的 updatedBy）。
+        [SerializeField] private string defaultUpdatedBy = "unknown";
         [SerializeField] private string sceneId = "SC01";
 
         public string SceneId => sceneId;

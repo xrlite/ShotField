@@ -13,7 +13,7 @@ namespace ShotField.EditorTools
             int passCount = 0;
             int totalTests = 5;
 
-            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity");
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene(BuildAndroid.ScenePath);
             var bench = UnityEngine.Object.FindAnyObjectByType<SpatialWorkbench>();
             if (!bench || bench.gameObject.scene != scene) throw new InvalidOperationException("Missing saved workbench");
             var motion = bench.GetComponent<CameraMotionRecorder>();

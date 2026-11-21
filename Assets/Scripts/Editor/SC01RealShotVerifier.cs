@@ -31,7 +31,7 @@ namespace ShotField.EditorTools
             Log("时间: " + DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
 
             // 1. 构建真实 SC01 片场与工作台
-            EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity", OpenSceneMode.Single);
+            EditorSceneManager.OpenScene(BuildAndroid.ScenePath, OpenSceneMode.Single);
             var wbGo = GameObject.Find("Spatial_Workbench_Canvas");
 
             Assert("SC01. 工作台引用已保存", wbGo != null && wbGo.GetComponent<SpatialWorkbench>() != null);

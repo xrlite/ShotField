@@ -33,7 +33,7 @@ namespace ShotField.EditorTools
         [MenuItem("镜场 ShotField/导出 SC01 三视图")]
         public static void ExportReviewViews()
         {
-            const string path = "Assets/Scenes/SC01_Blockout.unity";
+            const string path = BuildAndroid.ScenePath;
             var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
             if (scene.path != path)
             {
@@ -98,7 +98,7 @@ namespace ShotField.EditorTools
                 Directory.CreateDirectory(evidence);
                 Directory.CreateDirectory(output);
 
-                var scene = EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity");
+                var scene = EditorSceneManager.OpenScene(BuildAndroid.ScenePath);
                 var director = GameObject.Find("Director");
                 var camera = director && director.scene == scene ? director.GetComponent<Camera>() : null;
                 report.AppendLine("scene=" + scene.path + " camera=Director");

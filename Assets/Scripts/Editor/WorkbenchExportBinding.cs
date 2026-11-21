@@ -12,7 +12,7 @@ namespace ShotField.EditorTools
 {
     public static class WorkbenchExportBinding
     {
-        const string ScenePath = "Assets/Scenes/SC01_Blockout.unity";
+        const string ScenePath = BuildAndroid.ScenePath;
 
         internal static void Attach(SpatialWorkbench wb)
         {

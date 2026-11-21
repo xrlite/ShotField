@@ -12,7 +12,7 @@ namespace ShotField.EditorTools
     /// <summary>场景观感批处理抓图：彩色、保留材质/灯光/后处理，四机位对齐（不加 -nographics）。</summary>
     public static class Sc01LookCapture
     {
-        private const string ScenePath = "Assets/Scenes/SC01_Blockout.unity";
+        private const string ScenePath = BuildAndroid.ScenePath;
         private const string EvidenceRelative = "../../../05_验证记录/2026-11";
         private const int Width = 1920;
         private const int Height = 1080;

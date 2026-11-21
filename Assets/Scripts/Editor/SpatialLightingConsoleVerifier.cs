@@ -72,9 +72,9 @@ namespace ShotField.EditorTools
             }
 
             // 7. 装配断言：SC01 场景里必须真的挂了这个控制台（前 6 条只是单元行为，不验装配）
-            EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity", OpenSceneMode.Single);
+            EditorSceneManager.OpenScene(BuildAndroid.ScenePath, OpenSceneMode.Single);
             var inScene = UnityEngine.Object.FindAnyObjectByType<SpatialLightingConsole>();
-            VerifyAssert.Require("Lighting console is assembled inside SC01_Blockout scene", inScene != null, ref passed);
+            VerifyAssert.Require("Lighting console is assembled inside the main scene", inScene != null, ref passed);
             VerifyAssert.Require("Assembled console has 3 light slots bound",
                 inScene != null && inScene.slots != null && inScene.slots.Length == 3 &&
                 inScene.slots[0].lightSource != null && inScene.slots[1].lightSource != null &&

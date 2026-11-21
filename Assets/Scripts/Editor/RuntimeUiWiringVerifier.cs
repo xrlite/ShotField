@@ -23,7 +23,7 @@ namespace ShotField.EditorTools
                 Debug.Log("[RuntimeUiWiringVerifier] PASS: " + label);
             }
 
-            EditorSceneManager.OpenScene("Assets/Scenes/SC01_Blockout.unity");
+            EditorSceneManager.OpenScene(BuildAndroid.ScenePath);
             var workbench = UnityEngine.Object.FindAnyObjectByType<SpatialWorkbench>();
             Check("saved SC01 contains SpatialWorkbench", workbench != null);
             var canvas = workbench.GetComponent<Canvas>();
