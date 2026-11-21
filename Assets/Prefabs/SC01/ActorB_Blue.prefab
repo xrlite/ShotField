@@ -1828,7 +1828,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ShotField.Core::ShotField.Core.SemanticMarker
   kind: 0
-  markerId: actorA
+  markerId: actorb
   displayName: ActorA_Character
   criticalFaceNormal: {x: 0, y: 0, z: 1}
   criticalFaceMustStayHidden: 0
@@ -1895,7 +1895,7 @@ NavMeshAgent:
   m_AutoBraking: 1
   m_AutoRepath: 1
   m_Height: 2
-  m_BaseOffset: 0
+  m_BaseOffset: 0.748
   m_WalkableMask: 4294967295
   m_ObstacleAvoidanceType: 4
 --- !u!114 &1816982151362351894
