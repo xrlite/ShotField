@@ -72,8 +72,9 @@ cd ShotField
 关闭使用同一工程的 Unity 编辑器，在仓库根运行。将 Unity 安装路径换成实际路径。
 
 ```powershell
+# 先把 X: 换成你自己的 Unity 安装位置（Unity Hub 里能看到）
 $repo = (Get-Location).Path
-$unity = 'D:\unity\6000.6.5f1\Editor\Unity.exe'
+$unity = 'X:\Unity\6000.6.5f1\Editor\Unity.exe'
 $env:SHOTFIELD_OUT_APK = Join-Path $repo 'Build/ShotField.apk'
 New-Item -ItemType Directory -Path (Join-Path $repo 'Build') -Force | Out-Null
 & $unity -batchmode -projectPath $repo `

@@ -10,16 +10,17 @@ using UnityEngine.SceneManagement;
 /// 变更记录（相对 ShotFieldBuild 时代的 BuildG0.cs）：
 /// - 显式设置包名，不再沿用 URP 模板的 com.UnityTechnologies.com.unity.template.urpblank
 /// - 显式设置 productName
-/// - 主工程路径已改为纯英文（F:\pico\04_Project\ShotField），不再需要构建镜像
+/// - 主工程路径已改为纯英文，不再需要构建镜像
 /// </summary>
 public static class BuildAndroid
 {
     const string ScenePath = "Assets/Scenes/SC01_Blockout.unity";
     const string PackageId = "com.haoyunlai.shotfield";
     const string ProductName = "ShotField";
-    const string OutApk = "F:/pico/05_验证记录/2026-11/G2/ShotField_G2.apk";
-    const string OutApkRev1 = "F:/pico/05_验证记录/2026-11/G2/ShotField_G2_rev1.apk";
-    const string OutApkD = "F:/pico/05_验证记录/2026-11/D/ShotField_D_studioWiring.apk";
+    // 默认输出到工程内 Build/。需要指定位置时，用环境变量 SHOTFIELD_OUT_APK 覆盖。
+    const string OutApk = "Build/ShotField.apk";
+    const string OutApkRev1 = "Build/ShotField_rev1.apk";
+    const string OutApkD = "Build/ShotField_studioWiring.apk";
 
     /// <summary>只做构建：IL2CPP + ARM64。PICO SDK 6.2.0 强制要求这两项。</summary>
     public static void BuildIl2Cpp()
