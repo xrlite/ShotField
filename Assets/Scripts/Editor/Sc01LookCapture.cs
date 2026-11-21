@@ -43,7 +43,7 @@ namespace ShotField.EditorTools
         {
             new Pose { name = "Door", position = new Vector3(-1.68f, 1.63f, .70f), lookAt = new Vector3(.70f, 1.17f, 2.67f), fov = 60f },
             new Pose { name = "Wide", position = new Vector3(-2.52f, 1.8f, 3.75f), lookAt = new Vector3(.6f, 1.1f, 1.95f), fov = 65f },
-            new Pose { name = "Top", position = new Vector3(0, 8, 2), lookAt = new Vector3(0, 0, 2.001f), orthographic = true, orthoSize = 2.23f, hideCeiling = true },
+            new Pose { name = "Top", position = new Vector3(0.40f, 8.00f, 1.80f), lookAt = new Vector3(0.40f, 0f, 1.801f), orthographic = true, orthoSize = 4.60f, hideCeiling = true },
             new Pose { name = "Up", position = new Vector3(-1.10f, 1.32f, .60f), lookAt = new Vector3(.10f, 2.8f, 2.35f), fov = 63f }, 
             new Pose { name = "Studio", position = new Vector3(-3.35f, 1.62f, -1.48f), lookAt = new Vector3(-.60f, 1.12f, 2.85f), fov = 68f }
         });
