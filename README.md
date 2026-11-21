@@ -2,7 +2,9 @@
 
 **在 VR 片场排走位、架机位，开拍前检查镜头连续性。**
 
-[快速开始](#快速开始) · [案例与进度](#案例与进度) · [源码结构](#源码结构) · [Android 构建](#android-构建) · [许可证](#许可证与来源)
+[快速开始](#快速开始) · [案例与进度](#案例与进度) · [预演文档](#预演文档) · [源码结构](#源码结构) · [Android 构建](#android-构建) · [已知限制](#已知限制) · [许可证](#许可证与来源)
+
+![License](https://img.shields.io/badge/license-MIT-green) ![Unity](https://img.shields.io/badge/Unity-6000.6.5f1-blue) ![Platform](https://img.shields.io/badge/target-PICO%20Android%20ARM64-orange)
 
 ShotField 是面向短片和 AI 视频创作的视觉预演（Previs）工具。导演在三维场景中安排演员和摄影机，检查视线与越轴等空间关系，再导出镜头参考。
 
@@ -34,6 +36,17 @@ cd ShotField
 | C · 宏大示意 | 楼群远景、一名演员和一次五秒长拉镜头。 | 规划中。 |
 
 备件库规划为 54 件，含 12 件结构、10 件家具、20 件道具和 12 件风格件。现有资源和规划数量分别登记。发布版验收前，手势、眼追和真机帧率均须以设备证据为准。
+
+## 预演文档
+
+案例 A《桌上那封信》的创作规格随功能一起提交，说明「输入什么、演出什么、验收什么」：
+
+| 文档 | 内容 |
+| --- | --- |
+| [SC01_Previs_Script.md](Assets/Documentation/Previs/SC01_Previs_Script.md) | 预演剧本：人物、动机与 60 秒节拍 |
+| [SC01_ShotList.md](Assets/Documentation/Previs/SC01_ShotList.md) | 七组分镜的机位、焦段与运镜规格 |
+| [SC01_VisualPalette.md](Assets/Documentation/Previs/SC01_VisualPalette.md) | 视觉语言：景物两级灰、角色分色、机位琥珀色 |
+| [AGENTS.md](AGENTS.md) | 工程协作约定与验证纪律 |
 
 ## 源码结构
 
@@ -77,6 +90,15 @@ New-Item -ItemType Directory -Path (Join-Path $repo 'Build') -Force | Out-Null
 参赛入口：[PICO Space Program 中国区](https://spaceprogram-cn.picoxr.com/)。
 
 按中国区赛事快照，参赛须关联 GitHub 源码仓库。私有仓库通过赛事流程配置 Deploy Key，开源并支持二次开发属于完成度加分项。评审版本应对应具体提交，验证记录应标明 Unity 编辑器、Swan 模拟器或真机。
+
+## 已知限制
+
+工程验证期的诚实清单，逐条对应证据状态：
+
+- 编辑器验证（`ShotField > Verifiers`）与 Swan 模拟器结果分开记录；全沉浸立体首帧、90fps、手柄交互仍待 PICO 真机验收。
+- 手势追踪、眼动追踪、面捕在模拟器上不可验证，相关能力按真机可用范围实现与宣传。
+- 场景资产目前存在两个入口（`SC01_Final` 为预演主场景，Android 构建入口尚未切换），统一到单一场景前，APK 内容以构建脚本指向的场景为准。
+- 编辑器结果截图与日志不进版本库，随提交材料单独提供。
 
 ## 许可证与来源
 
