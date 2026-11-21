@@ -174,9 +174,16 @@ namespace ShotField.EditorTools
             cam.targetTexture = null; RenderTexture.active = null; Object.DestroyImmediate(rt);
 
             byte[] bytes = tex.EncodeToPNG(); Object.DestroyImmediate(tex);
-            var path1 = @"F:\pico\05_验证记录\2026-11\previs_sandbox_preview.png";
-            var path2 = @"C:\Users\yangl\.gemini\antigravity\brain\975bc2d5-fc4a-4b89-998e-25ad70fb3073\previs_sandbox_preview.png";
-            File.WriteAllBytes(path1, bytes); File.WriteAllBytes(path2, bytes);
+            // 以前这里往两个绝对路径各写一份，其中一个把本机用户名和另一个工具的
+            // 私有工作目录写进了公开仓库。现在只认一个可配置的证据目录，缺省落 Temp。
+            var evidenceDir = System.Environment.GetEnvironmentVariable("SHOTFIELD_EVIDENCE_DIR");
+            if (string.IsNullOrEmpty(evidenceDir))
+            {
+                evidenceDir = System.IO.Path.Combine(System.IO.Path.GetTempPath(), "ShotFieldEvidence");
+            }
+            System.IO.Directory.CreateDirectory(evidenceDir);
+            var path1 = System.IO.Path.Combine(evidenceDir, "previs_sandbox_preview.png");
+            File.WriteAllBytes(path1, bytes);
 
             foreach (var g in hidden) g.SetActive(true);
             Debug.Log($"[PrevisSandbox] 1080P 预演预览图已生成: {path1}");

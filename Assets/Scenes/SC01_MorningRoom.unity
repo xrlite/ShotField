@@ -10345,7 +10345,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ShotField.Core::ShotField.Core.ShotLibrary
   shots: []
-  defaultUpdatedBy: yangl
+  defaultUpdatedBy: unknown
   sceneId: SC01
   ShotCamera: {fileID: 1769096690}
 --- !u!1 &1772990250
