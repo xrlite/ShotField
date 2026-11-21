@@ -14,8 +14,8 @@ namespace ShotField.EditorTools
     {
         private const string ScenePath = "Assets/Scenes/SC01_Blockout.unity";
         private const string EvidenceRelative = "../../../05_验证记录/2026-11";
-        private const int Width = 1280;
-        private const int Height = 720;
+        private const int Width = 1920;
+        private const int Height = 1080;
 
         private struct Pose
         {
@@ -36,7 +36,19 @@ namespace ShotField.EditorTools
         [MenuItem("镜场 ShotField/抓场景观感四图 (Look Capture)")]
         public static void CaptureFourMenu() => CaptureFour();
 
-        public static void CaptureFour()
+        public static void CaptureFour() => Capture(ScenePath, BuildPoses());
+
+        [MenuItem("ShotField/SC01/Capture Production Look")]
+        public static void CaptureProductionLook() => Capture("Assets/Scenes/SC01_Final.unity", new[]
+        {
+            new Pose { name = "Door", position = new Vector3(-1.68f, 1.63f, .70f), lookAt = new Vector3(.70f, 1.17f, 2.67f), fov = 60f },
+            new Pose { name = "Wide", position = new Vector3(-2.52f, 1.8f, 3.75f), lookAt = new Vector3(.6f, 1.1f, 1.95f), fov = 65f },
+            new Pose { name = "Top", position = new Vector3(0, 8, 2), lookAt = new Vector3(0, 0, 2.001f), orthographic = true, orthoSize = 2.23f, hideCeiling = true },
+            new Pose { name = "Up", position = new Vector3(-1.10f, 1.32f, .60f), lookAt = new Vector3(.10f, 2.8f, 2.35f), fov = 63f }, 
+            new Pose { name = "Studio", position = new Vector3(-3.35f, 1.62f, -1.48f), lookAt = new Vector3(-.60f, 1.12f, 2.85f), fov = 68f }
+        });
+
+        private static void Capture(string scenePath, Pose[] poses)
         {
             var report = new StringBuilder();
             int failures = 0;
@@ -46,10 +58,10 @@ namespace ShotField.EditorTools
 
             report.AppendLine("SHOTFIELD LOOK CAPTURE");
             report.AppendLine("time=" + System.DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
-            report.AppendLine("scene=" + ScenePath);
+            report.AppendLine("scene=" + scenePath);
 
             var scene = UnityEngine.SceneManagement.SceneManager.GetActiveScene();
-            if (scene.path != ScenePath) scene = EditorSceneManager.OpenScene(ScenePath);
+            if (scene.path != scenePath) scene = EditorSceneManager.OpenScene(scenePath);
             report.AppendLine("activeScene=" + scene.path);
 
             Camera template = null;
@@ -70,11 +82,11 @@ namespace ShotField.EditorTools
                     var renderPostProcessing = cameraData.FindProperty("m_RenderPostProcessing");
                     if (renderPostProcessing != null) { renderPostProcessing.boolValue = true; cameraData.ApplyModifiedPropertiesWithoutUndo(); }
                 }
-                if (template != null) { camera.CopyFrom(template); report.AppendLine("templateCamera=Director hdr=" + template.allowHDR); }
+                if (template != null) { camera.CopyFrom(template); camera.cullingMask &= ~(1 << 5); report.AppendLine("templateCamera=Director hdr=" + template.allowHDR); }
                 else report.AppendLine("templateCamera=NONE (使用默认相机参数)");
 
                 var hidden = new List<GameObject>();
-                foreach (var pose in BuildPoses())
+                foreach (var pose in poses)
                 {
                     try
                     {
@@ -86,7 +98,11 @@ namespace ShotField.EditorTools
                             {
                                 if (!t.gameObject.activeSelf) continue;
                                 var n = t.name;
-                                if (!n.Contains("CeilPanel") && !n.Contains("Ceiling") && !n.Contains("Ceil")) continue;
+                                // Top 机位在 8 米，桁架在 4.02~4.16 米，正好挡在相机与地面之间，会切碎俯视图；
+                                // 与棚体吊顶一起隐藏，俯视图只保留可判读的布局信息。
+                                bool hideForTop = pose.name == "Top" &&
+                                                  (n == "STUDIO_Studio" || n == "STUDIO_Truss");
+                                if (!hideForTop && !n.Contains("Ceil")) continue;
                                 t.gameObject.SetActive(false);
                                 hidden.Add(t.gameObject);
                             }
@@ -124,7 +140,7 @@ namespace ShotField.EditorTools
                 if (holder) Object.DestroyImmediate(holder);
             }
 
-            report.AppendLine(failures == 0 ? "RESULT=PASS 4/4" : "RESULT=FAIL failures=" + failures);
+            report.AppendLine(failures == 0 ? $"RESULT=PASS {poses.Length}/{poses.Length}" : "RESULT=FAIL failures=" + failures);
             var reportPath = Path.Combine(folder, "look_capture_" + stamp + ".txt");
             File.WriteAllText(reportPath, report.ToString(), new UTF8Encoding(false));
             foreach (var line in report.ToString().Split('\n'))
@@ -145,7 +161,7 @@ namespace ShotField.EditorTools
 
         private static byte[] Render(Camera camera)
         {
-            var target = RenderTexture.GetTemporary(Width, Height, 24, RenderTextureFormat.ARGB32);
+            var target = RenderTexture.GetTemporary(Width, Height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default, 4);
             var image = new Texture2D(Width, Height, TextureFormat.RGB24, false);
             var previous = RenderTexture.active;
             try
