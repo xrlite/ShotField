@@ -77,3 +77,6 @@ Passports/
 /.pico/
 /.pico-setup-resources.*.tmp/
 # <<< pico-cli managed <<<
+
+# Generated local agent configuration
+/.cursor/rules/pico-unity-agentic-tools.mdc

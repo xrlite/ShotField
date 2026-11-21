@@ -1,15 +1,31 @@
 # 镜场 ShotField
 
-镜场是在 VR 片场推演演员走位和摄影机调度的视觉预演（Previs）工具。创作者可以摆场、安排镜头、检查空间连续性，并导出参考素材。
+**在 VR 片场排走位、架机位，开拍前检查镜头连续性。**
 
-## 打开工程
+[快速开始](#快速开始) · [案例与进度](#案例与进度) · [源码结构](#源码结构) · [Android 构建](#android-构建) · [许可证](#许可证与来源)
+
+ShotField 是面向短片和 AI 视频创作的视觉预演（Previs）工具。导演在三维场景中安排演员和摄影机，检查视线与越轴等空间关系，再导出镜头参考。
+
+| 模块 | 仓库入口 |
+| --- | --- |
+| 镜头数据、联机与导出 | [Core](Assets/Scripts/Core) |
+| 镜头连续性与空间约束 | [Constraints](Assets/Scripts/Constraints) |
+| 导演工作台、演员与相机 | [RuntimeUI](Assets/Scripts/RuntimeUI) |
+| 场景工具、构建与验证 | [Editor](Assets/Scripts/Editor) |
+
+## 快速开始
+
+```bash
+git clone https://github.com/xrlite/ShotField.git
+cd ShotField
+```
 
 1. 安装项目记录的 Unity 版本 `6000.6.5f1`。Android 构建还需要 Unity Android Build Support、SDK、NDK 和 OpenJDK。
 2. 通过 Unity Hub 打开仓库根目录，等待 Package Manager 完成依赖解析。
 3. 打开 `Assets/Scenes/SC01_Final.unity` 检查室内预演场景。原 Android 构建入口仍使用 `Assets/Scenes/SC01_Blockout.unity`。
 4. 从 `ShotField > Verifiers` 运行编辑器验证。编辑器结果、模拟器结果与头显实测应分别记录。
 
-## 内容与状态
+## 案例与进度
 
 | 案例 | 内容 | 状态 |
 | --- | --- | --- |
@@ -19,7 +35,7 @@
 
 备件库规划为 54 件，含 12 件结构、10 件家具、20 件道具和 12 件风格件。现有资源和规划数量分别登记。发布版验收前，手势、眼追和真机帧率均须以设备证据为准。
 
-## 工程结构
+## 源码结构
 
 | 路径 | 内容 |
 | --- | --- |
@@ -27,7 +43,7 @@
 | `Assets/Scripts/Constraints` | 视线、空间和连续性校验 |
 | `Assets/Scripts/RuntimeUI` | 工作台、演员与机位交互 |
 | `Assets/Scripts/Editor` | 场景工具、抓图、构建和验证 |
-| `Assets/Documentation/Previs` | 预演剧本、镜头表和视觉规范 |
+| `Assets/Documentation/Previs` | 工作区中的预演剧本、镜头表与视觉规范，随对应功能提交 |
 | `Assets/Scenes`、`Assets/Prefabs` | 场景与可复用组件 |
 
 ## Android 构建
@@ -55,6 +71,12 @@ New-Item -ItemType Directory -Path (Join-Path $repo 'Build') -Force | Out-Null
 | 交互 | 展示摆位、走位、机位记录与回放中的已验证操作 |
 | 功能设计 | 展示可运行的案例、道具复用以及镜头参考导出 |
 | 二次开发 | 通过源码、场景和文档说明如何扩展，引用外部资源时保留对应许可 |
+
+## PICO Space Program 参赛交付
+
+参赛入口：[PICO Space Program 中国区](https://spaceprogram-cn.picoxr.com/)。
+
+按中国区赛事快照，参赛须关联 GitHub 源码仓库。私有仓库通过赛事流程配置 Deploy Key，开源并支持二次开发属于完成度加分项。评审版本应对应具体提交，验证记录应标明 Unity 编辑器、Swan 模拟器或真机。
 
 ## 许可证与来源
 
