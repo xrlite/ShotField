@@ -95,3 +95,6 @@ Assets/Scripts/Editor/Sc01ShellMaterialPatch.cs*
 
 # 第三方开发工具（MIT 许可，仅供本地 AI 调试，不随仓库分发）
 /Packages/com.kitwright.unity.mcp/
+
+# AGENTS.md 由 KitWright MCP 自动生成并反复重写，不属项目文档
+/AGENTS.md

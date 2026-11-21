@@ -46,7 +46,18 @@ cd ShotField
 | [SC01_Previs_Script.md](Assets/Documentation/Previs/SC01_Previs_Script.md) | 预演剧本：人物、动机与 60 秒节拍 |
 | [SC01_ShotList.md](Assets/Documentation/Previs/SC01_ShotList.md) | 七组分镜的机位、焦段与运镜规格 |
 | [SC01_VisualPalette.md](Assets/Documentation/Previs/SC01_VisualPalette.md) | 视觉语言：景物两级灰、角色分色、机位琥珀色 |
-| [AGENTS.md](AGENTS.md) | 工程协作约定与验证纪律 |
+
+## 完整形态（规划中，当前未实现）
+
+ShotField 的目标不止是摆机位。完整链路是：**导演在 VR 里定下镜头意图 → 交给 AI 视频模型生成 → 回到片场逐项对照，检查导演的要求有没有被遵守。**
+
+本仓库目前完成的是链路前半段：场景、走位、机位、镜头护照，以及越轴、遮挡、构图三类约束检查。以下环节在开发中，**尚未交付**，不计入现有能力：
+
+- 白模帧与白模运镜视频导出，作为生成模型的参考输入
+- 镜头护照与生成结果的四项对照（机位、景别、朝向、遮挡）
+- 多人协作：房间码、双端同看一镜、远端位置光标
+
+判断某项能力是否已实现，以 `Assets/Scripts` 中的代码和验证记录为准，不以本段描述为准。
 
 ## 源码结构
 
