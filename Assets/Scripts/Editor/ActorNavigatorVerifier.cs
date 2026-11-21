@@ -68,7 +68,7 @@ namespace ShotField.EditorTools
         public static void ObserveDoorToLetterWalk()
         {
             if (!EditorApplication.isPlaying)
-                throw new System.InvalidOperationException("Enter Play Mode in SC01_Final first.");
+                throw new System.InvalidOperationException("Enter Play Mode in the main scene first.");
 
             var actor = GameObject.Find("SC01_Performer_A")?.GetComponent<ActorNavigator>();
             if (!actor || !actor.agent || !actor.agent.isOnNavMesh || !actor.animator)

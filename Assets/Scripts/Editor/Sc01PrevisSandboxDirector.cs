@@ -12,7 +12,7 @@ namespace ShotField.EditorTools
 {
     public static class Sc01PrevisSandboxDirector
     {
-        private const string ScenePath = "Assets/Scenes/SC01_Final.unity";
+        private const string ScenePath = BuildAndroid.ScenePath;
         private const string AmberHex = "#F2A33C";
 
         [MenuItem("ShotField/Previs/Setup Sandbox & Capture 1080P")]

@@ -6,8 +6,8 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Scenes/SC01_Blockout.unity
-    guid: a2c0e1ff5fe3c9f47b0e2c7c3516e0d6
+    path: Assets/Scenes/SC01_Main.unity
+    guid: 73ee6346c6863464c9da919628a4e8d7
   m_configObjects:
     ByteDance.PICO.XR.Settings: {fileID: 11400000, guid: 6356a6266676086469658800983561eb, type: 2}
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}

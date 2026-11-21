@@ -39,7 +39,7 @@ namespace ShotField.EditorTools
         public static void CaptureFour() => Capture(ScenePath, BuildPoses());
 
         [MenuItem("ShotField/SC01/Capture Production Look")]
-        public static void CaptureProductionLook() => Capture("Assets/Scenes/SC01_Final.unity", new[]
+        public static void CaptureProductionLook() => Capture(BuildAndroid.ScenePath, new[]
         {
             new Pose { name = "Door", position = new Vector3(-1.68f, 1.63f, .70f), lookAt = new Vector3(.70f, 1.17f, 2.67f), fov = 60f },
             new Pose { name = "Wide", position = new Vector3(-2.52f, 1.8f, 3.75f), lookAt = new Vector3(.6f, 1.1f, 1.95f), fov = 65f },

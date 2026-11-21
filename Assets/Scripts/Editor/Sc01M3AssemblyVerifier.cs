@@ -10,7 +10,7 @@ namespace ShotField.EditorTools
 {
     public static class Sc01M3AssemblyVerifier
     {
-        private const string ScenePath = "Assets/Scenes/SC01_Final.unity";
+        private const string ScenePath = BuildAndroid.ScenePath;
         private static readonly Color AmberColor = new Color(0.949f, 0.639f, 0.235f, 0.85f);
 
         [MenuItem("ShotField/Verifiers/Run M3 Assembly Verifier")]

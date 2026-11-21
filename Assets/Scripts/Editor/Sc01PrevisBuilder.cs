@@ -12,7 +12,7 @@ namespace ShotField.EditorTools
 {
     public static class Sc01PrevisBuilder
     {
-        private const string ScenePath = "Assets/Scenes/SC01_Final.unity";
+        private const string ScenePath = BuildAndroid.ScenePath;
         private const string RedMatPath = "Assets/Models/Characters/MAT_Actor_Red.mat";
         private const string BlueMatPath = "Assets/Models/Characters/MAT_Actor_Blue.mat";
         private const string PlayablePath = "Assets/Scenes/SC01_UnopenedLetter.playable";
@@ -30,7 +30,7 @@ namespace ShotField.EditorTools
             EditorSceneManager.MarkSceneDirty(scene);
             EditorSceneManager.SaveScene(scene);
             AssetDatabase.SaveAssets();
-            Debug.Log("[SC01PrevisBuilder] SC01_Final.unity 60.0s Previs assembly successfully completed!");
+            Debug.Log("[SC01PrevisBuilder] main scene 60.0s Previs assembly successfully completed!");
         }
 
         private static void CleanupLegacySandbox()

@@ -6,7 +6,7 @@ using UnityEngine.Rendering;
 
 namespace ShotField.EditorTools
 {
-    /// <summary>SC01_Final 结构审计（只读，绝不修改场景）。判据全部来自设计值。</summary>
+    /// <summary>主场景（SC01_Main）结构审计（只读，绝不修改场景）。判据全部来自设计值。</summary>
     internal static class Sc01FinalAudit
     {
         private static readonly string[] WallFaces =

@@ -17,7 +17,7 @@ public static class BuildAndroid
     // 主场景唯一入口。以前这里指向白模底稿场景，打出来的包里既没有六色演员也没有轨迹，
     // 属于「装上去第一分钟就穿帮」那类缺陷（全库问题清单 A1）。
     // 改名成 SC01_Main 时只改这一行 + EditorBuildSettings，别再往下面几处补字面量。
-    public const string ScenePath = "Assets/Scenes/SC01_Final.unity";
+    public const string ScenePath = "Assets/Scenes/SC01_Main.unity";
     const string PackageId = "com.haoyunlai.shotfield";
     const string ProductName = "ShotField";
     // 默认输出到工程内 Build/。需要指定位置时，用环境变量 SHOTFIELD_OUT_APK 覆盖。

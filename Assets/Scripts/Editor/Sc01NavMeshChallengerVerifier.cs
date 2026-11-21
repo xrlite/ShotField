@@ -11,7 +11,7 @@ namespace ShotField.EditorTools
 {
     public static class Sc01NavMeshChallengerVerifier
     {
-        private const string ScenePath = "Assets/Scenes/SC01_Final.unity";
+        private const string ScenePath = BuildAndroid.ScenePath;
         private const int Expected = 6;
 
         [MenuItem("ShotField/Verifiers/Run SC01 NavMesh Challenger Verifier")]
@@ -19,7 +19,7 @@ namespace ShotField.EditorTools
         {
             int passed = 0;
             var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-            VerifyAssert.Require("SC01_Final scene loaded cleanly", scene.IsValid(), ref passed);
+            VerifyAssert.Require("main scene loaded cleanly", scene.IsValid(), ref passed);
 
             var tri = NavMesh.CalculateTriangulation();
             Vector3 min = new Vector3(float.MaxValue, float.MaxValue, float.MaxValue);

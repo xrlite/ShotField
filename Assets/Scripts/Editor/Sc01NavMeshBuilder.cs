@@ -11,7 +11,7 @@ namespace ShotField.EditorTools
 {
     public static class Sc01NavMeshBuilder
     {
-        public const string ScenePath = "Assets/Scenes/SC01_Final.unity";
+        public const string ScenePath = BuildAndroid.ScenePath;
         private const string NavDataPath = "Assets/Scenes/SC01_Walkable.asset";
         public const string ActorMotionPath = "Assets/Scenes/SC01_ActorMotion.controller";
         public const string RedMatPath = "Assets/Models/Characters/MAT_Actor_Red.mat";

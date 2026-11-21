@@ -12,7 +12,7 @@ namespace ShotField.EditorTools
 {
     public static class Sc01LocomotionVerifier
     {
-        private const string ScenePath = "Assets/Scenes/SC01_Final.unity";
+        private const string ScenePath = BuildAndroid.ScenePath;
         private const int Expected = 10;
 
         [MenuItem("ShotField/Verifiers/Run SC01 Locomotion Verifier")]
@@ -20,7 +20,7 @@ namespace ShotField.EditorTools
         {
             int passed = 0;
             var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
-            VerifyAssert.Require("SC01_Final scene loaded cleanly", scene.IsValid(), ref passed);
+            VerifyAssert.Require("main scene loaded cleanly", scene.IsValid(), ref passed);
 
             var floor = GameObject.Find("Floor") ?? GameObject.Find("Ground");
             var surface = floor != null ? floor.GetComponent<NavMeshSurface>() : null;
