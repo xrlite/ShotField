@@ -11,7 +11,7 @@ namespace ShotField.Core
             if (string.IsNullOrWhiteSpace(rawScript)) return new ScriptAnalysisResult();
 
             var lines = rawScript.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            string title = lines.Length > 0 ? lines[0].Trim() : "SC01_客厅对峙";
+            string title = lines.Length > 0 ? lines[0].Trim() : "未命名场次";
             var res = new ScriptAnalysisResult
             {
                 sceneTitle = title,
@@ -41,6 +41,20 @@ namespace ShotField.Core
                 }
             }
             return res;
+        }
+
+        /// <summary>
+        /// 显式离线规则模板产物：仅在调用方主动选择离线时返回，source=offline-template，
+        /// 不冒充在线 AI 结论；推荐理由必须写明这是兜底估算。
+        /// </summary>
+        public ProposalContractDto BuildOfflineContract(string rawScript)
+        {
+            var legacy = ParseOfflineStructured(rawScript);
+            var contract = ProposalContractMapper.MapFromLegacy(legacy, rawScript);
+            contract.source = "offline-template";
+            contract.recommendedMode = ProposalMode.WalkIn;
+            contract.modeRationale = "离线规则模板：未连接在线 AI，人数 / 机位 / 资产均为兜底估算，需导演复核。";
+            return contract;
         }
     }
 }
