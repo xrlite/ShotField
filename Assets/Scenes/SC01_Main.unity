@@ -24244,6 +24244,52 @@ Transform:
   - {fileID: 212714207}
   m_Father: {fileID: 107504947}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1156381816
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1156381817}
+  - component: {fileID: 1156381818}
+  m_Layer: 0
+  m_Name: PalmMenuDesktop
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1156381817
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1156381816}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1601099771}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1156381818
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1156381816}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 04fb691e58a979e499d593d3744398e4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ShotField.RuntimeUI::ShotField.RuntimeUI.PalmMenuDesktopFallback
+  browser: {fileID: 0}
+  tabletop: {fileID: 0}
 --- !u!1 &1161904186
 GameObject:
   m_ObjectHideFlags: 0
@@ -25556,6 +25602,70 @@ Transform:
   - {fileID: 628091285}
   m_Father: {fileID: 2067525637}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &1221819912
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1221819913}
+  - component: {fileID: 1221819915}
+  - component: {fileID: 1221819914}
+  m_Layer: 0
+  m_Name: ChainRoot
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1221819913
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1221819912}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1601099771}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1221819914
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1221819912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f9efedca12f567f4cb868e93be622d31, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ShotField.RuntimeUI::ShotField.RuntimeUI.ChainTimelineController
+  model:
+    clips: []
+  timeline: {fileID: 1601099761}
+--- !u!114 &1221819915
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1221819912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b9fedaa967a8159419c68993309124f6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ShotField.RuntimeUI::ShotField.RuntimeUI.ChainOrchestrator
+  browser: {fileID: 0}
+  timeline: {fileID: 1601099761}
+  filmCamera: {fileID: 0}
+  anchorTransform: {fileID: 0}
 --- !u!1 &1224151772
 GameObject:
   m_ObjectHideFlags: 0
@@ -31088,6 +31198,7 @@ GameObject:
   - component: {fileID: 1436450608}
   - component: {fileID: 1436450607}
   - component: {fileID: 1436450606}
+  - component: {fileID: 1436450609}
   m_Layer: 0
   m_Name: XRController_Left
   m_TagString: Untagged
@@ -31381,6 +31492,32 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 1
   m_PhysicsTriggerInteraction: 1
+--- !u!114 &1436450609
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1436450604}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c4e22a278ac420488e35eaa123a0381, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ShotField.RuntimeUI::ShotField.RuntimeUI.PalmMenuController
+  menuAnchor: {fileID: 1436450605}
+  headAnchor: {fileID: 347616677}
+  localOffset: {x: 0, y: -0.12, z: 0.18}
+  followLerp: 8
+  menuCanvas: {fileID: 0}
+  buttonRoot: {fileID: 0}
+  buttonPrefab: {fileID: 0}
+  statusLabel: {fileID: 0}
+  labelChildName: Label
+  selectRay: {fileID: 0}
+  leftController: {fileID: 0}
+  rightController: {fileID: 0}
+  browser: {fileID: 0}
+  tabletop: {fileID: 0}
 --- !u!1 &1442841978
 GameObject:
   m_ObjectHideFlags: 0
@@ -34007,6 +34144,7 @@ GameObject:
   - component: {fileID: 1601099772}
   - component: {fileID: 1601099774}
   - component: {fileID: 1601099773}
+  - component: {fileID: 1601099775}
   m_Layer: 5
   m_Name: Spatial_Workbench_Canvas
   m_TagString: Untagged
@@ -55958,6 +56096,8 @@ RectTransform:
   - {fileID: 1040169981}
   - {fileID: 2062050118}
   - {fileID: 1251938602}
+  - {fileID: 1156381817}
+  - {fileID: 1221819913}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -56004,6 +56144,21 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: cefa4727500a36d40818d1fbc7b72c48, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ShotField.RuntimeUI::ShotField.RuntimeUI.DesktopStudioEditView
+--- !u!114 &1601099775
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1601099756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e00638599e6f31f42b25c5b3a19514c7, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ShotField.RuntimeUI::ShotField.RuntimeUI.MonitorScaler
+  viewportFrame: {fileID: 381265253}
+  scale: 1
+  showSlider: 1
 --- !u!1 &1602665743
 GameObject:
   m_ObjectHideFlags: 0
