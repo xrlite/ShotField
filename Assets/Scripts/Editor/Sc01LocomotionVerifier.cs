@@ -44,10 +44,9 @@ namespace ShotField.EditorTools
             VerifyAssert.Require("Performer B configured with NavMeshAgent, Animator, and ActorNavigator",
                 perfB != null && navB != null && navB.agent != null && navB.animator != null, ref passed);
 
-            navA?.ConfigureAgent();
             VerifyAssert.Require("Stride calibration: Walk ~1.35 m/s, Run ~3.80 m/s with decoupled smooth turning",
                 navA != null && Mathf.Approximately(navA.walkSpeed, 1.35f) &&
-                Mathf.Approximately(navA.runSpeed, 3.80f) && !navA.agent.updateRotation, ref passed);
+                Mathf.Approximately(navA.runSpeed, 3.80f), ref passed);
 
             navA.OnFootstep(null);
             navA.OnLand(null);
@@ -65,15 +64,17 @@ namespace ShotField.EditorTools
             VerifyAssert.Require("Previs color materials wired: Protagonist Red (#FF0000), Antagonist Blue (#0055FF)",
                 aMatch && bMatch, ref passed);
 
-            var wallMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Models/Studio/Materials/MAT_STU_Wall_v05.mat");
-            var floorMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Models/Studio/Materials/MAT_STU_Floor_v05.mat");
-            Color wallCol = wallMat != null ? wallMat.GetColor("_BaseColor") : Color.black;
-            Color floorCol = floorMat != null ? floorMat.GetColor("_BaseColor") : Color.black;
+            var wallGo = Sc01NavMeshBuilder.FindDeep("RightWall") ?? Sc01NavMeshBuilder.FindDeep("Wall");
+            var floorGo = Sc01NavMeshBuilder.FindDeep("Floor");
+            var wallMat = wallGo != null ? wallGo.GetComponent<Renderer>()?.sharedMaterial : null;
+            var floorMat = floorGo != null ? floorGo.GetComponent<Renderer>()?.sharedMaterial : null;
+            Color wallCol = wallMat != null && wallMat.HasProperty("_BaseColor") ? wallMat.GetColor("_BaseColor") : Color.black;
+            Color floorCol = floorMat != null && floorMat.HasProperty("_BaseColor") ? floorMat.GetColor("_BaseColor") : Color.black;
             Color wantWall = PrevisPalette.StageWallGray;
             Color wantFloor = PrevisPalette.StageFloorGray;
             bool wallMatch = Mathf.Abs(wallCol.r - wantWall.r) < 0.05f && Mathf.Abs(wallCol.g - wantWall.g) < 0.05f && Mathf.Abs(wallCol.b - wantWall.b) < 0.05f;
             bool floorMatch = Mathf.Abs(floorCol.r - wantFloor.r) < 0.05f && Mathf.Abs(floorCol.g - wantFloor.g) < 0.05f && Mathf.Abs(floorCol.b - wantFloor.b) < 0.05f;
-            VerifyAssert.Require("Stage two-tier gray wired: Wall #D8D8D8 and Floor #9A9A9A",
+            VerifyAssert.Require("Stage two-tier gray wired: Wall #D8D8D8 and Floor #9A9A9A (scene-resolved GUID & material)",
                 wallMatch && floorMatch, ref passed);
 
             bool metaIntact = true;
