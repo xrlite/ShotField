@@ -104,11 +104,11 @@ namespace ShotField.EditorTools
             s01.checkedAt = DateTimeOffset.UtcNow.ToString("O");
 
             // 保存 rev001
-            var dto1 = ShotPassportDto.FromShot(s01, lib.SceneId, specs);
+            var dto1 = ShotPassportMapper.FromShot(s01, lib.SceneId, specs);
             var path1 = ShotPassportStore.Save(dto1, verifyFolder);
 
             // 递增版本保存 rev002，验证版本链并存、历史不可篡改
-            var dto2 = ShotPassportDto.FromShot(s01, lib.SceneId, specs);
+            var dto2 = ShotPassportMapper.FromShot(s01, lib.SceneId, specs);
             var path2 = ShotPassportStore.SaveNextRevision(dto2, verifyFolder);
             bool historyPreserved = File.Exists(path1) && File.Exists(path2) &&
                                     dto2.revision == dto1.revision + 1 && path1 != path2;

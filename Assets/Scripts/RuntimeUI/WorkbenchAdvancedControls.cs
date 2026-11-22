@@ -15,10 +15,10 @@ namespace ShotField.RuntimeUI
         public void EnsureAdvancedControls(Canvas canvas)
         {
             if (canvas == null) return;
-            if (storyBtn == null) storyBtn = MakeButton(canvas.transform, "StoryBtn", "Act2 Outline", new Vector2(-220f, -310f));
-            if (exportBtn == null) exportBtn = MakeButton(canvas.transform, "ExportBtn", "Export Ref", new Vector2(-110f, -310f));
-            if (playReviewBtn == null) playReviewBtn = MakeButton(canvas.transform, "ReviewBtn", "Play Video", new Vector2(0f, -310f));
-            if (compareBtn == null) compareBtn = MakeButton(canvas.transform, "CompareBtn", "Compare", new Vector2(110f, -310f));
+            if (storyBtn == null) storyBtn = RuntimeUiFactory.CreateButton(canvas.transform, "StoryBtn", "Act2 Outline", new Vector2(-220f, -310f));
+            if (exportBtn == null) exportBtn = RuntimeUiFactory.CreateButton(canvas.transform, "ExportBtn", "Export Ref", new Vector2(-110f, -310f));
+            if (playReviewBtn == null) playReviewBtn = RuntimeUiFactory.CreateButton(canvas.transform, "ReviewBtn", "Play Video", new Vector2(0f, -310f));
+            if (compareBtn == null) compareBtn = RuntimeUiFactory.CreateButton(canvas.transform, "CompareBtn", "Compare", new Vector2(110f, -310f));
             if (reviewProgressSlider == null) reviewProgressSlider = MakeProgressSlider(canvas.transform);
             if (advancedControlsBound) return;
             storyBtn.onClick.AddListener(ParseStoryBible);

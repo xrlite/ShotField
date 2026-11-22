@@ -131,7 +131,7 @@ namespace ShotField.RuntimeUI
                     if (IsApplicable(rule)) specs.Add(rule.ToSpec());
                 shot.recordedConstraints = specs.ToArray();
 
-                var dto = ShotPassportDto.FromShot(shot, library.SceneId, shot.recordedConstraints);
+                var dto = ShotPassportMapper.FromShot(shot, library.SceneId, shot.recordedConstraints);
                 var path = ShotPassportStore.SaveNextRevision(dto, ShotPassportStore.ProjectFolder);
                 shot.revision = dto.revision;
                 PassportSaved?.Invoke(dto);

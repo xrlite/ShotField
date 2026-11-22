@@ -44,7 +44,7 @@ namespace ShotField.Core
                 };
 
                 // 1. 护照核心数据 passport.json
-                var dto = ShotPassportDto.FromShot(shot, "SC01", shot.recordedConstraints);
+                var dto = ShotPassportMapper.FromShot(shot, "SC01", shot.recordedConstraints);
                 string passportJson = JsonUtility.ToJson(dto, true);
                 AddTextEntry(archive, "passport.json", passportJson);
                 manifest.files.Add("passport.json");
@@ -110,7 +110,7 @@ namespace ShotField.Core
             }
         }
 
-        private static void AddTextEntry(ZipArchive archive, string entryName, string textContent)
+        internal static void AddTextEntry(ZipArchive archive, string entryName, string textContent)
         {
             var entry = archive.CreateEntry(entryName, System.IO.Compression.CompressionLevel.Optimal);
             using var entryStream = entry.Open();

@@ -15,10 +15,10 @@ namespace ShotField.RuntimeUI
         private void Awake()
         {
             grab = handle.GetComponent<XRGrabInteractable>();
-            CreateButton("Free", -231, SelectFree);
-            CreateButton("Entry", -77, () => SelectPreset(0));
-            CreateButton("Letter", 77, () => SelectPreset(1));
-            CreateButton("Reaction", 231, () => SelectPreset(2));
+            CreateModeButton("Free", -231, SelectFree);
+            CreateModeButton("Entry", -77, () => SelectPreset(0));
+            CreateModeButton("Letter", 77, () => SelectPreset(1));
+            CreateModeButton("Reaction", 231, () => SelectPreset(2));
             SelectFree();
         }
 
@@ -52,7 +52,7 @@ namespace ShotField.RuntimeUI
             filmCamera.fieldOfView = fov;
         }
 
-        private void CreateButton(string label, float x, UnityEngine.Events.UnityAction action)
+        private void CreateModeButton(string label, float x, UnityEngine.Events.UnityAction action)
         {
             var go = new GameObject(label, typeof(RectTransform), typeof(Image), typeof(Button));
             go.layer = panel.gameObject.layer;

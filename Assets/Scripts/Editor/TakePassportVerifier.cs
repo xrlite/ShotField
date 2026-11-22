@@ -46,7 +46,7 @@ namespace ShotField.EditorTools
                 originalShot.take = take;
 
                 var specs = new[] { new ConstraintSpec { type = "Visibility", ruleName = "视线无遮挡" } };
-                var dto = ShotPassportDto.FromShot(originalShot, "SC01", specs);
+                var dto = ShotPassportMapper.FromShot(originalShot, "SC01", specs);
                 string json = JsonUtility.ToJson(dto, true);
 
                 var loadedDto = JsonUtility.FromJson<ShotPassportDto>(json);

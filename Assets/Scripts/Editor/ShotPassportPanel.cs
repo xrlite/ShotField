@@ -26,7 +26,7 @@ namespace ShotField.EditorTools
         private static void Save(ShotLibrary library, ShotData shot, ShotConstraint[] rules)
         {
             if (rules.Length == 0) throw new InvalidOperationException("当前场景没有可保存的约束。");
-            var dto = ShotPassportDto.FromShot(shot, library.SceneId, Specs(rules));
+            var dto = ShotPassportMapper.FromShot(shot, library.SceneId, Specs(rules));
             var path = ShotPassportStore.Save(dto, ShotPassportStore.ProjectFolder);
             EditorUtility.DisplayDialog("已保存护照", path, "确定");
         }

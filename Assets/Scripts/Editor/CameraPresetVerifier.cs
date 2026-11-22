@@ -14,6 +14,7 @@ namespace ShotField.EditorTools
         // 6 条结构 + 4 条几何 + 1 条纯函数 = 11
         private const int ExpectedAssertions = 11;
 
+        [MenuItem("ShotField/Verifiers/Run Camera Preset Verifier")]
         [MenuItem("镜场 ShotField/验证/验证机位预设 CameraPreset")]
         public static void Run()
         {

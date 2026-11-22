@@ -18,7 +18,7 @@ namespace ShotField.EditorTools
         private const string PlayablePath = "Assets/Scenes/SC01_UnopenedLetter.playable";
 
         [MenuItem("ShotField/Previs/Run Batch Assembly (M3)")]
-        public static void RunBatch()
+        public static void RunBatchAssembly()
         {
             var scene = EditorSceneManager.OpenScene(ScenePath, OpenSceneMode.Single);
             CleanupLegacySandbox();
@@ -46,7 +46,7 @@ namespace ShotField.EditorTools
             var matA = AssetDatabase.LoadAssetAtPath<Material>(RedMatPath);
             var matB = AssetDatabase.LoadAssetAtPath<Material>(BlueMatPath);
 
-            var a = Sc01PatchCore.FindDeep("SC01_Performer_A")?.gameObject;
+            var a = HierarchySearch.FindDeep("SC01_Performer_A")?.gameObject;
             if (a != null)
             {
                 a.SetActive(true);
@@ -56,7 +56,7 @@ namespace ShotField.EditorTools
                 EnsurePerformerComponents(a, 1.35f, 3.80f);
             }
 
-            var b = Sc01PatchCore.FindDeep("SC01_Performer_B")?.gameObject;
+            var b = HierarchySearch.FindDeep("SC01_Performer_B")?.gameObject;
             if (b != null)
             {
                 b.SetActive(true);
@@ -100,7 +100,7 @@ namespace ShotField.EditorTools
 
         private static Camera SetupDirectorRig()
         {
-            var dir = Sc01PatchCore.FindDeep("Director")?.gameObject ?? new GameObject("Director");
+            var dir = HierarchySearch.FindDeep("Director")?.gameObject ?? new GameObject("Director");
             dir.SetActive(true);
             dir.layer = 0;
 

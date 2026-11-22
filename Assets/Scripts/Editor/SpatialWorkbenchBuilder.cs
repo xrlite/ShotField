@@ -19,6 +19,7 @@ namespace ShotField.EditorTools
         private static Color PicoCard => PrevisPalette.PicoCard;
         private static Color PicoAccent => PrevisPalette.PicoAccent;
 
+        [MenuItem("ShotField/Workbench/Build Spatial 3D Floating Monitor and Workbench")]
         [MenuItem("镜场 ShotField/构建空间 3D 浮动监视器与工作台")]
         public static GameObject BuildWorkbench()
         {
@@ -42,7 +43,7 @@ namespace ShotField.EditorTools
             var wb = canvasGo.AddComponent<SpatialWorkbench>();
 
             // 2. 窗口 A：3D 悬浮监视器（中央）
-            var monitorPanel = CreatePanel(canvasGo.transform, "WindowA_Monitor", PicoBg, new Vector2(0f, 100f), new Vector2(660f, 380f));
+            var monitorPanel = RuntimeUiFactory.CreatePanel(canvasGo.transform, "WindowA_Monitor", PicoBg, new Vector2(0f, 100f), new Vector2(660f, 380f));
             var displayGo = new GameObject("Display");
             displayGo.transform.SetParent(monitorPanel.transform, false);
             var displayImg = displayGo.AddComponent<RawImage>();
@@ -58,31 +59,31 @@ namespace ShotField.EditorTools
             wb.library = GameObject.Find("Director")?.GetComponent<ShotLibrary>();
 
             // 3. 窗口 B：镜头时间轴与控制条（底部）
-            var controlPanel = CreatePanel(canvasGo.transform, "WindowB_Controls", PicoCard, new Vector2(0f, -150f), new Vector2(760f, 90f));
-            wb.prevBtn = CreateButton(controlPanel.transform, "PrevBtn", "◀ 上一镜", new Vector2(-280f, 0f));
-            wb.nextBtn = CreateButton(controlPanel.transform, "NextBtn", "下一镜 ▶", new Vector2(-170f, 0f));
-            wb.captureViewBtn = CreateButton(controlPanel.transform, "CaptureBtn", "抓取视角", new Vector2(-55f, 0f), PicoAccent);
-            wb.newShotBtn = CreateButton(controlPanel.transform, "NewBtn", "新机位", new Vector2(55f, 0f));
-            wb.toggleAspectBtn = CreateButton(controlPanel.transform, "AspectBtn", "画幅", new Vector2(165f, 0f));
-            wb.savePassportBtn = CreateButton(controlPanel.transform, "SaveBtn", "存护照", new Vector2(275f, 0f));
+            var controlPanel = RuntimeUiFactory.CreatePanel(canvasGo.transform, "WindowB_Controls", PicoCard, new Vector2(0f, -150f), new Vector2(760f, 90f));
+            wb.prevBtn = RuntimeUiFactory.CreateButton(controlPanel.transform, "PrevBtn", "◀ 上一镜", new Vector2(-280f, 0f));
+            wb.nextBtn = RuntimeUiFactory.CreateButton(controlPanel.transform, "NextBtn", "下一镜 ▶", new Vector2(-170f, 0f));
+            wb.captureViewBtn = RuntimeUiFactory.CreateButton(controlPanel.transform, "CaptureBtn", "抓取视角", new Vector2(-55f, 0f), null, PicoAccent);
+            wb.newShotBtn = RuntimeUiFactory.CreateButton(controlPanel.transform, "NewBtn", "新机位", new Vector2(55f, 0f));
+            wb.toggleAspectBtn = RuntimeUiFactory.CreateButton(controlPanel.transform, "AspectBtn", "画幅", new Vector2(165f, 0f));
+            wb.savePassportBtn = RuntimeUiFactory.CreateButton(controlPanel.transform, "SaveBtn", "存护照", new Vector2(275f, 0f));
 
             // 5. 窗口 D：片场灯光控制台（带 3D 四叶遮光斗白模与动态光锥）
             SpatialLightingConsoleBuilder.Build(canvasGo);
 
             // 6. 窗口 E：导演舒适度与防晕设置面板
-            var cp = ComfortSettingsPanel.CreatePanel(canvasGo.transform, null);
+            var cp = ComfortSettingsPanel.CreateComfortPanel(canvasGo.transform, null);
             var rt = cp.GetComponent<RectTransform>();
             if (rt != null) rt.anchoredPosition = new Vector2(-430f, -100f);
 
             // 4. 窗口 C：约束质检抬头卡片（右侧浮窗）
-            var hudPanel = CreatePanel(canvasGo.transform, "WindowC_HUD", PicoCard, new Vector2(430f, 80f), new Vector2(200f, 220f));
-            CreateText(hudPanel.transform, "HUD_Title", "空间质检扫描", 16, FontStyle.Bold, new Vector2(0f, 75f), Color.white);
+            var hudPanel = RuntimeUiFactory.CreatePanel(canvasGo.transform, "WindowC_HUD", PicoCard, new Vector2(430f, 80f), new Vector2(200f, 220f));
+            RuntimeUiFactory.CreateLabel(hudPanel.transform, "HUD_Title", "空间质检扫描", 16, new Vector2(0f, 75f), style: FontStyle.Bold);
             
-            var visPill = CreatePanel(hudPanel.transform, "VisPill", new Color(0.2f, 0.7f, 0.2f, 0.9f), new Vector2(0f, 25f), new Vector2(180f, 40f)).GetComponent<Image>();
-            var visTxt = CreateText(visPill.transform, "Txt", "信封正面 [安全]", 13, FontStyle.Normal, Vector2.zero, Color.white);
+            var visPill = RuntimeUiFactory.CreatePanel(hudPanel.transform, "VisPill", new Color(0.2f, 0.7f, 0.2f, 0.9f), new Vector2(0f, 25f), new Vector2(180f, 40f)).GetComponent<Image>();
+            var visTxt = RuntimeUiFactory.CreateLabel(visPill.transform, "Txt", "信封正面 [安全]", 13, Vector2.zero);
             
-            var axisPill = CreatePanel(hudPanel.transform, "AxisPill", new Color(0.2f, 0.7f, 0.2f, 0.9f), new Vector2(0f, -35f), new Vector2(180f, 40f)).GetComponent<Image>();
-            var axisTxt = CreateText(axisPill.transform, "Txt", "轴线连续 [正常]", 13, FontStyle.Normal, Vector2.zero, Color.white);
+            var axisPill = RuntimeUiFactory.CreatePanel(hudPanel.transform, "AxisPill", new Color(0.2f, 0.7f, 0.2f, 0.9f), new Vector2(0f, -35f), new Vector2(180f, 40f)).GetComponent<Image>();
+            var axisTxt = RuntimeUiFactory.CreateLabel(axisPill.transform, "Txt", "轴线连续 [正常]", 13, Vector2.zero);
 
             wb.visibilityPill = visPill;
             wb.visibilityStatusText = visTxt;
@@ -90,7 +91,7 @@ namespace ShotField.EditorTools
             wb.axisStatusText = axisTxt;
 
             // 信息提示
-            var notifyTxt = CreateText(canvasGo.transform, "Notify", "", 18, FontStyle.Bold, new Vector2(0f, -220f), PicoAccent);
+            var notifyTxt = RuntimeUiFactory.CreateLabel(canvasGo.transform, "Notify", "", 18, new Vector2(0f, -220f), color: PicoAccent, style: FontStyle.Bold);
             wb.notificationText = notifyTxt;
 
             Undo.RegisterCreatedObjectUndo(canvasGo, "创建空间多窗口工作台");
@@ -124,52 +125,13 @@ namespace ShotField.EditorTools
             var timeline = canvasGo.AddComponent<DirectorTimeline>();
             timeline.cameraRecorder = motion;
             timeline.actorPlayer = actor;
-            wb.playMotion = CreateButton(canvasGo.transform, "PlayMotion", "运镜回放", new Vector2(-180,-255));
-            wb.toggleBoard = CreateButton(canvasGo.transform, "ToggleBoard", "沙盘", new Vector2(-60,-255));
-            wb.playActor = CreateButton(canvasGo.transform, "PlayActor", "表演回放", new Vector2(60,-255));
-            wb.screenShot = CreateButton(canvasGo.transform, "ScreenShot", "观众试看", new Vector2(180,-255));
-            Sprint1PanelBuilder.Attach(canvasGo, wb, timeline);
+            wb.playMotion = RuntimeUiFactory.CreateButton(canvasGo.transform, "PlayMotion", "运镜回放", new Vector2(-180,-255));
+            wb.toggleBoard = RuntimeUiFactory.CreateButton(canvasGo.transform, "ToggleBoard", "沙盘", new Vector2(-60,-255));
+            wb.playActor = RuntimeUiFactory.CreateButton(canvasGo.transform, "PlayActor", "表演回放", new Vector2(60,-255));
+            wb.screenShot = RuntimeUiFactory.CreateButton(canvasGo.transform, "ScreenShot", "观众试看", new Vector2(180,-255));
+            Sprint1PanelBuilder.AttachPanels(canvasGo, wb, timeline);
             WorkbenchExportBinding.Attach(wb);
             return canvasGo;
-        }
-
-        internal static GameObject CreatePanel(Transform parent, string name, Color color, Vector2 pos, Vector2 size)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            var img = go.AddComponent<Image>();
-            img.color = color;
-            var rt = go.GetComponent<RectTransform>();
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = size;
-            return go;
-        }
-
-        internal static Button CreateButton(Transform parent, string name, string label, Vector2 pos, Color? bg = null)
-        {
-            var go = CreatePanel(parent, name, bg ?? new Color(0.24f, 0.26f, 0.30f, 0.95f), pos, new Vector2(95f, 45f));
-            var btn = go.AddComponent<Button>();
-            var text = CreateText(go.transform, "Label", label, 13, FontStyle.Normal, Vector2.zero, Color.white);
-            text.rectTransform.sizeDelta = new Vector2(95f, 45f);
-            return btn;
-        }
-
-        internal static Text CreateText(Transform parent, string name, string content, int size, FontStyle style, Vector2 pos, Color color)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            var txt = go.AddComponent<Text>();
-            txt.text = content;
-            txt.raycastTarget = false;
-            txt.fontSize = size;
-            txt.fontStyle = style;
-            txt.color = color;
-            txt.alignment = TextAnchor.MiddleCenter;
-            txt.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            var rt = go.GetComponent<RectTransform>();
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = new Vector2(280f, 40f);
-            return txt;
         }
 
         public static void EnsureEventSystem()

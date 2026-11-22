@@ -68,7 +68,7 @@ namespace ShotField.EditorTools
                 VerifyAssert.Require("First-time question auto-tunes preset (Prone=Teleport/80%, NotProne=Smooth/40%)",
                     proneOk && notProneOk, ref passed);
 
-                var panel = ComfortSettingsPanel.CreatePanel(hostGo.transform, controller);
+                var panel = ComfortSettingsPanel.CreateComfortPanel(hostGo.transform, controller);
                 panel.RefreshUI();
                 VerifyAssert.Require("ComfortSettingsPanel reflects controller state and binds panic button",
                     panel != null &&

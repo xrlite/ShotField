@@ -11,6 +11,7 @@ namespace ShotField.EditorTools
         // 1 条枚举数量 + 5 条逐幕描述符 + 3 条请求/解析 = 9。
         private const int ExpectedAssertions = 9;
 
+        [MenuItem("ShotField/Verifiers/Run Five Acts Pipeline Verifier")]
         [MenuItem("镜场 ShotField/验证/验证五幕剧本与 Seedance 管线")]
         public static void Run()
         {

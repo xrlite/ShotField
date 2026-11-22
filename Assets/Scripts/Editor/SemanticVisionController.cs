@@ -16,6 +16,7 @@ namespace ShotField.EditorTools
     {
         private static readonly int BaseColorId = Shader.PropertyToID("_BaseColor");
 
+        [MenuItem("ShotField/ViewMode/Switch to Semantic Color")]
         [MenuItem("镜场 ShotField/显示模式/切换为语义色彩 (Semantic)")]
         public static void ApplySemanticMode()
         {
@@ -23,6 +24,7 @@ namespace ShotField.EditorTools
             Debug.Log("[镜场 ShotField] 已切换为「语义色彩模式」：角色/道具/环境清晰分色。");
         }
 
+        [MenuItem("ShotField/ViewMode/Switch to Standard Clay")]
         [MenuItem("镜场 ShotField/显示模式/切换为标准白模 (Clay)")]
         public static void ApplyClayMode()
         {

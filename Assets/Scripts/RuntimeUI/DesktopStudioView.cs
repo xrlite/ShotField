@@ -30,7 +30,7 @@ namespace ShotField.RuntimeUI
             if (GUILayout.Button("Replay selected shot")) Play(selected, false);
             if (selected != null && GUILayout.Button("Replay latest saved revision")) RunSession(() =>
             {
-                var saved = ShotPassportStore.LoadLatest(ShotPassportDto.QualifyShotId(selected.shotId, workbench.library.SceneId), ShotPassportStore.ProjectFolder);
+                var saved = ShotPassportStore.LoadLatest(ShotPassportMapper.QualifyShotId(selected.shotId, workbench.library.SceneId), ShotPassportStore.ProjectFolder);
                 if (saved == null) status = "No saved passport for " + selected.shotId;
                 else Play(saved.ToShot(), false);
             });

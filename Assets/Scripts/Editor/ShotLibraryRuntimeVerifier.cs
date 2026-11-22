@@ -12,6 +12,7 @@ namespace ShotField.EditorTools
         // 断言总数必须与下方 Assert 调用条数一致；新增断言时同步改这里。
         private const int ExpectedAssertions = 10;
 
+        [MenuItem("ShotField/Verifiers/Run Shot Library Runtime Verifier")]
         [MenuItem("镜场 ShotField/验证/验证 ShotLibrary 运行时撤销与自动保存")]
         public static void Run()
         {

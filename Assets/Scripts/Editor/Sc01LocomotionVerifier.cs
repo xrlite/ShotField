@@ -34,12 +34,12 @@ namespace ShotField.EditorTools
             VerifyAssert.Require("NavMesh walkability and complete path calculation confirmed",
                 sampled && hasPath && path.status == NavMeshPathStatus.PathComplete, ref passed);
 
-            var perfA = (Sc01NavMeshBuilder.FindDeep("SC01_Performer_A") ?? Sc01NavMeshBuilder.FindDeep("ActorA"))?.gameObject;
+            var perfA = (HierarchySearch.FindDeep("SC01_Performer_A") ?? HierarchySearch.FindDeep("ActorA"))?.gameObject;
             var navA = perfA != null ? perfA.GetComponent<ActorNavigator>() : null;
             VerifyAssert.Require("Performer A configured with NavMeshAgent, Animator, and ActorNavigator",
                 perfA != null && navA != null && navA.agent != null && navA.animator != null, ref passed);
 
-            var perfB = Sc01NavMeshBuilder.FindDeep("SC01_Performer_B")?.gameObject;
+            var perfB = HierarchySearch.FindDeep("SC01_Performer_B")?.gameObject;
             var navB = perfB != null ? perfB.GetComponent<ActorNavigator>() : null;
             VerifyAssert.Require("Performer B configured with NavMeshAgent, Animator, and ActorNavigator",
                 perfB != null && navB != null && navB.agent != null && navB.animator != null, ref passed);
@@ -64,8 +64,8 @@ namespace ShotField.EditorTools
             VerifyAssert.Require("Previs color materials wired: Protagonist Red (#FF0000), Antagonist Blue (#0055FF)",
                 aMatch && bMatch, ref passed);
 
-            var wallGo = Sc01NavMeshBuilder.FindDeep("RightWall") ?? Sc01NavMeshBuilder.FindDeep("Wall");
-            var floorGo = Sc01NavMeshBuilder.FindDeep("Floor");
+            var wallGo = HierarchySearch.FindDeep("RightWall") ?? HierarchySearch.FindDeep("Wall");
+            var floorGo = HierarchySearch.FindDeep("Floor");
             var wallMat = wallGo != null ? wallGo.GetComponent<Renderer>()?.sharedMaterial : null;
             var floorMat = floorGo != null ? floorGo.GetComponent<Renderer>()?.sharedMaterial : null;
             Color wallCol = wallMat != null && wallMat.HasProperty("_BaseColor") ? wallMat.GetColor("_BaseColor") : Color.black;

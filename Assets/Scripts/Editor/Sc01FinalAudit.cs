@@ -43,7 +43,7 @@ namespace ShotField.EditorTools
             ExpectActive("Ceiling", false, "A3 天花板已拆");
             ExpectActive("STUDIO_Truss", true, "A4 桁架已启用");
             ExpectActive("WindowMarker", false, "A5 窗洞封板已关");
-            var edge = Sc01PatchCore.FindDeep("STUDIO_OpenEdge");
+            var edge = HierarchySearch.FindDeep("STUDIO_OpenEdge");
             Sc01PatchCore.Check(edge != null && edge.childCount >= 3, "A6 开口收边框齐全",
                 edge == null ? "缺失" : "子件=" + edge.childCount);
         }
@@ -99,11 +99,11 @@ namespace ShotField.EditorTools
 
         private static void Rig()
         {
-            var canvas = Sc01PatchCore.FindDeep("Spatial_Workbench_Canvas");
+            var canvas = HierarchySearch.FindDeep("Spatial_Workbench_Canvas");
             Sc01PatchCore.Check(canvas != null && Mathf.Abs(canvas.position.y - 1.35f) < 0.05f,
                 "A26 工作台离地 1.35", canvas == null ? "缺失" : canvas.position.y.ToString("F2"));
             Sc01PatchCore.Check(canvas != null && canvas.position.x < 2.60f, "A27 工作台不穿右墙");
-            var origin = Sc01PatchCore.FindDeep("XR_Origin");
+            var origin = HierarchySearch.FindDeep("XR_Origin");
             Sc01PatchCore.Check(origin != null && Sc01PatchCore.Near(origin.position,
                 new Vector3(-2.20f, 0f, 0.55f), 0.01f), "A28 出生点在门洞",
                 origin == null ? "缺失" : origin.position.ToString());
@@ -116,7 +116,7 @@ namespace ShotField.EditorTools
         {
             foreach (var name in new[] { "SC01_Performer_A", "SC01_Performer_B" })
             {
-                var root = Sc01PatchCore.FindDeep(name);
+                var root = HierarchySearch.FindDeep(name);
                 var painted = 0;
                 var total = 0;
                 if (root != null)
@@ -132,14 +132,14 @@ namespace ShotField.EditorTools
 
         private static void ExpectActive(string name, bool active, string label)
         {
-            var t = Sc01PatchCore.FindDeep(name);
+            var t = HierarchySearch.FindDeep(name);
             Sc01PatchCore.Check(t != null && t.gameObject.activeSelf == active, label,
                 t == null ? "缺失" : "active=" + t.gameObject.activeSelf);
         }
 
         private static void ExpectMat(string name, string expected, string label)
         {
-            var t = Sc01PatchCore.FindDeep(name);
+            var t = HierarchySearch.FindDeep(name);
             var r = t == null ? null : t.GetComponent<MeshRenderer>();
             var mat = r == null ? null : r.sharedMaterial;
             Sc01PatchCore.Check(mat != null && mat.name == expected, label,
@@ -151,7 +151,7 @@ namespace ShotField.EditorTools
             var ok = 0;
             foreach (var name in names)
             {
-                var t = Sc01PatchCore.FindDeep(name);
+                var t = HierarchySearch.FindDeep(name);
                 var r = t == null ? null : t.GetComponent<MeshRenderer>();
                 if (r != null && r.sharedMaterial != null && r.sharedMaterial.name == expected) ok++;
             }
@@ -164,7 +164,7 @@ namespace ShotField.EditorTools
             var total = 0;
             for (var slot = 1; slot <= 3; slot++)
             {
-                var root = Sc01PatchCore.FindDeep("StudioFixture_Slot" + slot);
+                var root = HierarchySearch.FindDeep("StudioFixture_Slot" + slot);
                 if (root == null) continue;
                 foreach (var r in root.GetComponentsInChildren<MeshRenderer>(true))
                 {
@@ -175,7 +175,7 @@ namespace ShotField.EditorTools
             Sc01PatchCore.Check(total > 0 && ok == total, "A15 灯光夹具全部换材质", ok + "/" + total);
         }
 
-        private static Light LightAt(string name) => Sc01PatchCore.FindDeep(name)?.GetComponent<Light>();
+        private static Light LightAt(string name) => HierarchySearch.FindDeep(name)?.GetComponent<Light>();
 
         private static float Exposure()
         {

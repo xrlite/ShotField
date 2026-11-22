@@ -78,7 +78,7 @@ namespace ShotField.RuntimeUI
             if (entry == null || entry.target == null) return false;
             entry.isVisible = !entry.isVisible;
             entry.target.SetActive(entry.isVisible);
-            SetStatus($"{entry.displayName}: {(entry.isVisible ? "显示" : "隐藏")}");
+            RuntimeUiFactory.SetStatus(statusText, $"{entry.displayName}: {(entry.isVisible ? "显示" : "隐藏")}");
             return true;
         }
 
@@ -89,7 +89,7 @@ namespace ShotField.RuntimeUI
             entry.isLocked = !entry.isLocked;
             var grab = entry.target.GetComponent<XRGrabInteractable>();
             if (grab != null) grab.enabled = !entry.isLocked;
-            SetStatus($"{entry.displayName}: {(entry.isLocked ? "已锁定" : "已解锁")}");
+            RuntimeUiFactory.SetStatus(statusText, $"{entry.displayName}: {(entry.isLocked ? "已锁定" : "已解锁")}");
             return true;
         }
 
@@ -103,7 +103,7 @@ namespace ShotField.RuntimeUI
                 entry.isVisible = true;
                 entry.target.SetActive(true);
             }
-            SetStatus($"{entry.displayName}: 已复位");
+            RuntimeUiFactory.SetStatus(statusText, $"{entry.displayName}: 已复位");
             return true;
         }
 
@@ -134,11 +134,6 @@ namespace ShotField.RuntimeUI
         {
             var grab = go.GetComponent<XRGrabInteractable>();
             return grab != null && !grab.enabled;
-        }
-
-        private void SetStatus(string msg)
-        {
-            if (statusText != null) statusText.text = msg;
         }
     }
 }

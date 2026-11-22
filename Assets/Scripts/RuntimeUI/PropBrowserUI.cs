@@ -46,7 +46,7 @@ namespace ShotField.RuntimeUI
             var binding = FindBinding(propId);
             if (binding == null || binding.prefab == null)
             {
-                SetStatus($"未绑定资产: {propId}");
+                RuntimeUiFactory.SetStatus(statusText, $"未绑定资产: {propId}");
                 return null;
             }
 
@@ -59,7 +59,7 @@ namespace ShotField.RuntimeUI
 
             var entry = PropLibrary.Find(binding.propId);
             string label = entry != null ? entry.displayName : binding.displayName;
-            SetStatus($"已放置: {label}");
+            RuntimeUiFactory.SetStatus(statusText, $"已放置: {label}");
             OnPropSpawned?.Invoke(instance);
             return instance;
         }
@@ -120,11 +120,6 @@ namespace ShotField.RuntimeUI
                 var entry = PropLibrary.Find(propId);
                 if (entry != null) marker.kind = entry.semanticKind;
             }
-        }
-
-        private void SetStatus(string msg)
-        {
-            if (statusText != null) statusText.text = msg;
         }
     }
 }

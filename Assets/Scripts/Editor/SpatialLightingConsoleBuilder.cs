@@ -24,18 +24,18 @@ namespace ShotField.EditorTools
             var console = host.AddComponent<SpatialLightingConsole>();
             console.InitializeDefaultSlots();
 
-            var panel = SpatialWorkbenchBuilder.CreatePanel(canvasGo.transform, "WindowD_Lighting",
+            var panel = RuntimeUiFactory.CreatePanel(canvasGo.transform, "WindowD_Lighting",
                 Card, new Vector2(430f, -200f), new Vector2(200f, 250f));
-            SpatialWorkbenchBuilder.CreateText(panel.transform, "Title", "灯光控制台", 15, FontStyle.Bold,
-                new Vector2(0f, 105f), Color.white);
-            console.slotTitleText = SpatialWorkbenchBuilder.CreateText(panel.transform, "SlotTitle", "槽位1", 14,
-                FontStyle.Bold, new Vector2(0f, 74f), Accent);
+            RuntimeUiFactory.CreateLabel(panel.transform, "Title", "灯光控制台", 15,
+                new Vector2(0f, 105f), color: Color.white, style: FontStyle.Bold);
+            console.slotTitleText = RuntimeUiFactory.CreateLabel(panel.transform, "SlotTitle", "槽位1", 14,
+                new Vector2(0f, 74f), color: Accent, style: FontStyle.Bold);
 
             for (int i = 0; i < 3; i++)
             {
                 int picked = i;
-                var slotBtn = SpatialWorkbenchBuilder.CreateButton(panel.transform, "SlotPicker" + i,
-                    "槽 " + (i + 1), new Vector2(-62f + i * 62f, 44f), null);
+                var slotBtn = RuntimeUiFactory.CreateButton(panel.transform, "SlotPicker" + i,
+                    "槽 " + (i + 1), new Vector2(-62f + i * 62f, 44f));
                 Size(slotBtn.gameObject, 56f, 28f);
                 slotBtn.onClick.AddListener(() => console.SelectSlot(picked));
             }
@@ -44,13 +44,13 @@ namespace ShotField.EditorTools
                 () => console.SetInnerSpotAngle(console.CurrentSlot.innerSpotAngle - 5f),
                 () => console.SetInnerSpotAngle(console.CurrentSlot.innerSpotAngle + 5f), "-", "+");
 
-            var modeText = SpatialWorkbenchBuilder.CreateText(panel.transform, "ModeRow", "环境  3 / 3", 12,
-                FontStyle.Normal, new Vector2(0f, -26f), Color.white);
+            var modeText = RuntimeUiFactory.CreateLabel(panel.transform, "ModeRow", "环境  3 / 3", 12,
+                new Vector2(0f, -26f), color: Color.white, style: FontStyle.Normal);
             console.modeText = modeText;
-            var modeL = SpatialWorkbenchBuilder.CreateButton(panel.transform, "ModePrev", "<", new Vector2(-72f, -26f), null);
+            var modeL = RuntimeUiFactory.CreateButton(panel.transform, "ModePrev", "<", new Vector2(-72f, -26f));
             Size(modeL.gameObject, 28f, 24f);
             modeL.onClick.AddListener(() => console.CycleMode(-1));
-            var modeR = SpatialWorkbenchBuilder.CreateButton(panel.transform, "ModeNext", ">", new Vector2(72f, -26f), null);
+            var modeR = RuntimeUiFactory.CreateButton(panel.transform, "ModeNext", ">", new Vector2(72f, -26f));
             Size(modeR.gameObject, 28f, 24f);
             modeR.onClick.AddListener(() => console.CycleMode(1));
 
@@ -66,7 +66,7 @@ namespace ShotField.EditorTools
                 () => console.SetSaturation(console.CurrentSlot.saturation - 0.05f),
                 () => console.SetSaturation(console.CurrentSlot.saturation + 0.05f), "-", "+");
 
-            var swatch = SpatialWorkbenchBuilder.CreatePanel(panel.transform, "Swatch", Color.white,
+            var swatch = RuntimeUiFactory.CreatePanel(panel.transform, "Swatch", Color.white,
                 new Vector2(-82f, -74f), new Vector2(18f, 18f)).GetComponent<Image>();
             console.colorSwatchImage = swatch;
 
@@ -81,24 +81,24 @@ namespace ShotField.EditorTools
             console.slots[2].lightSource = MakeSpot(host.transform, "FillLight_B", new Vector3(2.4f, 2.2f, 3.0f), focus);
             console.slots[2].fixture = SpatialStudioLightFixture.AttachToLight(console.slots[2].lightSource, "StudioFixture_Slot3");
 
-            console.focusTargetText = SpatialWorkbenchBuilder.CreateText(panel.transform, "FocusInfo",
-                "灯光聚焦的对象。", 11, FontStyle.Normal, new Vector2(0f, -158f), new Color(0.6f, 0.65f, 0.72f));
+            console.focusTargetText = RuntimeUiFactory.CreateLabel(panel.transform, "FocusInfo",
+                "灯光聚焦的对象。", 11, new Vector2(0f, -158f), color: new Color(0.6f, 0.65f, 0.72f), style: FontStyle.Normal);
             console.SelectSlot(0);
             return host;
         }
 
         private static Text Stepper(Transform parent, string label, float y, Action minus, Action plus, string minusText, string plusText)
         {
-            var l = SpatialWorkbenchBuilder.CreateText(parent, label + "_Label", label, 12, FontStyle.Normal,
-                new Vector2(-76f, y), new Color(0.6f, 0.65f, 0.72f));
+            var l = RuntimeUiFactory.CreateLabel(parent, label + "_Label", label, 12,
+                new Vector2(-76f, y), color: new Color(0.6f, 0.65f, 0.72f), style: FontStyle.Normal);
             Size(l.gameObject, 40f, 24f);
-            var m = SpatialWorkbenchBuilder.CreateButton(parent, label + "_Minus", minusText, new Vector2(-48f, y), null);
+            var m = RuntimeUiFactory.CreateButton(parent, label + "_Minus", minusText, new Vector2(-48f, y));
             Size(m.gameObject, 26f, 24f);
             m.onClick.AddListener(() => minus());
-            var v = SpatialWorkbenchBuilder.CreateText(parent, label + "_Value", "--", 12, FontStyle.Bold,
-                new Vector2(0f, y), Color.white);
+            var v = RuntimeUiFactory.CreateLabel(parent, label + "_Value", "--", 12,
+                new Vector2(0f, y), color: Color.white, style: FontStyle.Bold);
             Size(v.gameObject, 56f, 24f);
-            var p = SpatialWorkbenchBuilder.CreateButton(parent, label + "_Plus", plusText, new Vector2(48f, y), null);
+            var p = RuntimeUiFactory.CreateButton(parent, label + "_Plus", plusText, new Vector2(48f, y));
             Size(p.gameObject, 26f, 24f);
             p.onClick.AddListener(() => plus());
             return v;

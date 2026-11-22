@@ -55,18 +55,18 @@ namespace ShotField.Core
                     frameCount = count
                 };
 
-                var dto = ShotPassportDto.FromShot(shot, "SC01", shot.recordedConstraints);
-                AddTextEntry(archive, "passport.json", JsonUtility.ToJson(dto, true));
+                var dto = ShotPassportMapper.FromShot(shot, "SC01", shot.recordedConstraints);
+                ShotPackageExporter.AddTextEntry(archive, "passport.json", JsonUtility.ToJson(dto, true));
                 manifest.files.Add("passport.json");
 
                 string prompt = $"# Dynamic Shot Spec: {shot.shotId} rev{shot.revision}\n" +
                                 $"Duration: {duration:F1}s | FPS: {safeFps} | Frames: {count}\n" +
                                 $"Intent: {shot.intent}\n";
-                AddTextEntry(archive, "generation_prompt.txt", prompt);
+                ShotPackageExporter.AddTextEntry(archive, "generation_prompt.txt", prompt);
                 manifest.files.Add("generation_prompt.txt");
 
                 string trajJson = JsonUtility.ToJson(shot.trajectory ?? new CameraTrajectory(), true);
-                AddTextEntry(archive, "trajectory.json", trajJson);
+                ShotPackageExporter.AddTextEntry(archive, "trajectory.json", trajJson);
                 manifest.files.Add("trajectory.json");
 
                 for (int i = 0; i < count; i++)
@@ -79,7 +79,7 @@ namespace ShotField.Core
                     manifest.files.Add(entryName);
                 }
 
-                AddTextEntry(archive, "manifest.json", JsonUtility.ToJson(manifest, true));
+                ShotPackageExporter.AddTextEntry(archive, "manifest.json", JsonUtility.ToJson(manifest, true));
                 manifest.files.Add("manifest.json");
             }
             return memoryStream.ToArray();
@@ -124,14 +124,6 @@ namespace ShotField.Core
             {
                 return false;
             }
-        }
-
-        private static void AddTextEntry(ZipArchive archive, string name, string content)
-        {
-            var entry = archive.CreateEntry(name, System.IO.Compression.CompressionLevel.Optimal);
-            using var s = entry.Open();
-            byte[] bytes = Encoding.UTF8.GetBytes(content ?? string.Empty);
-            s.Write(bytes, 0, bytes.Length);
         }
     }
 }

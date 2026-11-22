@@ -63,7 +63,7 @@ namespace ShotField.Core
             try
             {
                 var folder = Path.Combine(ShotPassportStore.ProjectFolder, "AutoSave");
-                var dto = ShotPassportDto.FromShot(Latest, sceneId, Latest.recordedConstraints ?? Array.Empty<ConstraintSpec>());
+                var dto = ShotPassportMapper.FromShot(Latest, sceneId, Latest.recordedConstraints ?? Array.Empty<ConstraintSpec>());
                 var path = ShotPassportStore.SaveNextRevision(dto, folder);
                 OnAutoSaved?.Invoke(path);
                 Debug.Log($"[ShotLibrary AutoSave] 自动保存成功: {path}");

@@ -20,6 +20,7 @@ namespace ShotField.EditorTools
         private bool inheritFromPrevious = true;
         private int selectedIndex = -1;
 
+        [MenuItem("ShotField/Windows/Shot Workbench")]
         [MenuItem("镜场 ShotField/镜头工作台")]
         public static void Open()
         {

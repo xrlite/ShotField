@@ -15,6 +15,7 @@ namespace ShotField.EditorTools
     /// </summary>
     public static class TestSceneBuilder
     {
+        [MenuItem("ShotField/Scene/Build Test Scene (Unopened Letter)")]
         [MenuItem("镜场 ShotField/生成测试场景（桌上的信）")]
         public static void Build()
         {

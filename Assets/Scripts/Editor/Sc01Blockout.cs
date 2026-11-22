@@ -31,7 +31,7 @@ namespace ShotField.EditorTools
             var root = new GameObject("SC01_Blockout");
             root.AddComponent<ByteDance.PICO.XR.PXR_Manager>();
             BuildRoom(root.transform);
-            BuildProps(root.transform);
+            BuildBlockoutProps(root.transform);
             BuildLighting(root.transform);
             BuildDirector(root.transform);
             return root;
@@ -75,7 +75,7 @@ namespace ShotField.EditorTools
             Box(room, "WindowFrameBack", new Vector3(2.89f, 1.55f, 2.68f), new Vector3(0.08f, 1.34f, 0.08f));
         }
 
-        private static void BuildProps(Transform room)
+        private static void BuildBlockoutProps(Transform room)
         {
             Sc01ArtSceneBuilder.BuildProps(room);
             // 冰箱在右墙后角（Blender 5.55/3.60 → Unity 2.55/3.60）。

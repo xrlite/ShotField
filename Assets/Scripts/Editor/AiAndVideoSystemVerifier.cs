@@ -11,6 +11,7 @@ namespace ShotField.EditorTools
         // 2 条解析 + 2 条交接 + 2 条播放器初始化 + 1 条模式切换 + 1 条模式枚举 = 8。
         private const int ExpectedAssertions = 8;
 
+        [MenuItem("ShotField/Verifiers/Run AI and Video System Verifier")]
         [MenuItem("镜场 ShotField/验证/验证 AI 系统与生成回片对照")]
         public static void Run()
         {

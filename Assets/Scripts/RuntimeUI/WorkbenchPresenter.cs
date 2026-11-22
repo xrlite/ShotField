@@ -42,40 +42,10 @@ namespace ShotField.RuntimeUI
         public void EnsureRuntimeButtons(Canvas canvas)
         {
             if (canvas == null) return;
-            if (undoBtn == null) undoBtn = MakeButton(canvas.transform, "UndoBtn", "Undo", new Vector2(-440f, -310f));
-            if (redoBtn == null) redoBtn = MakeButton(canvas.transform, "RedoBtn", "Redo", new Vector2(-330f, -310f));
-            if (historyText == null) historyText = MakeText(canvas.transform, "HistoryText", new Vector2(340f, -310f));
+            if (undoBtn == null) undoBtn = RuntimeUiFactory.CreateButton(canvas.transform, "UndoBtn", "Undo", new Vector2(-440f, -310f));
+            if (redoBtn == null) redoBtn = RuntimeUiFactory.CreateButton(canvas.transform, "RedoBtn", "Redo", new Vector2(-330f, -310f));
+            if (historyText == null) historyText = RuntimeUiFactory.CreateLabel(canvas.transform, "HistoryText", "", 13, new Vector2(340f, -310f), new Vector2(320f, 30f));
             BindHistoryButtons();
-        }
-
-        private static Button MakeButton(Transform parent, string name, string label, Vector2 pos)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Image), typeof(Button));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = new Vector2(100f, 45f);
-            go.GetComponent<Image>().color = new Color(0.24f, 0.26f, 0.30f, 0.95f);
-            MakeText(go.transform, "Label", Vector2.zero, label, new Vector2(100f, 45f));
-            return go.GetComponent<Button>();
-        }
-
-        private static Text MakeText(Transform parent, string name, Vector2 pos,
-            string label = "", Vector2? size = null)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
-            go.transform.SetParent(parent, false);
-            var rt = (RectTransform)go.transform;
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = size ?? new Vector2(320f, 30f);
-            var text = go.GetComponent<Text>();
-            text.text = label;
-            text.font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-            text.fontSize = 13;
-            text.color = Color.white;
-            text.alignment = TextAnchor.MiddleCenter;
-            text.raycastTarget = false;
-            return text;
         }
 
         public void UndoShot()

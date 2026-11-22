@@ -57,7 +57,7 @@ namespace ShotField.EditorTools
 
         private static string Write(string folder, ShotLibrary library, ShotData shot, ShotConstraint[] rules)
         {
-            return ShotPassportStore.Save(ShotPassportDto.FromShot(shot, library.SceneId,
+            return ShotPassportStore.Save(ShotPassportMapper.FromShot(shot, library.SceneId,
                 ShotPassportPanel.Specs(rules)), folder);
         }
 

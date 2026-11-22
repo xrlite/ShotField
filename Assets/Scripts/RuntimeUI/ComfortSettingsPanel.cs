@@ -93,7 +93,7 @@ namespace ShotField.RuntimeUI
             if (statusFeedbackText != null) statusFeedbackText.text = msg;
         }
 
-        public static ComfortSettingsPanel CreatePanel(Transform parent, LocomotionComfortController ctrl)
+        public static ComfortSettingsPanel CreateComfortPanel(Transform parent, LocomotionComfortController ctrl)
         {
             var host = new GameObject("ComfortSettingsPanel");
             if (parent != null) host.transform.SetParent(parent, false);
@@ -105,11 +105,11 @@ namespace ShotField.RuntimeUI
             var rt = host.GetComponent<RectTransform>();
             if (rt != null) rt.sizeDelta = new Vector2(360f, 320f);
 
-            panel.locomotionModeText = CreateLabel(host.transform, "LocoLabel", "移动: Teleport", 14, new Vector2(0f, 100f));
-            panel.vignetteText = CreateLabel(host.transform, "VignetteLabel", "暗角: 60%", 14, new Vector2(0f, 60f));
-            panel.snapAngleText = CreateLabel(host.transform, "SnapLabel", "转向: 45°", 14, new Vector2(0f, 20f));
-            panel.heightModeText = CreateLabel(host.transform, "HeightLabel", "身高: Auto", 14, new Vector2(0f, -20f));
-            panel.statusFeedbackText = CreateLabel(host.transform, "StatusLabel", "就绪", 12, new Vector2(0f, -60f));
+            panel.locomotionModeText = RuntimeUiFactory.CreateLabel(host.transform, "LocoLabel", "移动: Teleport", 14, new Vector2(0f, 100f));
+            panel.vignetteText = RuntimeUiFactory.CreateLabel(host.transform, "VignetteLabel", "暗角: 60%", 14, new Vector2(0f, 60f));
+            panel.snapAngleText = RuntimeUiFactory.CreateLabel(host.transform, "SnapLabel", "转向: 45°", 14, new Vector2(0f, 20f));
+            panel.heightModeText = RuntimeUiFactory.CreateLabel(host.transform, "HeightLabel", "身高: Auto", 14, new Vector2(0f, -20f));
+            panel.statusFeedbackText = RuntimeUiFactory.CreateLabel(host.transform, "StatusLabel", "就绪", 12, new Vector2(0f, -60f));
 
             var panicGo = new GameObject("PanicButton");
             panicGo.transform.SetParent(host.transform, false);
@@ -123,27 +123,9 @@ namespace ShotField.RuntimeUI
                 panicRt.sizeDelta = new Vector2(160f, 36f);
                 panicRt.anchoredPosition = new Vector2(0f, -110f);
             }
-            CreateLabel(panicGo.transform, "PanicText", "我晕了！(一键防晕)", 13, Vector2.zero);
+            RuntimeUiFactory.CreateLabel(panicGo.transform, "PanicText", "我晕了！(一键防晕)", 13, Vector2.zero);
 
             return panel;
-        }
-
-        private static Text CreateLabel(Transform parent, string name, string text, int fontSize, Vector2 pos)
-        {
-            var go = new GameObject(name);
-            go.transform.SetParent(parent, false);
-            var t = go.AddComponent<Text>();
-            t.text = text;
-            t.fontSize = fontSize;
-            t.alignment = TextAnchor.MiddleCenter;
-            t.color = Color.white;
-            var rt = go.GetComponent<RectTransform>();
-            if (rt != null)
-            {
-                rt.sizeDelta = new Vector2(280f, 30f);
-                rt.anchoredPosition = pos;
-            }
-            return t;
         }
     }
 }

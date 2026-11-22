@@ -11,7 +11,7 @@ namespace ShotField.EditorTools
 
         internal static void Build()
         {
-            EnsureFolders();
+            EnsureEnvelopeFolders();
             var paper = CreateMaterial("EnvelopePaper", new Color(0.94f, 0.91f, 0.84f), 0.75f);
             var red = CreateMaterial("SealRed", new Color(0.55f, 0.025f, 0.025f), 0.38f);
             var root = new GameObject("Envelope_Prop");
@@ -123,7 +123,7 @@ namespace ShotField.EditorTools
             return mesh;
         }
 
-        private static void EnsureFolders()
+        private static void EnsureEnvelopeFolders()
         {
             if (!AssetDatabase.IsValidFolder("Assets/Models/Props")) AssetDatabase.CreateFolder("Assets/Models", "Props");
             if (!AssetDatabase.IsValidFolder(AssetRoot)) AssetDatabase.CreateFolder("Assets/Models/Props", "Generated");

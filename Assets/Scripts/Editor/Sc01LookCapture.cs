@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using ShotField.RuntimeUI;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
@@ -33,6 +34,7 @@ namespace ShotField.EditorTools
             new Pose { name = "抬头桁架", position = new Vector3(0.50f, 1.60f, -1.50f), lookAt = new Vector3(0.50f, 4.00f, 1.00f), fov = 53f }
         };
 
+        [MenuItem("ShotField/SC01/Capture Four Views")]
         [MenuItem("镜场 ShotField/抓场景观感四图 (Look Capture)")]
         public static void CaptureFourMenu() => CaptureFour();
 
@@ -108,9 +110,9 @@ namespace ShotField.EditorTools
                             }
                         }
 
-                        Apply(camera, pose);
+                        ApplyPose(camera, pose);
                         var path = Path.Combine(folder, stamp + "_unity_look_" + pose.name + ".png");
-                        var bytes = Render(camera);
+                        var bytes = FrameExportUtility.RenderCameraToPng(camera, Width, Height);
                         File.WriteAllBytes(path, bytes);
                         var info = new FileInfo(path);
                         report.AppendLine(pose.name + "=OK bytes=" + info.Length + " " + Width + "x" + Height);
@@ -149,7 +151,7 @@ namespace ShotField.EditorTools
             if (Application.isBatchMode) EditorApplication.Exit(failures == 0 ? 0 : 1);
         }
 
-        private static void Apply(Camera camera, Pose pose)
+        private static void ApplyPose(Camera camera, Pose pose)
         {
             camera.orthographic = pose.orthographic;
             if (pose.orthographic) camera.orthographicSize = pose.orthoSize;
@@ -157,35 +159,6 @@ namespace ShotField.EditorTools
             camera.aspect = (float)Width / Height;
             var dir = pose.lookAt - pose.position;
             camera.transform.SetPositionAndRotation(pose.position, Quaternion.LookRotation(dir.normalized, Vector3.up));
-        }
-
-        private static byte[] Render(Camera camera)
-        {
-            var target = RenderTexture.GetTemporary(Width, Height, 24, RenderTextureFormat.ARGB32, RenderTextureReadWrite.Default, 4);
-            var image = new Texture2D(Width, Height, TextureFormat.RGB24, false);
-            var previous = RenderTexture.active;
-            try
-            {
-                camera.targetTexture = target;
-                camera.clearFlags = CameraClearFlags.SolidColor;
-                camera.backgroundColor = new Color(0.18f, 0.18f, 0.18f);
-                var request = new RenderPipeline.StandardRequest { destination = target };
-                if (!RenderPipeline.SupportsRenderRequest(camera, request))
-                    throw new System.InvalidOperationException("当前渲染管线不支持静帧导出。");
-                RenderPipeline.SubmitRenderRequest(camera, request);
-
-                RenderTexture.active = target;
-                image.ReadPixels(new Rect(0, 0, Width, Height), 0, 0);
-                image.Apply(false);
-                return image.EncodeToPNG();
-            }
-            finally
-            {
-                RenderTexture.active = previous;
-                camera.targetTexture = null;
-                Object.DestroyImmediate(image);
-                RenderTexture.ReleaseTemporary(target);
-            }
         }
     }
 }

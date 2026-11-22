@@ -38,7 +38,7 @@ namespace ShotField.EditorTools
         private static bool Visible(Camera camera, SemanticMarker marker)
         {
             if (!camera || !marker) return false;
-            var bounds = BoundsOf(marker.gameObject);
+            var bounds = ComputeObjectBounds(marker.gameObject);
             var point = camera.WorldToViewportPoint(bounds.center);
             return point.z > camera.nearClipPlane && point.x > 0.08f && point.x < 0.92f
                 && point.y > 0.08f && point.y < 0.92f;
@@ -48,10 +48,10 @@ namespace ShotField.EditorTools
         {
             if (!camera || !marker) return false;
             return Vector3.Dot(camera.transform.forward,
-                BoundsOf(marker.gameObject).center - camera.transform.position) > 0f;
+                ComputeObjectBounds(marker.gameObject).center - camera.transform.position) > 0f;
         }
 
-        private static Bounds BoundsOf(GameObject go)
+        private static Bounds ComputeObjectBounds(GameObject go)
         {
             var renderers = go.GetComponentsInChildren<Renderer>();
             if (renderers.Length == 0) return new Bounds(go.transform.position, Vector3.zero);

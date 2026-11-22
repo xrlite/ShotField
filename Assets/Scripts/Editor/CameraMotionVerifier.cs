@@ -62,8 +62,8 @@ namespace ShotField.EditorTools
                     float jitter = (i % 2 == 0 ? 0.05f : -0.05f);
                     jitterTraj.AddPoint(t, new Vector3(t * 2f + jitter, 1.5f, 0), Quaternion.identity);
                 }
-                float rawVar = CalculateJitterVariance(jitterTraj);
-                float smoothVar = CalculateJitterVariance(jitterTraj.Smooth(5));
+                float rawVar = CalculateXJitterVariance(jitterTraj);
+                float smoothVar = CalculateXJitterVariance(jitterTraj.Smooth(5));
                 if (smoothVar < rawVar * 0.4f)
                 {
                     passCount++;
@@ -108,7 +108,7 @@ namespace ShotField.EditorTools
                     snapshot = new SceneSnapshot(),
                     recordedConstraints = Array.Empty<ConstraintSpec>()
                 };
-                var dto = ShotPassportDto.FromShot(shot, "SC01", Array.Empty<ConstraintSpec>());
+                var dto = ShotPassportMapper.FromShot(shot, "SC01", Array.Empty<ConstraintSpec>());
                 dto.snapshotExtras = new List<ActorState>();
                 Directory.CreateDirectory(testDir);
                 var savePath = ShotPassportStore.Save(dto, testDir);
@@ -174,7 +174,7 @@ namespace ShotField.EditorTools
             }
         }
 
-        private static float CalculateJitterVariance(CameraTrajectory traj)
+        private static float CalculateXJitterVariance(CameraTrajectory traj)
         {
             if (traj.Count < 3) return 0f;
             float sumDiff = 0f;

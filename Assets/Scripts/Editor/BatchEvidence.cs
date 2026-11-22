@@ -23,6 +23,7 @@ namespace ShotField.EditorTools
             ExportReviewViews();
         }
 
+        [MenuItem("ShotField/SC01/Export Three Views")]
         [MenuItem("镜场 ShotField/导出 SC01 三视图")]
         public static void ExportReviewViews()
         {

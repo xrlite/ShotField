@@ -59,10 +59,10 @@ namespace ShotField.EditorTools
                 s01.lastCheck.Add(r1);
                 s01.checkedAt = DateTimeOffset.UtcNow.ToString("O");
 
-                var dto1 = ShotPassportDto.FromShot(s01, lib.SceneId, specs);
+                var dto1 = ShotPassportMapper.FromShot(s01, lib.SceneId, specs);
                 var path1 = ShotPassportStore.Save(dto1, OutDir);
 
-                var dto2 = ShotPassportDto.FromShot(s01, lib.SceneId, specs);
+                var dto2 = ShotPassportMapper.FromShot(s01, lib.SceneId, specs);
                 var path2 = ShotPassportStore.SaveNextRevision(dto2, OutDir);
 
                 string hash1 = ComputeSha256(path1);

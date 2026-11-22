@@ -32,8 +32,8 @@ namespace ShotField.EditorTools
             BakeFloorNavMesh();
             SetupPerformerNavigator("SC01_Performer_A", redMat, controller);
             SetupPerformerNavigator("SC01_Performer_B", blueMat, controller);
-            var floor = FindDeep("Floor").gameObject;
-            var navigator = FindDeep("SC01_Performer_A").GetComponent<ActorNavigator>();
+            var floor = HierarchySearch.FindDeep("Floor").gameObject;
+            var navigator = HierarchySearch.FindDeep("SC01_Performer_A").GetComponent<ActorNavigator>();
             var walkTarget = floor.GetComponent<ActorWalkTarget>();
             if (!walkTarget) walkTarget = floor.AddComponent<ActorWalkTarget>();
             walkTarget.Bind(navigator);
@@ -58,12 +58,12 @@ namespace ShotField.EditorTools
             }
         }
 
-        private static void BakeFloorNavMesh()
+        internal static void BakeFloorNavMesh()
         {
             string[] obstacles = { "CoffeeTable", "Sofa", "Chair", "Plant", "HighCabinet", "ShoeCabinet", "Fridge" };
             foreach (var obs in obstacles)
             {
-                var t = FindDeep(obs); if (t == null) continue;
+                var t = HierarchySearch.FindDeep(obs); if (t == null) continue;
                 var mod = t.GetComponent<NavMeshModifier>(); if (!mod) mod = t.gameObject.AddComponent<NavMeshModifier>();
                 mod.overrideArea = true; mod.area = 1; mod.applyToChildren = true;
                 var o = t.GetComponent<NavMeshObstacle>(); if (!o) o = t.gameObject.AddComponent<NavMeshObstacle>();
@@ -72,11 +72,11 @@ namespace ShotField.EditorTools
             }
             foreach (var ign in new[] { "STUDIO_Boundary", "STUDIO_OpenEdge" })
             {
-                var t = FindDeep(ign); if (t == null) continue;
+                var t = HierarchySearch.FindDeep(ign); if (t == null) continue;
                 var mod = t.GetComponent<NavMeshModifier>(); if (!mod) mod = t.gameObject.AddComponent<NavMeshModifier>();
                 mod.ignoreFromBuild = true; mod.applyToChildren = true;
             }
-            var floor = (FindDeep("Floor") ?? FindDeep("Ground"))?.gameObject; if (floor == null) return;
+            var floor = (HierarchySearch.FindDeep("Floor") ?? HierarchySearch.FindDeep("Ground"))?.gameObject; if (floor == null) return;
             var surface = floor.GetComponent<NavMeshSurface>(); if (!surface) surface = floor.AddComponent<NavMeshSurface>();
             surface.collectObjects = CollectObjects.Volume; surface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
             surface.center = floor.transform.InverseTransformDirection(new Vector3(0f, 1.4f, 2f) - floor.transform.position); surface.size = new Vector3(6f, 2.8f, 4f);
@@ -116,7 +116,7 @@ namespace ShotField.EditorTools
 
         private static void SetupPerformerNavigator(string rootName, Material mat, RuntimeAnimatorController controller)
         {
-            var t = FindDeep(rootName); if (t == null) return;
+            var t = HierarchySearch.FindDeep(rootName); if (t == null) return;
             var root = t.gameObject;
 
             var agent = root.GetComponent<NavMeshAgent>(); if (!agent) agent = root.AddComponent<NavMeshAgent>();
@@ -140,27 +140,6 @@ namespace ShotField.EditorTools
                 r.sharedMaterials = mats;
             }
             Debug.Log($"[NavMeshBuilder] {rootName} successfully configured with Navigator and {mat.name}!");
-        }
-
-        internal static Transform FindDeep(string name)
-        {
-            foreach (var root in SceneManager.GetActiveScene().GetRootGameObjects())
-            {
-                if (root.name == name) return root.transform;
-                var hit = FindUnder(root.transform, name); if (hit != null) return hit;
-            }
-            return null;
-        }
-
-        internal static Transform FindUnder(Transform parent, string name)
-        {
-            for (int i = 0; i < parent.childCount; i++)
-            {
-                var c = parent.GetChild(i);
-                if (c.name == name) return c;
-                var hit = FindUnder(c, name); if (hit != null) return hit;
-            }
-            return null;
         }
     }
 }

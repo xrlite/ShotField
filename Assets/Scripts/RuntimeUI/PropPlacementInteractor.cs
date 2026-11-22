@@ -98,14 +98,14 @@ namespace ShotField.RuntimeUI
             var t = _ghost.transform;
             var pos = new Vector3(hit.point.x, t.position.y, hit.point.z);
             t.position = pos;
-            pos.y += hit.point.y - ComputeBounds().min.y;
+            pos.y += hit.point.y - ComputeGhostBounds().min.y;
             t.position = pos;
 
             _blocked = HasObstruction();
             PropGhostVisualizer.SetTint(_ghostMaterial, _blocked ? BlockedTint : NormalTint);
         }
 
-        private Bounds ComputeBounds()
+        private Bounds ComputeGhostBounds()
         {
             var bounds = new Bounds(_ghost.transform.position, Vector3.zero);
             bool first = true;
@@ -123,7 +123,7 @@ namespace ShotField.RuntimeUI
         /// <summary>只认带 SemanticMarker 的物体为障碍：地面/墙体不带标记，否则贴地必然自判相交。</summary>
         private bool HasObstruction()
         {
-            var bounds = ComputeBounds();
+            var bounds = ComputeGhostBounds();
             var hits = Physics.OverlapBox(bounds.center, bounds.extents * overlapShrink,
                 Quaternion.identity, ~0, QueryTriggerInteraction.Ignore);
             for (int i = 0; i < hits.Length; i++)

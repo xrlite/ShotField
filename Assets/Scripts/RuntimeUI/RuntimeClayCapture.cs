@@ -34,7 +34,7 @@ namespace ShotField.RuntimeUI
                     renderer.sharedMaterials = claySlots;
                 }
                 monitor.RenderFeed();
-                return ReadPng(monitor.Feed as RenderTexture);
+                return FrameExportUtility.ReadPng(monitor.Feed as RenderTexture);
             }
             finally
             {
@@ -42,31 +42,6 @@ namespace ShotField.RuntimeUI
                     if (pair.Key) pair.Key.sharedMaterials = pair.Value;
                 if (Application.isPlaying) Object.Destroy(clayMaterial); else Object.DestroyImmediate(clayMaterial);
                 monitor.RequestRender();
-            }
-        }
-
-        private static byte[] ReadPng(RenderTexture source)
-        {
-            if (source == null) throw new System.InvalidOperationException("Monitor render texture is unavailable.");
-            var previous = RenderTexture.active;
-            var image = new Texture2D(source.width, source.height, TextureFormat.RGB24, false);
-            try
-            {
-                RenderTexture.active = source;
-                image.ReadPixels(new Rect(0, 0, source.width, source.height), 0, 0);
-                image.Apply(false);
-                var pixels = image.GetRawTextureData<byte>();
-                bool varied = false;
-                for (int i = 3; i < pixels.Length && !varied; i++)
-                    varied = pixels[i] != pixels[i % 3];
-                if (!varied)
-                    throw new System.InvalidOperationException("Director rendered a uniform frame.");
-                return image.EncodeToPNG();
-            }
-            finally
-            {
-                RenderTexture.active = previous;
-                if (Application.isPlaying) Object.Destroy(image); else Object.DestroyImmediate(image);
             }
         }
     }

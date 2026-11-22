@@ -163,7 +163,7 @@ namespace ShotField.Core
             c.lockedRules = new List<string>(lockedRules);
             c.lastCheck = new List<ConstraintResult>();
             c.checkedAt = null;
-            c.recordedConstraints = ShotPassportDto.CopySpecs(recordedConstraints);
+            c.recordedConstraints = ShotPassportMapper.CopySpecs(recordedConstraints);
             c.recordedCheck = recordedCheck?.Copy();
             return c;
         }

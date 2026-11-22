@@ -19,24 +19,13 @@ namespace ShotField.EditorTools
         public static void SetupAndCapture()
         {
             var scene = EditorSceneManager.OpenScene(ScenePath);
-            BakeFloorNavMesh();
+            Sc01NavMeshBuilder.BakeFloorNavMesh();
             SetupPrevisLighting();
             SetupSixActors();
             SetupAmberCues();
             SetupSandboxCameraAndCapture(scene);
             EditorSceneManager.SaveScene(scene);
             Debug.Log("[PrevisSandbox] Previs 6色沙盘与琥珀轨迹构建完成并保存！");
-        }
-
-        private static void BakeFloorNavMesh()
-        {
-            var floor = GameObject.Find("Floor") ?? GameObject.Find("Ground");
-            if (floor == null) return;
-            var surface = floor.GetComponent<NavMeshSurface>();
-            if (surface == null) surface = floor.AddComponent<NavMeshSurface>();
-            surface.collectObjects = CollectObjects.All;
-            surface.useGeometry = NavMeshCollectGeometry.PhysicsColliders;
-            surface.BuildNavMesh();
         }
 
         private static void SetupPrevisLighting()

@@ -70,7 +70,7 @@ namespace ShotField.Core
             }
         }
 
-        public static ShotData ToShot(ShotPassportDto dto)
+        public static ShotData ToShot(this ShotPassportDto dto)
         {
             if (dto.camera == null || dto.cameraExtras == null || dto.snapshotExtras == null ||
                 dto.constraints == null || dto.revision < 1)

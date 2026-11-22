@@ -16,6 +16,7 @@ namespace ShotField.EditorTools
         // 18 条真实条目（12 原有 + 6 六色角色）+ 6 条结构性断言
         private const int ExpectedAssertions = 10;
 
+        [MenuItem("ShotField/Verifiers/Run Prop Library Verifier")]
         [MenuItem("镜场 ShotField/验证/验证道具库 PropLibrary")]
         public static void Run()
         {

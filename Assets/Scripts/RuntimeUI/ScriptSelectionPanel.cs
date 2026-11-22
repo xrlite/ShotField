@@ -68,27 +68,15 @@ namespace ShotField.RuntimeUI
             img.color = new Color(0.12f, 0.13f, 0.16f, 0.95f);
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
-            indicatorText = CreateLabel(transform, "Indicator", 14, FontStyle.Bold, new Vector2(0f, 24f), new Vector2(460f, 26f), Color.white, font);
-            tagText = CreateLabel(transform, "Tag", 11, FontStyle.Normal, new Vector2(230f, 24f), new Vector2(170f, 24f), new Color(0.17f, 0.40f, 1.00f, 1.0f), font);
-            conflictText = CreateLabel(transform, "Conflict", 12, FontStyle.Normal, new Vector2(-60f, 0f), new Vector2(500f, 22f), new Color(0.85f, 0.85f, 0.85f), font);
-            charactersText = CreateLabel(transform, "Characters", 11, FontStyle.Normal, new Vector2(-60f, -22f), new Vector2(500f, 20f), new Color(0.65f, 0.65f, 0.65f), font);
+            indicatorText = RuntimeUiFactory.CreateLabel(transform, "Indicator", "", 14, new Vector2(0f, 24f), new Vector2(460f, 26f), Color.white, font, FontStyle.Bold);
+            tagText = RuntimeUiFactory.CreateLabel(transform, "Tag", "", 11, new Vector2(230f, 24f), new Vector2(170f, 24f), new Color(0.17f, 0.40f, 1.00f, 1.0f), font, FontStyle.Normal);
+            conflictText = RuntimeUiFactory.CreateLabel(transform, "Conflict", "", 12, new Vector2(-60f, 0f), new Vector2(500f, 22f), new Color(0.85f, 0.85f, 0.85f), font, FontStyle.Normal);
+            charactersText = RuntimeUiFactory.CreateLabel(transform, "Characters", "", 11, new Vector2(-60f, -22f), new Vector2(500f, 20f), new Color(0.65f, 0.65f, 0.65f), font, FontStyle.Normal);
 
             prevActBtn = CreateBtn(transform, "PrevAct", "◀ 上一幕", new Vector2(-280f, 0f), new Vector2(80f, 40f), font);
             nextActBtn = CreateBtn(transform, "NextAct", "下一幕 ▶", new Vector2(280f, 0f), new Vector2(80f, 40f), font);
             prevActBtn.onClick.AddListener(PreviousAct);
             nextActBtn.onClick.AddListener(NextAct);
-        }
-
-        private static Text CreateLabel(Transform p, string n, int sz, FontStyle st, Vector2 pos, Vector2 szD, Color col, Font f)
-        {
-            var go = new GameObject(n, typeof(RectTransform), typeof(Text));
-            go.transform.SetParent(p, false);
-            var t = go.GetComponent<Text>();
-            t.text = ""; t.fontSize = sz; t.fontStyle = st; t.color = col; t.font = f;
-            t.alignment = TextAnchor.MiddleCenter; t.raycastTarget = false;
-            var r = (RectTransform)go.transform;
-            r.anchoredPosition = pos; r.sizeDelta = szD;
-            return t;
         }
 
         private static Button CreateBtn(Transform p, string n, string label, Vector2 pos, Vector2 sz, Font f)
@@ -98,7 +86,7 @@ namespace ShotField.RuntimeUI
             go.GetComponent<Image>().color = new Color(0.24f, 0.26f, 0.30f, 0.95f);
             var r = (RectTransform)go.transform;
             r.anchoredPosition = pos; r.sizeDelta = sz;
-            CreateLabel(go.transform, "Lbl", 12, FontStyle.Normal, Vector2.zero, sz, Color.white, f).text = label;
+            RuntimeUiFactory.CreateLabel(go.transform, "Lbl", label, 12, Vector2.zero, sz, Color.white, f);
             return go.GetComponent<Button>();
         }
 

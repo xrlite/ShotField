@@ -20,16 +20,5 @@ namespace ShotField.Core
         public bool approvalLocked;
         public TrajectoryDto cameraTrajectory;
         public ActorTakeDto actorTake;
-
-        public static string QualifyShotId(string shotId, string sceneId) =>
-            ShotPassportMapper.QualifyShotId(shotId, sceneId);
-
-        public static ShotPassportDto FromShot(ShotData shot, string sceneId, ConstraintSpec[] specs) =>
-            ShotPassportMapper.FromShot(shot, sceneId, specs);
-
-        public ShotData ToShot() => ShotPassportMapper.ToShot(this);
-
-        public static ConstraintSpec[] CopySpecs(ConstraintSpec[] specs) =>
-            ShotPassportMapper.CopySpecs(specs);
     }
 }

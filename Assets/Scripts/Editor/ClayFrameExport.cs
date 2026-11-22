@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using System.Collections.Generic;
 using System.IO;
+using ShotField.RuntimeUI;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -39,7 +40,7 @@ namespace ShotField.EditorTools
             var directory = Path.GetDirectoryName(path);
             if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
 
-            var png = Render(source);
+            var png = RenderClay(source);
             using var file = new FileStream(path, FileMode.Create);
             file.Write(png, 0, png.Length);
             return path;
@@ -54,7 +55,7 @@ namespace ShotField.EditorTools
             return new Vector2Int(width, height);
         }
 
-        private static byte[] Render(Camera source)
+        private static byte[] RenderClay(Camera source)
         {
             var shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null) throw new System.InvalidOperationException("找不到 URP Lit Shader。");
@@ -85,7 +86,7 @@ namespace ShotField.EditorTools
                 if (!RenderPipeline.SupportsRenderRequest(capture, request))
                     throw new System.InvalidOperationException("当前渲染管线不支持静帧导出。");
                 RenderPipeline.SubmitRenderRequest(capture, request);
-                return ReadPng(target);
+                return FrameExportUtility.ReadGrayscalePng(target);
             }
             finally
             {
@@ -109,37 +110,6 @@ namespace ShotField.EditorTools
                 var replacement = new Material[original.Length];
                 for (int i = 0; i < replacement.Length; i++) replacement[i] = clay;
                 renderer.sharedMaterials = replacement;
-            }
-        }
-
-        private static byte[] ReadPng(RenderTexture target)
-        {
-            var previous = RenderTexture.active;
-            var image = new Texture2D(target.width, target.height, TextureFormat.RGB24, false);
-            try
-            {
-                RenderTexture.active = target;
-                image.ReadPixels(new Rect(0, 0, target.width, target.height), 0, 0);
-                var pixels = image.GetRawTextureData<byte>();
-                int darkest = 255, brightest = 0;
-                for (int i = 0; i < pixels.Length; i += 3)
-                {
-                    byte gray = (byte)((pixels[i] * 54 + pixels[i + 1] * 183 + pixels[i + 2] * 19 + 128) >> 8);
-                    pixels[i] = gray;
-                    pixels[i + 1] = gray;
-                    pixels[i + 2] = gray;
-                    darkest = Mathf.Min(darkest, gray);
-                    brightest = Mathf.Max(brightest, gray);
-                }
-                if (brightest - darkest < 3)
-                    throw new System.InvalidOperationException("Clay capture produced a flat frame.");
-                image.Apply(false);
-                return image.EncodeToPNG();
-            }
-            finally
-            {
-                RenderTexture.active = previous;
-                Object.DestroyImmediate(image);
             }
         }
     }
