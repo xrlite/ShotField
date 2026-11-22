@@ -166,11 +166,8 @@ namespace ShotField.RuntimeUI
                 monitor.RequestRender();
             }
 
-            if (shotTitleText != null)
-                shotTitleText.text = $"分镜 [{shot.shotId}] (第 {currentShotIndex + 1}/{library.Count} 镜)";
-
-            if (shotInfoText != null)
-                shotInfoText.text = $"意图: {shot.intent}\n机位: {shot.camera.position}";
+            if (shotTitleText != null) shotTitleText.text = $"分镜 [{shot.shotId}] (第 {currentShotIndex + 1}/{library.Count} 镜)";
+            if (shotInfoText != null) shotInfoText.text = $"意图: {shot.intent}\n机位: {shot.camera.position}";
 
             EvaluateConstraints(shot);
         }

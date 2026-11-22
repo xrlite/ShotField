@@ -31,22 +31,15 @@ namespace ShotField.EditorTools
             "Fridge", "Tea", "Slipper"
         };
 
+        [MenuItem("ShotField/Verifiers/Run SC01 Layout Verifier")]
         [MenuItem("镜场 ShotField/验证/验证 SC01 布局与重叠")]
         public static void Run()
         {
             int passCount = 0;
             void Assert(string name, bool condition)
             {
-                if (condition)
-                {
-                    passCount++;
-                    Debug.Log($"[Sc01LayoutVerifier] PASS: {name}");
-                }
-                else
-                {
-                    Debug.LogError($"[Sc01LayoutVerifier] FAIL: {name}");
-                    throw new Exception("Assertion failed: " + name);
-                }
+                if (condition) { passCount++; Debug.Log($"[Sc01LayoutVerifier] PASS: {name}"); }
+                else { Debug.LogError($"[Sc01LayoutVerifier] FAIL: {name}"); throw new Exception("Assertion failed: " + name); }
             }
 
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);

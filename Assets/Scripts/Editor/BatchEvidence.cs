@@ -9,14 +9,7 @@ using UnityEngine;
 
 namespace ShotField.EditorTools
 {
-    /// <summary>
-    /// 批处理证据生成。把「菜单才能点」的功能变成「命令行能跑」，
-    /// 否则 Clay 静帧永远拿不到实拍证据。
-    ///
-    /// 用法：
-    ///   Unity.exe -batchmode -projectPath &lt;prj&gt; -executeMethod ShotField.EditorTools.BatchEvidence.ExportSc01 -logFile &lt;log&gt;
-    /// 注意：不要加 -nographics，静帧导出需要真实渲染管线。
-    /// </summary>
+    /// <summary>批处理证据生成。把「菜单才能点」的功能变成「命令行能跑」。</summary>
     public static class BatchEvidence
     {
         private const string EvidenceRelative = "../../../05_验证记录/2026-11";
@@ -77,10 +70,7 @@ namespace ShotField.EditorTools
             finally { UnityEngine.Object.DestroyImmediate(holder); }
         }
 
-        /// <summary>
-        /// 建 SC01 白模，然后按 16:9 和 9:16 各导出一张灰度 Clay 静帧，
-        /// 最后写一份结果文件把两张图的尺寸和路径记下来。
-        /// </summary>
+        /// <summary>建 SC01 白模，按 16:9 和 9:16 导出灰度 Clay 静帧并记录结果。</summary>
         public static void ExportSc01()
         {
             var evidence = ToProjectPath(EvidenceRelative);

@@ -36,7 +36,7 @@ namespace ShotField.EditorTools
 
                 presets.ApplyMood(StudioLightingMood.MorningWarm);
                 VerifyAssert.Require("MorningWarm mood elevates sunlight intensity",
-                    moon.intensity > 1.3f && moon.color.r > 0.9f, ref passed);
+                    moon.intensity > 1.3f && moon.color.r > moon.color.b, ref passed);
 
                 presets.ApplyMood(StudioLightingMood.InterviewStark);
                 VerifyAssert.Require("InterviewStark mood tightens spotlight cone",

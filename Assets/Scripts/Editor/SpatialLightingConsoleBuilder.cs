@@ -4,6 +4,7 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
 using ShotField.RuntimeUI;
+using ShotField.Core;
 
 namespace ShotField.EditorTools
 {
@@ -13,8 +14,8 @@ namespace ShotField.EditorTools
     /// </summary>
     internal static class SpatialLightingConsoleBuilder
     {
-        private static readonly Color Card = new Color(0.15f, 0.16f, 0.19f, 0.95f);
-        private static readonly Color Accent = new Color(0.17f, 0.40f, 1.00f, 1.0f);
+        private static Color Card => PrevisPalette.PicoCard;
+        private static Color Accent => PrevisPalette.PicoAccent;
 
         internal static GameObject Build(GameObject canvasGo)
         {

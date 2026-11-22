@@ -163,16 +163,10 @@ namespace ShotField.EditorTools
             }
             finally
             {
-                if (Directory.Exists(testDir))
-                {
-                    try { Directory.Delete(testDir, true); } catch { }
-                }
+                if (Directory.Exists(testDir)) { try { Directory.Delete(testDir, true); } catch { } }
             }
 
-            if (passCount == totalTests)
-            {
-                Debug.Log($"MOTION-VERIFY-RESULT=PASS ({passCount}/{totalTests})");
-            }
+            if (passCount == totalTests) Debug.Log($"MOTION-VERIFY-RESULT=PASS ({passCount}/{totalTests})");
             else
             {
                 Debug.LogError($"MOTION-VERIFY-RESULT=FAIL ({passCount}/{totalTests})");

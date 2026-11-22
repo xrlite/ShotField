@@ -10,9 +10,9 @@ namespace ShotField.EditorTools
 {
     public static class Sprint1PanelBuilder
     {
-        private static readonly Color PanelBg = new Color(0.13f, 0.14f, 0.17f, 0.94f);
-        private static readonly Color BtnBg = new Color(0.24f, 0.26f, 0.30f, 0.95f);
-        private static readonly Color AccentBg = new Color(0.17f, 0.40f, 1.00f, 1.0f);
+        private static Color PanelBg => PrevisPalette.PicoCard;
+        private static Color BtnBg => PrevisPalette.PicoButton;
+        private static Color AccentBg => PrevisPalette.PicoAccent;
 
         public static void Attach(GameObject canvasGo, SpatialWorkbench wb, DirectorTimeline timeline)
         {

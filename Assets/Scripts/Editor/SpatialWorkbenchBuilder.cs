@@ -15,9 +15,9 @@ namespace ShotField.EditorTools
     /// </summary>
     public static class SpatialWorkbenchBuilder
     {
-        private static readonly Color PicoBg = new Color(0.10f, 0.11f, 0.13f, 0.92f);
-        private static readonly Color PicoCard = new Color(0.15f, 0.16f, 0.19f, 0.95f);
-        private static readonly Color PicoAccent = new Color(0.17f, 0.40f, 1.00f, 1.0f);
+        private static Color PicoBg => PrevisPalette.PicoBg;
+        private static Color PicoCard => PrevisPalette.PicoCard;
+        private static Color PicoAccent => PrevisPalette.PicoAccent;
 
         [MenuItem("镜场 ShotField/构建空间 3D 浮动监视器与工作台")]
         public static GameObject BuildWorkbench()
