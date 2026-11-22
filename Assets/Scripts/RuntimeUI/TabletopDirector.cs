@@ -23,6 +23,9 @@ namespace ShotField.RuntimeUI
         private Vector3 savedImmersivePos;
         private Quaternion savedImmersiveRot;
 
+        /// <summary>最近一次模式切换的可读说明，便于排查是否误动了头显相机。</summary>
+        public string LastModeNote { get; private set; } = "";
+
         public Transform TabletopAnchor
         {
             get
@@ -44,29 +47,71 @@ namespace ShotField.RuntimeUI
         {
             if (currentMode == targetMode) return;
             var anchor = TabletopAnchor;
+            bool headCamera = IsHeadCamera(observerCamera);
+
             if (targetMode == ScaleMode.TabletopMini)
             {
-                if (observerCamera != null)
-                {
-                    hasSavedPose = true;
-                    savedImmersivePos = observerCamera.position;
-                    savedImmersiveRot = observerCamera.rotation;
-                    observerCamera.position = anchor.position + new Vector3(0, 0.6f, -0.8f);
-                    observerCamera.LookAt(anchor.position);
-                }
+                EnterTabletopMini(anchor, headCamera);
                 currentMode = ScaleMode.TabletopMini;
                 SetTabletopActive(true);
             }
             else
             {
-                if (observerCamera != null && hasSavedPose)
-                {
-                    observerCamera.SetPositionAndRotation(savedImmersivePos, savedImmersiveRot);
-                    hasSavedPose = false;
-                }
+                ExitTabletopMini(headCamera);
                 currentMode = ScaleMode.Immersive1to1;
                 SetTabletopActive(false);
             }
+        }
+
+        // 进入沙盘模式：仅独立观察相机走保存/移机位姿分支；头显或未配置相机一律不动相机
+        private void EnterTabletopMini(Transform anchor, bool headCamera)
+        {
+            if (observerCamera != null && !headCamera)
+            {
+                hasSavedPose = true;
+                savedImmersivePos = observerCamera.position;
+                savedImmersiveRot = observerCamera.rotation;
+                observerCamera.position = anchor.position + new Vector3(0, 0.6f, -0.8f);
+                observerCamera.LookAt(anchor.position);
+                LastModeNote = "独立观察相机已切到沙盘俯视角";
+                return;
+            }
+            LastModeNote = headCamera
+                ? "观察者绑定的是 XR 头显，未移动相机，仅切换沙盘代理显隐"
+                : "未配置独立观察相机，仅切换沙盘代理显隐";
+            Debug.Log($"[TabletopDirector] {LastModeNote}");
+        }
+
+        // 退出沙盘模式：只恢复本组件自己存过的独立观察相机位姿
+        private void ExitTabletopMini(bool headCamera)
+        {
+            if (observerCamera != null && !headCamera && hasSavedPose)
+            {
+                observerCamera.SetPositionAndRotation(savedImmersivePos, savedImmersiveRot);
+                hasSavedPose = false;
+                LastModeNote = "独立观察相机已恢复沉浸式位姿";
+                return;
+            }
+            LastModeNote = "头显相机不受沙盘模式接管，未恢复任何位姿";
+        }
+
+        /// <summary>
+        /// 判断目标是不是 XR 头显/主相机：位于 XROrigin/XR_Headset 层级下，
+        /// 或本身带 Camera 且为 MainCamera 标签。这类相机一律不允许被搬动。
+        /// </summary>
+        private static bool IsHeadCamera(Transform target)
+        {
+            if (target == null) return false;
+            var cam = target.GetComponent<Camera>();
+            if (cam != null && target.CompareTag("MainCamera")) return true;
+
+            var node = target;
+            while (node != null)
+            {
+                if (node.name == "XR_Origin" || node.name == "XROrigin" || node.name == "XR_Headset") return true;
+                node = node.parent;
+            }
+            return false;
         }
 
         public Vector3 WorldToTabletop(Vector3 worldPos)

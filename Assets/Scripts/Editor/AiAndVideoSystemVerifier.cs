@@ -8,8 +8,8 @@ namespace ShotField.EditorTools
 {
     public static class AiAndVideoSystemVerifier
     {
-        // 2 条解析 + 2 条交接 + 2 条播放器初始化 + 1 条模式切换 + 1 条模式枚举 = 8。
-        private const int ExpectedAssertions = 8;
+        // 2 条解析 + 3 条交接 + 2 条播放器初始化 + 1 条模式切换 + 1 条模式枚举 = 9。
+        private const int ExpectedAssertions = 9;
 
         [MenuItem("ShotField/Verifiers/Run AI and Video System Verifier")]
         [MenuItem("镜场 ShotField/验证/验证 AI 系统与生成回片对照")]
@@ -52,7 +52,22 @@ namespace ShotField.EditorTools
             seedanceTask.Wait();
             var seedanceRes = seedanceTask.Result;
             Assert("Seedance 成功接入交接请求", seedanceRes != null && !string.IsNullOrEmpty(seedanceRes.taskId));
-            Assert("Seedance 产生成片视频交接路径", !string.IsNullOrEmpty(seedanceRes.localVideoPath));
+            // 现契约：离线沙盒不出视频产物。旧断言要求 localVideoPath 非空，与新契约相反，
+            // 场景真的离线却产出成片路径时本条应 FAIL。
+            Assert("离线沙盒不产出视频：未完成、视频地址与本地路径均为空、消息说明未提交在线任务",
+                seedanceRes != null && seedanceRes.status != SeedanceTaskStatus.Completed &&
+                string.IsNullOrEmpty(seedanceRes.videoUrl) && string.IsNullOrEmpty(seedanceRes.localVideoPath) &&
+                !string.IsNullOrEmpty(seedanceRes.message) &&
+                seedanceRes.message.Contains("未提交") && seedanceRes.message.Contains("在线任务"));
+
+            // 在线分支：缺 ApiKey/Endpoint 必须直接判 Failed，不发请求。
+            var online = new SeedanceBridge { IsOfflineMock = false, ApiKey = "", ApiEndpoint = "" };
+            var onlineTask = online.SubmitGenerationAsync(req);
+            onlineTask.Wait();
+            var onlineRes = onlineTask.Result;
+            Assert("在线缺配置必 Failed 且不带视频产物",
+                onlineRes != null && onlineRes.status == SeedanceTaskStatus.Failed &&
+                string.IsNullOrEmpty(onlineRes.videoUrl) && string.IsNullOrEmpty(onlineRes.localVideoPath));
 
             // Test 3: VideoPlayer 片场成片比对组件
             var go = new GameObject("Test_Video_Reviewer");

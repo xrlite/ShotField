@@ -46,23 +46,38 @@ namespace ShotField.EditorTools
             VerifyAssert.Require("Straight line path across coffee table is blocked from crossing table surface",
                 straightLineBlocked, ref passed);
 
-            NavMesh.SamplePosition(new Vector3(-2.20f, 0f, 0.15f), out var doorHit, 1.2f, NavMesh.AllAreas);
-            NavMesh.SamplePosition(new Vector3(0.85f, 0f, 2.42f), out var letterHit, 1.2f, NavMesh.AllAreas);
-            var doorToLetter = new NavMeshPath();
-            bool hasDoorPath = doorHit.hit && letterHit.hit &&
-                NavMesh.CalculatePath(doorHit.position, letterHit.position, NavMesh.AllAreas, doorToLetter);
-            bool doorPathValid = hasDoorPath && doorToLetter.status == NavMeshPathStatus.PathComplete;
+            // 第 4 条：起终点都取在 NavMesh 真实覆盖区内、距边界 ≥0.25m；采样半径收紧到 0.35m，
+            // 并断言吸附距离 <0.35m，证明点本身可行走，而不是被大半径从覆盖区外拽进来的。
+            var routeStart = new Vector3(-0.48f, 0.06f, 2.27f);
+            var routeEnd = new Vector3(1.33f, 0.06f, 2.42f);
+            const float routeSampleRadius = 0.35f;
+            const float routeMargin = 0.25f;
+            bool startInside = routeStart.x >= min.x + routeMargin && routeStart.x <= max.x - routeMargin
+                && routeStart.z >= min.z + routeMargin && routeStart.z <= max.z - routeMargin;
+            bool endInside = routeEnd.x >= min.x + routeMargin && routeEnd.x <= max.x - routeMargin
+                && routeEnd.z >= min.z + routeMargin && routeEnd.z <= max.z - routeMargin;
+            bool startOnMesh = NavMesh.SamplePosition(routeStart, out var routeStartHit, routeSampleRadius, NavMesh.AllAreas);
+            bool endOnMesh = NavMesh.SamplePosition(routeEnd, out var routeEndHit, routeSampleRadius, NavMesh.AllAreas);
+            bool startSnapped = startOnMesh && Vector3.Distance(routeStartHit.position, routeStart) < routeSampleRadius;
+            bool endSnapped = endOnMesh && Vector3.Distance(routeEndHit.position, routeEnd) < routeSampleRadius;
+            Debug.Log($"[NavMeshVerifier] Route sample: start hit={startOnMesh} snap={routeStartHit.position}, end hit={endOnMesh} snap={routeEndHit.position}");
+
+            var routePath = new NavMeshPath();
+            bool hasRoute = startInside && endInside && startSnapped && endSnapped &&
+                NavMesh.CalculatePath(routeStartHit.position, routeEndHit.position, NavMesh.AllAreas, routePath);
+            bool routeComplete = hasRoute && routePath.status == NavMeshPathStatus.PathComplete;
+            bool routeDetours = routePath.corners.Length >= 3;
             bool allCornersInside = true;
-            if (doorPathValid)
+            if (routeComplete)
             {
-                foreach (var c in doorToLetter.corners)
+                foreach (var c in routePath.corners)
                 {
-                    Debug.Log($"[NavMeshVerifier] Doorway to letter corner: {c}");
+                    Debug.Log($"[NavMeshVerifier] Route corner: {c}");
                     if (c.x < -3.05f || c.x > 3.05f || c.z < -0.05f || c.z > 4.05f) allCornersInside = false;
                 }
             }
-            VerifyAssert.Require("Doorway to letter path is complete, detours around CoffeeTable and stays inside room walls",
-                doorPathValid && allCornersInside, ref passed);
+            VerifyAssert.Require("Route inside covered NavMesh: PathComplete, detours around CoffeeTable (corners>=3), stays inside room walls",
+                routeComplete && routeDetours && allCornersInside, ref passed);
 
             bool metaIntact = true;
             bool noLineOverflow = true;

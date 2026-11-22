@@ -11,7 +11,7 @@ namespace ShotField.RuntimeUI
     /// Implements smooth turning via Slerp and empty animation event receivers.
     /// </summary>
     [RequireComponent(typeof(NavMeshAgent))]
-    public class ActorNavigator : MonoBehaviour
+    public partial class ActorNavigator : MonoBehaviour
     {
         [Header("Core References")]
         public NavMeshAgent agent;

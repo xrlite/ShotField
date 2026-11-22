@@ -3,6 +3,7 @@ using System;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.AI;
 using ShotField.Core;
 using ShotField.RuntimeUI;
 
@@ -32,6 +33,7 @@ namespace ShotField.EditorTools
 
             Debug.Log("=== [Milestone M3: Amber Trajectory & DirectorTimeline Verification] ===");
 
+            // Test 1: 7 组分镜数据连续无 NaN（轨迹数据源，不依赖编辑态 LineRenderer 顶点）。
             bool shotCountOk = Sc01PrevisShotData.Shots.Length == 7;
             bool noNaN = true;
             for (int i = 0; i <= 1800; i++)
@@ -48,65 +50,69 @@ namespace ShotField.EditorTools
             }
             Assert("Test 1: 7 组分镜轨迹与光学参数全覆盖，1801 采样点连续无 NaN", shotCountOk && noNaN);
 
-            var dir = FindEvenIfInactive("Director");
-            var lr = dir != null ? dir.GetComponent<LineRenderer>() : null;
-            bool dirActive = dir != null && dir.activeInHierarchy && dir.layer == 0;
-            Color expectedAmber = PrevisPalette.AmberTrajectory;
-            bool lrOk = lr != null && lr.enabled && lr.useWorldSpace &&
-                        Mathf.Abs(lr.startWidth - 0.012f) < 0.002f &&
-                        Mathf.Abs(lr.startColor.r - expectedAmber.r) < 0.05f &&
-                        Mathf.Abs(lr.startColor.g - expectedAmber.g) < 0.05f &&
-                        Mathf.Abs(lr.startColor.b - expectedAmber.b) < 0.05f &&
-                        lr.positionCount == 1801;
-            Assert("Test 2: Director 琥珀色 (#F2A33C, 0.012m) LineRenderer 挂载且顶点数达 1801", dirActive && lrOk);
+            // Test 2: 轨迹由 CameraMotionRecorder 承载——绑定 Director 相机、双缓存非空、颜色琥珀、数据源帧数 >0。
+            // 旧判据要求 LineRenderer 编辑态 baked 且 1801 顶点；轨迹实为运行时生成，编辑态不 baked 是设计，不再断言顶点数/启用态。
+            var cam = UnityEngine.Object.FindAnyObjectByType<CameraMotionRecorder>(FindObjectsInactive.Include);
+            var amber = PrevisPalette.AmberTrajectory;
+            bool recorderOk = cam != null && cam.filmCamera != null &&
+                cam.filmCamera.gameObject.name == "Director" &&
+                cam.rawTrajectory != null && cam.rawTrajectory.Count >= 2 &&
+                cam.smoothedTrajectory != null && cam.smoothedTrajectory.Count >= 2 &&
+                ColorClose(cam.recordColor, amber) && ColorClose(cam.readyColor, amber) &&
+                cam.trajectoryLine != null &&
+                ColorClose(cam.trajectoryLine.startColor, amber) &&
+                cam.trajectoryLine.sharedMaterial != null &&
+                ColorClose(cam.trajectoryLine.sharedMaterial.color, amber) &&
+                Sc01PrevisShotData.TotalFrames > 0;
+            Assert("Test 2: 录制器绑定 Director 相机，原始/平滑轨迹各 ≥2 点，记录/就绪/线体颜色均为琥珀，数据源帧数 >0", recorderOk);
 
-            // E16：不能裸 GameObject.Find —— 它看不见停用对象，M1-B 停用旧的
-            // SC01_Performer_B 之后这里会凭空判 FAIL。改用能包含 inactive 的查找。
-            var a = FindEvenIfInactive("SC01_Performer_A");
-            var b = FindEvenIfInactive("SC01_Performer_B");
-            bool aOk = a != null && a.activeInHierarchy && a.GetComponent<ActorNavigator>() != null;
-            // B 允许停用（M1-B 已把它退出片场），但只要它还在场景里就必须装配完整，
-            // 防止留下"半拆的残骸"。
-            bool bOk = b == null || b.GetComponent<ActorNavigator>() != null;
-            Assert("Test 3: SC01_Performer_A (红) 激活且配 ActorNavigator；SC01_Performer_B 已停用或装配完整", aOk && bOk);
+            // Test 3: M1 退役契约——正式红演员激活且装配完整，旧 Performer_A/B 必须停用。
+            var red = FindEvenIfInactive("PrevisCast_A_Red");
+            var performerA = FindEvenIfInactive("SC01_Performer_A");
+            var performerB = FindEvenIfInactive("SC01_Performer_B");
+            bool redOk = red != null && red.activeInHierarchy &&
+                red.GetComponent<ActorNavigator>() != null && red.GetComponent<NavMeshAgent>() != null;
+            bool legacyRetired = (performerA == null || !performerA.activeInHierarchy) &&
+                (performerB == null || !performerB.activeInHierarchy);
+            Assert("Test 3: PrevisCast_A_Red 激活且配 ActorNavigator+NavMeshAgent；SC01_Performer_A/B 均已停用", redOk && legacyRetired);
 
-            var timeline = UnityEngine.Object.FindAnyObjectByType<DirectorTimeline>();
+            var timeline = UnityEngine.Object.FindAnyObjectByType<DirectorTimeline>(FindObjectsInactive.Include);
             bool timeOk = timeline != null && Mathf.Approximately(timeline.duration, 60.0f) &&
                           !timeline.loop && timeline.cameraRecorder != null;
             Assert("Test 4: DirectorTimeline 设为 60.0s 单次播放且成功绑定 CameraMotionRecorder", timeOk);
 
+            // Test 5: 时间轴 0→30→60 寻道驱动摄影机与正式演员确定性位移。
             timeline.Seek(0f);
             Vector3 camStart = timeline.cameraRecorder.filmCamera.transform.position;
-            Vector3 aStart = a.transform.position;
+            Vector3 actorStart = timeline.actorA != null ? timeline.actorA.transform.position : Vector3.zero;
 
             timeline.Seek(30f);
             Vector3 camMid = timeline.cameraRecorder.filmCamera.transform.position;
-            Vector3 aMid = a.transform.position;
+            Vector3 actorMid = timeline.actorA != null ? timeline.actorA.transform.position : Vector3.zero;
 
             timeline.Seek(60f);
             Vector3 camEnd = timeline.cameraRecorder.filmCamera.transform.position;
-            Vector3 aEnd = a.transform.position;
 
             bool scrubOk = Vector3.Distance(camStart, camMid) > 0.5f &&
                            Vector3.Distance(camMid, camEnd) > 0.5f &&
-                           Vector3.Distance(aStart, aMid) > 0.5f;
-            Assert("Test 5: 时间轴 0s->30s->60s 寻道驱动摄影机与演员确定性空间位移", scrubOk);
+                           Vector3.Distance(actorStart, actorMid) > 0.5f;
+            Assert("Test 5: 时间轴 0s->30s->60s 寻道驱动摄影机与正式演员确定性空间位移", scrubOk);
 
-            // 原来这里无条件打 PASS，等于验证器永远不会失败 —— 门禁读到的绿是假的。
             bool allPassed = passed == total;
             Debug.Log($"M3-ASSEMBLY-VERIFY-RESULT={(allPassed ? "PASS" : "FAIL")} ({passed}/{total})");
+            if (Application.isBatchMode) EditorApplication.Exit(allPassed ? 0 : 1);
         }
 
-        /// <summary>
-        /// 按名字找场景对象，包含已停用（inactive）的，但排除 prefab 资产。
-        /// GameObject.Find 看不见停用对象，任何用它查"已退出片场的旧对象"都会假红。
-        /// </summary>
+        private static bool ColorClose(Color a, Color b) =>
+            Mathf.Abs(a.r - b.r) < 0.05f && Mathf.Abs(a.g - b.g) < 0.05f &&
+            Mathf.Abs(a.b - b.b) < 0.05f && Mathf.Abs(a.a - b.a) < 0.05f;
+
         private static GameObject FindEvenIfInactive(string name)
         {
             foreach (var go in Resources.FindObjectsOfTypeAll<GameObject>())
             {
                 if (go == null || go.name != name) continue;
-                if (!go.scene.IsValid()) continue;   // 排除 prefab 与工程资产
+                if (!go.scene.IsValid()) continue;
                 return go;
             }
             return null;

@@ -25,12 +25,11 @@ namespace ShotField.RuntimeUI
         private bool showTabletop;
         private Transform recordingPose;
 
-        void Awake() => enabled = Application.isEditor || Application.platform == RuntimePlatform.WindowsPlayer;
-
         void Start()
         {
             Application.runInBackground = true;
             workbench = GetComponent<SpatialWorkbench>();
+            AttachEditViews();
             if (workbench.library == null || workbench.library.ShotCamera == null) return;
             var camera = workbench.library.ShotCamera;
             recordingPose = new GameObject("Desktop recording pose").transform;
@@ -105,7 +104,12 @@ namespace ShotField.RuntimeUI
             session.Disconnect();
         }
 
-
+        // M1 编辑链：右侧编辑面板 + 启动自动恢复组件，挂在同一画布物体上。
+        private void AttachEditViews()
+        {
+            if (GetComponent<DesktopStudioEditView>() == null) gameObject.AddComponent<DesktopStudioEditView>();
+            if (GetComponent<SceneEditRestore>() == null) gameObject.AddComponent<SceneEditRestore>();
+        }
 
         private void RunSession(Action action)
         {

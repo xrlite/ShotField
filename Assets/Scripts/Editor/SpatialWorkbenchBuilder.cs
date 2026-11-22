@@ -1,4 +1,5 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
@@ -97,8 +98,8 @@ namespace ShotField.EditorTools
             Undo.RegisterCreatedObjectUndo(canvasGo, "创建空间多窗口工作台");
             Debug.Log("[镜场 ShotField] PICO 空间 3D 悬浮多窗口工作台构建成功！");
             var head = Camera.main;
-            var actorTarget = SemanticMarker.Find("actorA");
-            if (!dirCam || !head || head == dirCam || !actorTarget)
+            var actorTargets = CollectActorTargets();
+            if (!dirCam || !head || head == dirCam || actorTargets.Count == 0)
                 throw new System.InvalidOperationException("Missing SC01 camera or actor binding.");
             var motion = canvasGo.AddComponent<CameraMotionRecorder>();
             motion.poseSource = head.transform;
@@ -109,15 +110,16 @@ namespace ShotField.EditorTools
             board.tabletopAnchor = new GameObject("TabletopAnchor").transform;
             board.tabletopAnchor.SetParent(canvasGo.transform.parent);
             board.tabletopAnchor.position = new Vector3(0, 0.8f, 1.2f);
-            board.tabletopProxyRoot = GameObject.CreatePrimitive(PrimitiveType.Capsule).transform;
-            board.tabletopProxyRoot.name = "ActorTabletopProxy";
-            board.tabletopProxyRoot.SetParent(board.tabletopAnchor);
-            board.tabletopProxyRoot.localScale = actorTarget.transform.lossyScale * board.miniScale;
-            board.SyncWorldToProxy(actorTarget.transform, board.tabletopProxyRoot);
-            board.tabletopProxyRoot.gameObject.SetActive(false);
-            board.observerCamera = head.transform;
+            // 沙盘代理根：空节点挂在锚点下；1:1 模式下整体隐藏，切沙盘时由 TabletopDirector 激活
+            var proxyRoot = new GameObject("TabletopProxyRoot");
+            proxyRoot.transform.SetParent(board.tabletopAnchor);
+            board.tabletopProxyRoot = proxyRoot.transform;
+            BuildActorProxies(board, actorTargets);
+            proxyRoot.SetActive(false);
+            // 头显相机由 TabletopDirector 自行识别并拒绝搬动，这里不把它塞进 observerCamera
+            board.observerCamera = null;
             var actor = canvasGo.AddComponent<ActorTakePlayer>();
-            actor.actorTransform = actorTarget.transform;
+            actor.actorTransform = actorTargets[0];
             var audience = canvasGo.AddComponent<AudienceLab>();
             audience.audienceHead = head.transform;
             audience.screeningCamera = dirCam;
@@ -132,6 +134,37 @@ namespace ShotField.EditorTools
             Sprint1PanelBuilder.AttachPanels(canvasGo, wb, timeline);
             WorkbenchExportBinding.Attach(wb);
             return canvasGo;
+        }
+
+        // 演员来源：场景内全部 ActorNavigator；一个都没有时回退语义标记 actorA。
+        private static List<Transform> CollectActorTargets()
+        {
+            var targets = new List<Transform>();
+            var navigators = Object.FindObjectsByType<ActorNavigator>(FindObjectsSortMode.None);
+            foreach (var nav in navigators)
+            {
+                if (nav != null && nav.transform != null) targets.Add(nav.transform);
+            }
+            if (targets.Count == 0)
+            {
+                var fallback = SemanticMarker.Find("actorA");
+                if (fallback != null) targets.Add(fallback.transform);
+            }
+            return targets;
+        }
+
+        // 每位演员一具沙盘 Capsule 代理；位姿跟随交给 TabletopProxyFollower，坐标换算归 TabletopDirector。
+        private static void BuildActorProxies(TabletopDirector board, List<Transform> actors)
+        {
+            foreach (var actor in actors)
+            {
+                var proxyGo = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                proxyGo.name = "TabletopProxy_" + actor.name;
+                proxyGo.transform.SetParent(board.tabletopProxyRoot);
+                proxyGo.transform.localScale = actor.lossyScale * board.miniScale;
+                board.SyncWorldToProxy(actor, proxyGo.transform);
+                proxyGo.AddComponent<TabletopProxyFollower>().Bind(actor, board);
+            }
         }
 
         public static void EnsureEventSystem()

@@ -65,7 +65,7 @@ namespace ShotField.RuntimeUI
             if (actor && playActor) playActor.onClick.AddListener(() => actor.StartPlayback());
             if (board && toggleBoard) toggleBoard.onClick.AddListener(() =>
             {
-                board.SyncWorldToProxy(actor.actorTransform, board.tabletopProxyRoot);
+                // 沙盘代理由各自 TabletopProxyFollower 在 LateUpdate 跟随，不再把整根代理根当单代理手动同步。
                 board.SwitchMode(board.currentMode == TabletopDirector.ScaleMode.TabletopMini
                     ? TabletopDirector.ScaleMode.Immersive1to1 : TabletopDirector.ScaleMode.TabletopMini);
             });

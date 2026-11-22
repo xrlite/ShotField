@@ -39,6 +39,10 @@ Passports/
 /[Cc]aptures/
 /[Tt]est[Cc]aptures/
 
+# 性能测试包在编辑器启动时自动写出的产物（不是产品资产）
+/Assets/Resources/PerformanceTestRun*.json
+/Assets/Resources/PerformanceTestRun*.json.meta
+
 # Local AI assistant runtimes & session tokens
 .codex/
 .kitwright/

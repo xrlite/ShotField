@@ -20,12 +20,16 @@ namespace ShotField.EditorTools
             var board = bench.GetComponent<TabletopDirector>();
             var actor = bench.GetComponent<ActorTakePlayer>();
             var audience = bench.GetComponent<AudienceLab>();
+            // 现契约：observerCamera 允许为空；若配置了则不能是 XR 头显相机（旧契约强制非空，与新防晕要求相反）。
+            bool observerIsHead = board.observerCamera != null && board.observerCamera == motion.hmdObserver.transform;
             if (!motion || !motion.poseSource || !motion.filmCamera || !motion.hmdObserver ||
                 motion.filmCamera == motion.hmdObserver || !board || !board.sceneRoot1to1 ||
-                !board.tabletopProxyRoot || !board.observerCamera || !actor ||
+                !board.tabletopProxyRoot || observerIsHead || !actor ||
                 actor.actorTransform != SemanticMarker.Find("actorA").transform || !audience ||
                 audience.audienceHead != motion.hmdObserver.transform)
                 throw new InvalidOperationException("Invalid SC01 studio bindings");
+            var headBeforePos = motion.hmdObserver.transform.position;
+            var headBeforeRot = motion.hmdObserver.transform.rotation;
             var testRoot = new GameObject("Phase2TestRoot");
             try
             {
@@ -58,12 +62,18 @@ namespace ShotField.EditorTools
                 dir.SwitchMode(TabletopDirector.ScaleMode.Immersive1to1);
                 bool isImmersive = dir.currentMode == TabletopDirector.ScaleMode.Immersive1to1;
 
-                if (isMini && isImmersive && camGo.transform.position == Vector3.zero)
+                // 真实工作台沙盘切换：头显相机位姿必须保持不变（旧逻辑会把头显相机当观察相机搬走）。
+                board.SwitchMode(TabletopDirector.ScaleMode.TabletopMini);
+                board.SwitchMode(TabletopDirector.ScaleMode.Immersive1to1);
+                bool headKept = Vector3.Distance(headBeforePos, motion.hmdObserver.transform.position) < 0.001f
+                    && Quaternion.Angle(headBeforeRot, motion.hmdObserver.transform.rotation) < 0.001f;
+
+                if (isMini && isImmersive && camGo.transform.position == Vector3.zero && headKept)
                 {
                     passCount++;
-                    Debug.Log("[PASS] Test 2: 1:1 片场与 1:20 微缩沙盘双尺度模式切换正常");
+                    Debug.Log("[PASS] Test 2: 双尺度切换正常且头显相机位姿未被搬动");
                 }
-                else Debug.LogError("[FAIL] Test 2: 沙盘尺度切换状态异常");
+                else Debug.LogError($"[FAIL] Test 2: 沙盘尺度切换或头显位姿保持异常 headKept={headKept}");
 
                 // Test 3: 虚拟演员表演 Take 时序采样与插值精度
                 var take = new ActorTake { takeId = "Take_SC01_01", actorId = "actorA" };

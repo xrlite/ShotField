@@ -164,6 +164,7 @@ namespace ShotField.Core
                     Broadcast(SetPacket.Create(PacketType.Comment, peer.Id, comment));
                     OnCommentReceived?.Invoke(comment);
                 }
+                else if (peer.Role.HasValue && packet.type == nameof(PacketType.SceneEdit)) DispatchHostSceneEdit(peer, packet);
                 return;
             }
 
@@ -177,6 +178,7 @@ namespace ShotField.Core
                 case nameof(PacketType.CameraSync): OnCameraSyncReceived?.Invoke(packet.Unpack<CameraSyncData>()); break;
                 case nameof(PacketType.PassportSync): OnPassportSyncReceived?.Invoke(packet.Unpack<PassportSyncData>()); break;
                 case nameof(PacketType.Comment): OnCommentReceived?.Invoke(packet.Unpack<CommentData>()); break;
+                case nameof(PacketType.SceneEdit): DispatchClientSceneEdit(packet); break;
             }
         }
 
