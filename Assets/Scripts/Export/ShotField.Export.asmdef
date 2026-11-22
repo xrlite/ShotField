@@ -1,0 +1,6 @@
+{
+  "name": "ShotField.Export",
+  "references": [
+    "ShotField.Core"
+  ]
+}

@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
+using System.Text;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -33,7 +34,7 @@ namespace ShotField.Core
     /// 在线失败 / 超时 / 非 2xx / JSON 不可解析 / 空条目 -> 抛 <see cref="ScriptParseException"/>，
     /// 绝不用 mock 数据冒充成功。HTTP、超时、重试、错误码在 <see cref="DeepSeekClient"/>，本类只做编排与解析。
     /// </summary>
-    public class AiScriptParser
+    public partial class AiScriptParser
     {
         public string ApiKey { get; set; } = "";
         public string Endpoint { get; set; } = "";
@@ -67,7 +68,7 @@ namespace ShotField.Core
             DeepSeekChatResponse response;
             try
             {
-                response = await client.CompleteAsync(SystemSchemaPrompt, rawScript).ConfigureAwait(false);
+                response = await client.CompleteAsync(BuildSystemPrompt(), rawScript).ConfigureAwait(false);
             }
             catch (ScriptParseException)
             {
@@ -127,49 +128,36 @@ namespace ShotField.Core
             return null;
         }
 
-        /// <summary>显式离线文本结构化：仅提取分句与景别建议，不产生在线产物。</summary>
-        public ScriptAnalysisResult ParseOfflineStructured(string rawScript)
+        private static readonly (string Id, string Label)[] Cast =
         {
-            if (string.IsNullOrWhiteSpace(rawScript)) return new ScriptAnalysisResult();
+            ("PrevisCast_A_Red", "红 · 主角"),
+            ("PrevisCast_B_Blue", "蓝 · 对手"),
+            ("PrevisCast_C_Yellow", "黄"),
+            ("PrevisCast_D_Green", "绿"),
+            ("PrevisCast_E_Violet", "紫"),
+            ("PrevisCast_F_Magenta", "品红")
+        };
 
-            var lines = rawScript.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
-            string title = lines.Length > 0 ? lines[0].Trim() : "SC01_客厅对峙";
-            var res = new ScriptAnalysisResult
-            {
-                sceneTitle = title,
-                conflictSummary = lines.Length > 1 ? lines[1].Trim() : title
-            };
-            res.characters.Add("ActorA");
-
-            for (int i = 0; i < lines.Length; i++)
-            {
-                string line = lines[i].Trim();
-                if (i == 0 && (line.StartsWith("内景") || line.StartsWith("外景"))) continue;
-                var clauses = line.Split(new[] { '，', ',', '；', ';' }, StringSplitOptions.RemoveEmptyEntries);
-                var subBeats = clauses.Length > 1 ? clauses : new[] { line };
-                foreach (var clause in subBeats)
-                {
-                    string p = clause.Trim();
-                    if (string.IsNullOrEmpty(p)) continue;
-                    string shotType = p.Contains("信") || p.Contains("特写") ? "CloseUp_PropFocus"
-                        : (p.Contains("远") || p.Contains("全景") ? "Wide_Establishing" : "MediumShot_LowAngle");
-                    res.beats.Add(new ScriptBeat
-                    {
-                        character = p.Contains("导演") ? "Director" : "ActorA",
-                        action = p,
-                        dialogue = string.Empty,
-                        suggestedShotType = shotType
-                    });
-                }
-            }
-            return res;
+        /// <summary>
+        /// 构造系统提示词：JSON 契约 + 当前片场硬约束（场景尺寸、可用演员、道具清单）。
+        /// 道具条目实时读 <see cref="PropLibrary"/>，不硬编码猜名称；清单外资产要求显式标「缺」。
+        /// </summary>
+        private static string BuildSystemPrompt()
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine("你是影视预演结构化助手。仅返回合法JSON，字段为:");
+            sb.AppendLine("{\"sceneTitle\":\"\",\"conflictSummary\":\"\",\"characters\":[\"\"]," +
+                "\"beats\":[{\"character\":\"\",\"action\":\"\",\"dialogue\":\"\",\"suggestedShotType\":\"\"}]}");
+            sb.AppendLine();
+            sb.AppendLine("场景约束：当前只有 SC01 室内客厅，6m×4m，家具沿墙摆放；不要安排室外、车内或大空间动作。");
+            sb.AppendLine("可用演员（character 字段填括号内 ID）：");
+            foreach (var c in Cast) sb.AppendLine($"- {c.Id}（{c.Label}）");
+            sb.AppendLine("可用道具（道具名只能取自以下清单）：");
+            foreach (var p in PropLibrary.All) sb.AppendLine($"- {p.id}：{p.displayName}");
+            sb.AppendLine("剧本里出现但清单没有的人物或道具，在 action 末尾注明「缺：名称」，不要编造资产 ID。");
+            sb.AppendLine("suggestedShotType 只能取 MediumShot_LowAngle / CloseUp_PropFocus / Wide_Establishing。");
+            return sb.ToString();
         }
-
-        private const string SystemSchemaPrompt =
-            "你是影视预演结构化助手。仅返回合法JSON，字段为: " +
-            "{\"sceneTitle\":\"\",\"conflictSummary\":\"\",\"characters\":[\"\"]," +
-            "\"beats\":[{\"character\":\"\",\"action\":\"\",\"dialogue\":\"\",\"suggestedShotType\":\"\"}]}";
-
         private static string StripJsonFence(string text)
         {
             string s = text.Trim();

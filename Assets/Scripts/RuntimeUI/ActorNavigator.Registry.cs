@@ -8,7 +8,11 @@ namespace ShotField.RuntimeUI
     /// </summary>
     public partial class ActorNavigator
     {
-        private void OnEnable() => ActorSelection.Register(this);
+        private void OnEnable()
+        {
+            ActorSelection.Register(this);
+            ScheduleGroundCheck();
+        }
 
         private void OnDisable() => ActorSelection.Unregister(this);
     }

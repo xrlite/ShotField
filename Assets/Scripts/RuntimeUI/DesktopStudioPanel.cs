@@ -24,6 +24,7 @@ namespace ShotField.RuntimeUI
         private bool showAdvanced;
         private bool showTabletop;
         private Transform recordingPose;
+        private ConnectionCenterPanel _connection;
 
         void Start()
         {

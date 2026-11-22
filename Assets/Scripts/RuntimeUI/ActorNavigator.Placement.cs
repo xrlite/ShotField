@@ -22,8 +22,21 @@ namespace ShotField.RuntimeUI
             // 否则 1.2m 的探针会把 0.9m 外的网格点也判成"站得住"。
             var flat = new Vector2(hit.position.x - worldPos.x, hit.position.z - worldPos.z).magnitude;
             if (flat > Mathf.Max(0.01f, sampleRadius)) return false;
+            if (OverlapsFurniture(hit.position, Mathf.Max(agent.radius, 0.3f) + 0.05f)) return false;
             snapped = hit.position;
             return true;
+        }
+
+        /// <summary>落点是否陷进带 NavMeshObstacle 的家具（跳过演员自身）。</summary>
+        private static bool OverlapsFurniture(Vector3 pos, float radius)
+        {
+            var hits = Physics.OverlapSphere(pos, radius, ~0, QueryTriggerInteraction.Ignore);
+            foreach (var col in hits)
+            {
+                if (col.GetComponentInParent<ActorNavigator>() != null) continue;
+                if (col.GetComponentInParent<NavMeshObstacle>() != null) return true;
+            }
+            return false;
         }
 
         /// <summary>

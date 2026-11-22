@@ -1,13 +1,12 @@
-using System;
 using ShotField.Core;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 namespace ShotField.RuntimeUI
 {
     public sealed partial class DesktopStudioPanel
     {
         private bool showLabs;
+        private string _draftScript = "";
 
         void OnGUI()
         {
@@ -15,39 +14,9 @@ namespace ShotField.RuntimeUI
             GUILayout.BeginArea(new Rect(12, 12, 340, Mathf.Min(Screen.height - 24f, 820f)), GUI.skin.box);
 
             GUILayout.Label($"镜场 ShotField · {LabFeatureFlags.ChannelLabel} {LabFeatureFlags.VersionLabel}");
-            GUILayout.Label("主流程：" + LabFeatureFlags.MainFlowRail);
+            GUILayout.Label("四步走：① 导入剧本 → ② 确认镜头提案 → ③ 摆放演员与机位 → ④ 生成成片");
 
-            // 联机会话：核心愿景，当前为离线演示，不并入 Labs 实验分区。
-            GUILayout.Label(session.State.ToString());
-            address = GUILayout.TextField(address);
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Host")) RunSession(() =>
-            {
-                session.StartHost(Port);
-                if (lastPassport != null) PublishPassport(lastPassport);
-            });
-            if (GUILayout.Button("Join")) RunSession(() => session.Connect(address, Port, ParticipantRole.Producer));
-            if (GUILayout.Button("Disconnect")) session.Disconnect();
-            GUILayout.EndHorizontal();
-
-            var selected = workbench.SelectedShot;
-            if (GUILayout.Button(motion.CurrentState == CameraMotionRecorder.State.Recording
-                ? "Stop and attach to selected shot" : "Record (WASD/QE, arrow keys)")) ToggleRecording();
-            if (GUILayout.Button("Save selected passport")) workbench.SavePassport();
-            if (GUILayout.Button("Replay selected shot")) Play(selected, false);
-            if (selected != null && GUILayout.Button("Replay latest saved revision")) RunSession(() =>
-            {
-                var saved = ShotPassportStore.LoadLatest(ShotPassportMapper.QualifyShotId(selected.shotId, workbench.library.SceneId), ShotPassportStore.ProjectFolder);
-                if (saved == null) status = "No saved passport for " + selected.shotId;
-                else Play(saved.ToShot(), false);
-            });
-            if (receivedShot != null && GUILayout.Button("Replay received shot")) Play(receivedShot, false);
-            if (selected != null && GUILayout.Button("Screen selected shot (PC camera-direction proxy)")) Play(selected, true);
-
-            note = GUILayout.TextField(note);
-            if (GUILayout.Button("Send review note") && !string.IsNullOrWhiteSpace(note))
-                session.SendComment(note, (receivedShot ?? selected)?.shotId);
-
+            DrawOnlineSection();
             DrawMainFlowActions();
             DrawLabsSection();
 
@@ -64,20 +33,81 @@ namespace ShotField.RuntimeUI
             }
         }
 
-        // 主流程动作：撤销/重做、剧本解析、提案导入、参考包导出。
+        // 联机会话：核心愿景，当前为离线演示；收进二级入口，首屏不直接暴露 IP 与联机按钮。
+        private void DrawOnlineSection()
+        {
+            showAdvanced = GUILayout.Toggle(showAdvanced, "联机（可选）");
+            if (!showAdvanced) return;
+
+            GUILayout.Label(session.State.ToString());
+            address = GUILayout.TextField(address);
+            GUILayout.BeginHorizontal();
+            if (GUILayout.Button("Host")) RunSession(() =>
+            {
+                session.StartHost(Port);
+                if (lastPassport != null) PublishPassport(lastPassport);
+            });
+            if (GUILayout.Button("Join")) RunSession(() => session.Connect(address, Port, ParticipantRole.Producer));
+            if (GUILayout.Button("断开")) session.Disconnect();
+            GUILayout.EndHorizontal();
+        }
+
+        // 主流程动作：撤销/重做、剧本导入、提案、连接设置、参考清单导出。
         private void DrawMainFlowActions()
         {
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("撤销 Ctrl+Z")) workbench.UndoShot();
-            if (GUILayout.Button("重做 Ctrl+Y")) workbench.RedoShot();
+            if (GUILayout.Button("撤销")) workbench.UndoShot();
+            if (GUILayout.Button("重做")) workbench.RedoShot();
+            if (GUILayout.Button("连接设置")) ToggleConnection();
             GUILayout.EndHorizontal();
 
+            GUILayout.Label("剧本：粘贴或输入剧情、台词");
+            _draftScript = GUILayout.TextArea(_draftScript ?? "", GUILayout.Height(72f));
+            if (GUILayout.Button("生成镜头提案")) ImportDraftScript();
+
+            var selected = workbench.SelectedShot;
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("解析当前剧本")) workbench.ParseStoryBible();
-            if (GUILayout.Button("导入剧本 → 提案")) ImportChainProposal();
+            if (GUILayout.Button(motion.CurrentState == CameraMotionRecorder.State.Recording
+                ? "停止走位预览" : "录制走位预览")) ToggleRecording();
+            if (GUILayout.Button("保存场景")) workbench.SavePassport();
             GUILayout.EndHorizontal();
-            if (GUILayout.Button("导出参考包")) workbench.ExportReferencePackage();
+
+            if (GUILayout.Button("回看所选镜头")) Play(selected, false);
+            if (selected != null && GUILayout.Button("回看最近存档")) RunSession(() =>
+            {
+                var saved = ShotPassportStore.LoadLatest(ShotPassportMapper.QualifyShotId(selected.shotId, workbench.library.SceneId), ShotPassportStore.ProjectFolder);
+                if (saved == null) status = "没有最近存档";
+                else Play(saved.ToShot(), false);
+            });
+            if (receivedShot != null && GUILayout.Button("回看收到的镜头")) Play(receivedShot, false);
+            if (selected != null && GUILayout.Button("机位预览")) Play(selected, true);
+
+            if (GUILayout.Button("导出参考清单")) workbench.ExportReferencePackage();
             GUILayout.Label(workbench.AiState);
+        }
+
+        private void ToggleConnection()
+        {
+            if (_connection == null)
+            {
+                _connection = GetComponent<ConnectionCenterPanel>();
+                if (_connection == null) _connection = gameObject.AddComponent<ConnectionCenterPanel>();
+            }
+            _connection.Visible = !_connection.Visible;
+        }
+
+        private void ImportDraftScript()
+        {
+            if (string.IsNullOrWhiteSpace(_draftScript))
+            {
+                status = "先粘贴或输入剧本";
+                return;
+            }
+            var orchestrator = FindAnyObjectByType<ChainOrchestrator>();
+            if (orchestrator == null) { status = "未找到 ChainOrchestrator"; return; }
+            orchestrator.OnError += msg => status = msg;
+            orchestrator.ImportScript(_draftScript, "DesktopPanel");
+            if (string.IsNullOrEmpty(status) || !status.StartsWith("AI 未接通")) status = "已导入剧本，等待提案确认";
         }
 
         // Labs 实验分区：默认折叠、开关默认关；接口与代码保留，主流程不依赖。
@@ -103,16 +133,6 @@ namespace ShotField.RuntimeUI
             GUILayout.Label("比对: " + workbench.CompareModeName + " / " + workbench.ReviewState);
             float progress = GUILayout.HorizontalSlider(workbench.ReviewProgress, 0f, 1f);
             if (Mathf.Abs(progress - workbench.ReviewProgress) > 0.01f) workbench.SeekReview(progress);
-        }
-
-        private void ImportChainProposal()
-        {
-            var orchestrator = FindAnyObjectByType<ChainOrchestrator>();
-            if (orchestrator == null) { status = "未找到 ChainOrchestrator"; return; }
-            orchestrator.OnError += msg => status = msg;
-            const string sample = "内景 客厅 日。A_Red 坐在沙发上看信，B_Blue 从门口走进来拿起茶几上的信封；机位先俯拍客厅全景，再推近信封特写。";
-            orchestrator.ImportScript(sample, "DesktopPanel");
-            if (string.IsNullOrEmpty(status) || !status.StartsWith("AI 未接通")) status = "已导入剧本，等待提案确认";
         }
 
         private void DrawTabletop()

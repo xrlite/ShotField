@@ -20228,7 +20228,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 4365080214194496819, guid: 4cc5b7b0da4add1449e74a51b0fc6bfb, type: 3}
       propertyPath: m_LocalPosition.x
-      value: 0.9
+      value: -1
       objectReference: {fileID: 0}
     - target: {fileID: 4365080214194496819, guid: 4cc5b7b0da4add1449e74a51b0fc6bfb, type: 3}
       propertyPath: m_LocalPosition.y
@@ -20236,7 +20236,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 4365080214194496819, guid: 4cc5b7b0da4add1449e74a51b0fc6bfb, type: 3}
       propertyPath: m_LocalPosition.z
-      value: 2.7
+      value: 1.4
       objectReference: {fileID: 0}
     - target: {fileID: 4365080214194496819, guid: 4cc5b7b0da4add1449e74a51b0fc6bfb, type: 3}
       propertyPath: m_LocalRotation.w
@@ -25613,6 +25613,8 @@ GameObject:
   - component: {fileID: 1221819913}
   - component: {fileID: 1221819915}
   - component: {fileID: 1221819914}
+  - component: {fileID: 1221819917}
+  - component: {fileID: 1221819916}
   m_Layer: 0
   m_Name: ChainRoot
   m_TagString: Untagged
@@ -25666,6 +25668,37 @@ MonoBehaviour:
   timeline: {fileID: 1601099761}
   filmCamera: {fileID: 0}
   anchorTransform: {fileID: 0}
+--- !u!114 &1221819916
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1221819912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2d19608a217aec34996f0c915f52d30f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ShotField.Export::ShotField.Export.ExportRecorderPanel
+--- !u!114 &1221819917
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1221819912}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: fc41a9dc8c644b429dbf76916a1ad7a1, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ShotField.Export::ShotField.Export.VideoRecorderController
+  sourceCamera: {fileID: 347616680}
+  sourceTexture: {fileID: 0}
+  width: 1280
+  height: 720
+  targetFps: 24
+  durationSeconds: 5
+  bitrate: 4000000
 --- !u!1 &1224151772
 GameObject:
   m_ObjectHideFlags: 0
@@ -56076,7 +56109,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1601099756}
-  m_LocalRotation: {x: 0.039249986, y: -0.9455578, z: 0.124485046, w: 0.29813325}
+  m_LocalRotation: {x: 0.094721235, y: -0.7724113, z: 0.11863509, w: 0.61671257}
   m_LocalPosition: {x: 0, y: 0, z: 1.5}
   m_LocalScale: {x: 0.0018, y: 0.0018, z: 0.0018}
   m_ConstrainProportionsScale: 0

@@ -77,6 +77,7 @@ namespace ShotField.RuntimeUI
             _isMoving = true;
             agent.speed = run ? runSpeed : walkSpeed;
             SpawnOrUpdateMarker(hit.position);
+            RefreshPathLine();
             OnDestinationSet?.Invoke(hit.position);
             return true;
         }
@@ -89,6 +90,7 @@ namespace ShotField.RuntimeUI
             _isMoving = false;
             _isRunning = false;
             HideMarker();
+            HidePathLine();
             SetAnimatorBooleans(false, false);
             if (animator != null) animator.speed = 1f;
         }

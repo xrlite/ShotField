@@ -1,0 +1,10 @@
+{
+  "name": "ShotField.Export.Editor",
+  "references": [
+    "ShotField.Export",
+    "ShotField.Core"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ]
+}

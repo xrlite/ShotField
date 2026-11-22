@@ -1,6 +1,3 @@
-using System;
-using UnityEngine;
-
 namespace ShotField.Core
 {
     /// <summary>
@@ -28,56 +25,8 @@ namespace ShotField.Core
             MaxRetries = maxRetries;
         }
 
-        [Serializable]
-        private sealed class ConfigFile
-        {
-            public DeepSeekSection deepseek;
-        }
-
-        [Serializable]
-        private sealed class DeepSeekSection
-        {
-            public string endpoint = "";
-            public string model = "";
-            public string apiKey = "";
-            public int timeoutSeconds = 60;
-            public int maxRetries = 2;
-        }
-
-        /// <summary>从 Resources 配置 + 环境变量装载配置；配置缺失或解析失败时退回安全默认值。</summary>
-        public static DeepSeekConfig Load()
-        {
-            string endpoint = "https://api.deepseek.com/chat/completions";
-            string model = "deepseek-chat";
-            string apiKey = Environment.GetEnvironmentVariable("SHOTFIELD_DEEPSEEK_KEY") ?? "";
-            int timeoutSeconds = 60;
-            int maxRetries = 2;
-
-            // Resources 资产名去最后扩展名：ai_config.local.json -> ai_config.local
-            var asset = Resources.Load<TextAsset>("ai_config.local");
-            if (asset != null)
-            {
-                try
-                {
-                    var file = JsonUtility.FromJson<ConfigFile>(asset.text);
-                    var section = file?.deepseek;
-                    if (section != null)
-                    {
-                        if (!string.IsNullOrEmpty(section.endpoint)) endpoint = section.endpoint;
-                        if (!string.IsNullOrEmpty(section.model)) model = section.model;
-                        if (!string.IsNullOrEmpty(section.apiKey)) apiKey = section.apiKey;
-                        if (section.timeoutSeconds > 0) timeoutSeconds = section.timeoutSeconds;
-                        if (section.maxRetries >= 0) maxRetries = section.maxRetries;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.LogWarning($"[DeepSeekConfig] 本地配置解析失败，走环境变量/默认值: {ex.Message}");
-                }
-            }
-
-            return new DeepSeekConfig(endpoint, model, apiKey, timeoutSeconds, maxRetries);
-        }
+        /// <summary>从 Resources 基线 + 持久化覆盖装载配置；委托 <see cref="LocalAiConfig"/> 单一口径。</summary>
+        public static DeepSeekConfig Load() => LocalAiConfig.LoadDeepSeek();
 
         /// <summary>在线分支配齐 Key 与端点才算已配置。</summary>
         public bool IsConfigured => !string.IsNullOrEmpty(ApiKey) && !string.IsNullOrEmpty(Endpoint);

@@ -33,12 +33,14 @@ namespace ShotField.RuntimeUI
             float w = PanelW - Margin * 2;
             float y = 6f;
 
-            GUI.Label(new Rect(x, y, w, 22f), "提案确认（P1 离线链）");
+            GUI.Label(new Rect(x, y, w, 22f), "镜头提案");
             y += 24f;
+            GUI.Label(new Rect(x, y, w, 16f), "逐条确认：接受后进入走位，拒绝跳过该条");
+            y += 18f;
             GUI.Label(new Rect(x, y, w, 16f), Proposal.sceneTitle);
             y += 18f;
 
-            _scroll = GUILayout.BeginScrollView(_scroll, GUILayout.Width(w), GUILayout.Height(panelH - 110f));
+            _scroll = GUILayout.BeginScrollView(_scroll, GUILayout.Width(w), GUILayout.Height(panelH - 128f));
             foreach (var item in Proposal.items) DrawItem(item, w);
             GUILayout.EndScrollView();
 
@@ -88,14 +90,19 @@ namespace ShotField.RuntimeUI
 
         private void DrawBottomBar(Rect rect)
         {
-            float half = (rect.width - Margin) / 2f;
-            if (GUI.Button(new Rect(rect.x, rect.y, half, rect.height), "全部接受"))
+            float third = (rect.width - Margin * 2) / 3f;
+            if (GUI.Button(new Rect(rect.x, rect.y, third, rect.height), "全部接受"))
             {
                 foreach (var item in Proposal.items)
                     if (item != null && item.decision != ProposalDecision.Rejected)
                         item.decision = ProposalDecision.Accepted;
             }
-            if (GUI.Button(new Rect(rect.x + half + Margin, rect.y, half, rect.height), "应用已接受"))
+            if (GUI.Button(new Rect(rect.x + third + Margin, rect.y, third, rect.height), "全部拒绝"))
+            {
+                foreach (var item in Proposal.items)
+                    if (item != null) item.decision = ProposalDecision.Rejected;
+            }
+            if (GUI.Button(new Rect(rect.x + 2f * (third + Margin), rect.y, third, rect.height), "应用已接受"))
                 OnApplyRequested?.Invoke();
         }
 
