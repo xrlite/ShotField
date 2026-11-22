@@ -57,11 +57,13 @@ namespace ShotField.RuntimeUI
 
         private void RestoreActors(SceneEditStateDto dto, List<string> failures)
         {
-            var actors = Actors();
+            var all = FindObjectsByType<ActorNavigator>(FindObjectsInactive.Include);
             foreach (var saved in dto.actors)
             {
-                var nav = FindActor(actors, saved.id);
+                var nav = FindActor(all, saved.id);
                 if (nav == null) { failures.Add($"未找到演员 {saved.id}"); continue; }
+                // 失活待添加的演员不参与本次快照恢复，静默跳过，不报缺失。
+                if (!nav.gameObject.activeInHierarchy) continue;
                 if (nav.agent == null) { failures.Add($"{saved.id} 无 NavMeshAgent"); continue; }
                 if (nav.TryPlace(saved.position, SampleRadius, out _))
                     nav.transform.rotation = Quaternion.Euler(saved.eulerAngles);
@@ -83,7 +85,7 @@ namespace ShotField.RuntimeUI
             }
         }
 
-        private ActorNavigator FindActor(List<ActorNavigator> actors, string id)
+        private ActorNavigator FindActor(IEnumerable<ActorNavigator> actors, string id)
         {
             foreach (var nav in actors) if (nav != null && nav.name == id) return nav;
             return null;
