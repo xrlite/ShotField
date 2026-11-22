@@ -30,7 +30,8 @@ namespace ShotField.RuntimeUI
         private void Awake()
         {
             floorInteractable = GetComponent<XRSimpleInteractable>();
-            if (actor != null) ActorSelection.Register(actor);
+            // 只把在场的回退目标登记进选择表；不在这里改选中，否则会抢走默认选中并挡住其余演员的懒加载
+            if (actor != null && actor.gameObject.activeInHierarchy) ActorSelection.Register(actor);
         }
 
         private void OnEnable()

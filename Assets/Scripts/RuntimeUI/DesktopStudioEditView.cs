@@ -26,6 +26,7 @@ namespace ShotField.RuntimeUI
         private Vector3 dragOrigin;
         private Vector3 dragWorld;
         private bool dragValid;
+        private Vector2 propScroll;
 
         void Awake()
         {
@@ -52,11 +53,12 @@ namespace ShotField.RuntimeUI
             var all = ActorSelection.All;
             if (all != null)
             {
-                foreach (var nav in all) if (nav != null) result.Add(nav);
+                // 退役演员可能仍挂在场景里但不参与编辑，列表里只显示在场的
+                foreach (var nav in all) if (nav != null && nav.gameObject.activeInHierarchy) result.Add(nav);
             }
             else
             {
-                foreach (var nav in FindObjectsByType<ActorNavigator>(FindObjectsInactive.Include)) result.Add(nav);
+                foreach (var nav in FindObjectsByType<ActorNavigator>(FindObjectsInactive.Exclude)) result.Add(nav);
             }
             return result;
         }
@@ -165,6 +167,9 @@ namespace ShotField.RuntimeUI
         private void DrawPropList()
         {
             GUILayout.Label($"道具库 {PropLibrary.Count} 条");
+            // 小屏/头显里整块面板只有 500 多像素高，道具区必须能滚，否则保存按钮会被挤出屏幕
+            float listHeight = Mathf.Clamp(Screen.height - 24f - 430f, 80f, 260f);
+            propScroll = GUILayout.BeginScrollView(propScroll, GUILayout.Height(listHeight));
             PropCategory? last = null;
             foreach (var entry in PropLibrary.All)
             {
@@ -176,6 +181,7 @@ namespace ShotField.RuntimeUI
                     message = $"待放置: {entry.displayName}，点小地图落地";
                 }
             }
+            GUILayout.EndScrollView();
         }
 
         private void DrawSaveBar()
