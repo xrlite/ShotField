@@ -9,6 +9,7 @@ namespace ShotField.EditorTools
 {
     public static class Sc01Blockout
     {
+        [MenuItem("ShotField/Blockout/Create SC01 Living Room Blockout")]
         [MenuItem("镜场 ShotField/创建 SC01 客厅白模")]
         private static void Build()
         {
@@ -24,10 +25,7 @@ namespace ShotField.EditorTools
             SceneView.RepaintAll();
         }
 
-        /// <summary>
-        /// 无 GUI 版本：建白模并返回根节点。批处理（-executeMethod）走这条路径，
-        /// 调用方负责先准备空场景，并自行决定是否保存。
-        /// </summary>
+        /// <summary>无 GUI 版本：建白模并返回根节点。批处理调用方准备空场景并自行保存。</summary>
         internal static GameObject BuildIntoScene()
         {
             var root = new GameObject("SC01_Blockout");
@@ -39,6 +37,7 @@ namespace ShotField.EditorTools
             return root;
         }
 
+        [MenuItem("ShotField/Blockout/Rebuild SC01 Art Scene")]
         [MenuItem("镜场 ShotField/重建 SC01 美术场景")]
         public static void BuildAndSaveScene()
         {
