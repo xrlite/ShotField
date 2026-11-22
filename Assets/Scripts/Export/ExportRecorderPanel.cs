@@ -4,8 +4,8 @@ namespace ShotField.Export
 {
     /// <summary>
     /// 成片导出入口（J8）：挂在持久化 GameObject 上，按钮触发 <see cref="VideoRecorderController"/>，
-    /// 回执取 <see cref="VideoExportResult.Summary"/>。首版无声轨；Android 编码路径仅打包后可验，
-    /// 编辑器内只走参数校验与失败提示，不出片。
+    /// 回执取 <see cref="VideoExportResult.Detail"/>（路径 / 字节 / 时长）。无声轨；
+    /// Android 编码路径仅打包后可验，编辑器内只走参数校验与失败提示，不出片。
     /// </summary>
     public sealed class ExportRecorderPanel : MonoBehaviour
     {
@@ -27,13 +27,13 @@ namespace ShotField.Export
             _recorder.OnFailed -= HandleFailed;
         }
 
-        private void HandleCompleted(VideoExportResult result) => _status = result.Summary;
+        private void HandleCompleted(VideoExportResult result) => _status = result.Detail;
 
         private void HandleFailed(string message) => _status = "导出失败：" + message;
 
         void OnGUI()
         {
-            var area = new Rect(Screen.width - 352f, Screen.height - 100f, 340f, 90f);
+            var area = new Rect(Screen.width - 352f, Screen.height - 150f, 340f, 140f);
             GUILayout.BeginArea(area, GUI.skin.box);
             GUILayout.Label("成片导出（本片无声轨）");
             GUILayout.BeginHorizontal();

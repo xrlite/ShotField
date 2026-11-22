@@ -2,6 +2,7 @@
 using System;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using UnityEditor;
 using UnityEngine;
 
@@ -25,6 +26,7 @@ namespace ShotField.Export.EditorTools
             try
             {
                 CheckPluginArtifacts(logs);
+                CheckFileName();
                 CheckFrameBuffer();
                 CheckResultDto();
                 CheckPlatformGuard();
@@ -53,6 +55,19 @@ namespace ShotField.Export.EditorTools
             if (!source.Contains("MIMETYPE_VIDEO_AVC")) throw new InvalidOperationException("Java 源码未配置 AVC");
 
             logs.Add($"[1] 插件在位：jar {jarInfo.Length} 字节，Java 源码 {source.Length} 字符");
+        }
+
+        private static void CheckFileName()
+        {
+            var when = new DateTime(2026, 11, 23, 14, 30, 0);
+            var rel = VideoExportPaths.BuildRelativePath(when);
+            if (rel != "Build/Video/SC01_Demo_20261123_1430.mp4")
+                throw new InvalidOperationException("相对路径规则不符：" + rel);
+            if (!Regex.IsMatch(VideoExportPaths.BuildFileName(when),
+                    @"^SC01_Demo_\d{8}_\d{4}\.mp4$"))
+                throw new InvalidOperationException("文件名规则不符：" + rel);
+            if (rel.ToLowerInvariant().Contains("final"))
+                throw new InvalidOperationException("文件名禁用 final 后缀");
         }
 
         private static void CheckFrameBuffer()
@@ -88,13 +103,13 @@ namespace ShotField.Export.EditorTools
             var done = new VideoExportResult
             {
                 State = VideoExportState.Done,
-                FileName = "shotfield_test.mp4",
-                DurationMs = 5000,
-                ByteSize = 123456,
-                FrameCount = 120
+                FileName = "SC01_Demo_test.mp4",
+                DurationMs = 15000,
+                ByteSize = 9_000_000,
+                FrameCount = 450
             };
             if (!done.Ok) throw new InvalidOperationException("有效回执未判定为 Ok");
-            if (!done.Summary.Contains("已保存") || !done.Summary.Contains("shotfield_test.mp4"))
+            if (!done.Summary.Contains("已保存") || !done.Summary.Contains("SC01_Demo_test.mp4"))
                 throw new InvalidOperationException("成功回执文案缺文件名");
 
             var failed = new VideoExportResult

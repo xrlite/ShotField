@@ -5,9 +5,10 @@ using ShotField.Core;
 namespace ShotField.Export
 {
     /// <summary>
-    /// 固定机位录制成片（首版：720p、24fps、5 秒、无声轨）。
+    /// 录制成片（验收规格：1920×1080、30fps 固定、15 秒、≥8Mbps、无声轨）。
     /// 绑定相机或 RenderTexture，按目标帧率抓 RGBA 帧喂编码器；停止后回执
-    /// 文件名 / 绝对路径 / 时长 / 体积。失败显式上报，不产出假文件。
+    /// 文件名 / 绝对路径 / 时长 / 体积。≥3 个真实切镜由场景相机动画保证，
+    /// 本组件不负责机位调度。失败显式上报，不产出假文件。
     /// </summary>
     public sealed class VideoRecorderController : MonoBehaviour
     {
@@ -15,12 +16,12 @@ namespace ShotField.Export
         [SerializeField] private Camera sourceCamera;
         [SerializeField] private RenderTexture sourceTexture;
 
-        [Header("Output")]
-        [SerializeField] private int width = 1280;
-        [SerializeField] private int height = 720;
-        [SerializeField] private int targetFps = 24;
-        [SerializeField] private float durationSeconds = 5f;
-        [SerializeField] private int bitrate = 4_000_000;
+        [Header("Output（验收规格：1080p30 / 15s / 8Mbps）")]
+        [SerializeField] private int width = 1920;
+        [SerializeField] private int height = 1080;
+        [SerializeField] private int targetFps = 30;
+        [SerializeField] private float durationSeconds = 15f;
+        [SerializeField] private int bitrate = 8_000_000;
 
         private VideoExportSession _session;
         private TimedCaptureClock _clock;
@@ -42,11 +43,11 @@ namespace ShotField.Export
             if (sourceError != null) { Fail(sourceError); return; }
             if (!VideoExportSession.PlatformSupported(out string supportReason)) { Fail(supportReason); return; }
 
-            var fileName = VideoExportPaths.BuildFileName(DateTime.Now);
+            var relativePath = VideoExportPaths.BuildRelativePath(DateTime.Now);
             _session = new VideoExportSession();
             try
             {
-                _session.Begin(width, height, targetFps, bitrate, fileName);
+                _session.Begin(width, height, targetFps, bitrate, relativePath);
             }
             catch (Exception ex)
             {
@@ -102,11 +103,10 @@ namespace ShotField.Export
             if (rt == null && sourceCamera != null)
             {
                 temporary = RenderTexture.GetTemporary(width, height, 24, RenderTextureFormat.ARGB32);
-                Camera backup = sourceCamera;
-                RenderTexture prevTarget = backup.targetTexture;
-                backup.targetTexture = temporary;
-                backup.Render();
-                backup.targetTexture = prevTarget;
+                RenderTexture prevTarget = sourceCamera.targetTexture;
+                sourceCamera.targetTexture = temporary;
+                sourceCamera.Render();
+                sourceCamera.targetTexture = prevTarget;
                 rt = temporary;
             }
             if (rt == null) return null;

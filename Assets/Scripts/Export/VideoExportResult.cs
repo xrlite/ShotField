@@ -28,7 +28,7 @@ namespace ShotField.Export
 
         public bool Ok => State == VideoExportState.Done && ByteSize > 0 && FrameCount > 0;
 
-        /// <summary>UI 回执一行文案：成功「已保存：名.mp4（5.00s，1.23 MB）」，失败带原因。</summary>
+        /// <summary>UI 一行回执：成功「已保存：名.mp4（15.00s，8.00 MB）」，失败带原因。</summary>
         public string Summary
         {
             get
@@ -39,6 +39,17 @@ namespace ShotField.Export
                     return $"已保存：{FileName}（{seconds:0.00}s，{FormatBytes(ByteSize)}）";
                 }
                 return string.IsNullOrEmpty(ErrorMessage) ? "导出失败" : "导出失败：" + ErrorMessage;
+            }
+        }
+
+        /// <summary>完整回执：路径 / 字节数 / 时长，供面板分行展示。</summary>
+        public string Detail
+        {
+            get
+            {
+                if (!Ok) return Summary;
+                double seconds = DurationMs / 1000.0;
+                return $"路径：{AbsolutePath}\n大小：{FormatBytes(ByteSize)}（{ByteSize} 字节）\n时长：{seconds:0.00}s";
             }
         }
 

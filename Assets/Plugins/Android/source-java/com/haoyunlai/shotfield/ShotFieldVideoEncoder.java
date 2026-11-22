@@ -63,10 +63,14 @@ public class ShotFieldVideoEncoder {
         File dir = context.getExternalFilesDir(Environment.DIRECTORY_MOVIES);
         if (dir == null) dir = context.getExternalFilesDir(null);
         if (dir == null) throw new IOException("external files dir unavailable");
-        if (!dir.exists() && !dir.mkdirs()) {
-            throw new IOException("cannot create dir: " + dir.getAbsolutePath());
+        // fileName may carry a relative subdirectory (e.g. Build/Video/xxx.mp4);
+        // create every missing parent directory.
+        File outputFile = new File(dir, fileName);
+        File parent = outputFile.getParentFile();
+        if (parent != null && !parent.exists() && !parent.mkdirs()) {
+            throw new IOException("cannot create dir: " + parent.getAbsolutePath());
         }
-        outputPath = new File(dir, fileName).getAbsolutePath();
+        outputPath = outputFile.getAbsolutePath();
 
         MediaFormat format = MediaFormat.createVideoFormat(
                 MediaFormat.MIMETYPE_VIDEO_AVC, width, height);
