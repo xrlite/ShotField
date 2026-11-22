@@ -15,7 +15,13 @@ namespace ShotField.RuntimeUI
             snapped = worldPos;
             if (agent == null) return false;
             var filter = BuildFilter();
-            if (!NavMesh.SamplePosition(worldPos, out var hit, Mathf.Max(0.01f, sampleRadius), filter)) return false;
+            // 采样半径要覆盖演员枢轴（约 0.8m 高）到导航网格面的垂直落差；水平贴近度仍由网格面本身判定。
+            float probeRadius = Mathf.Max(sampleRadius, 1.2f);
+            if (!NavMesh.SamplePosition(worldPos, out var hit, probeRadius, filter)) return false;
+            // 探针半径只该吃掉垂直落差：松开在水平方向的实际偏差必须仍受调用方半径约束，
+            // 否则 1.2m 的探针会把 0.9m 外的网格点也判成"站得住"。
+            var flat = new Vector2(hit.position.x - worldPos.x, hit.position.z - worldPos.z).magnitude;
+            if (flat > Mathf.Max(0.01f, sampleRadius)) return false;
             snapped = hit.position;
             return true;
         }

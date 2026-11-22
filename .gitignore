@@ -28,6 +28,8 @@
 .pico-cli/
 
 Passports/
+# 编辑器下 SceneEditStateStore 的本地快照目录（运行时产物，不入库）
+/Saves/
 
 *.log
 *.tmp

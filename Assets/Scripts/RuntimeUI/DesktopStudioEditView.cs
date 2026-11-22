@@ -7,7 +7,7 @@ namespace ShotField.RuntimeUI
     /// <summary>
     /// PC 场景编辑面板（M1 六步链）：选人 → 小地图拖拽吸附 → 加道具 → 保存 → 重载保持。
     /// 屏幕空间 IMGUI，挂在画布同一物体上，画在屏幕右侧，避开左侧 340px 既有面板。
-    /// 注：DesktopStudioView.cs 为禁改文件且已声明 OnGUI，本视图作为同级驱动组件独立接收 OnGUI。
+    /// 绝对 Rect 布局绘制见 DesktopStudioEditView.Layout.cs；保存/恢复链路见 SceneEditRestore.cs。
     /// </summary>
     public sealed partial class DesktopStudioEditView : MonoBehaviour
     {
@@ -34,19 +34,6 @@ namespace ShotField.RuntimeUI
             browser = FindAnyObjectByType<PropBrowserUI>();
         }
 
-        void OnGUI()
-        {
-            var area = new Rect(Screen.width - 332f, 12f, 320f, Mathf.Min(Screen.height - 24f, 860f));
-            GUILayout.BeginArea(area, GUI.skin.box);
-            GUILayout.Label("场景编辑（PC）");
-            DrawActorList();
-            DrawMap();
-            DrawPropList();
-            DrawSaveBar();
-            if (!string.IsNullOrEmpty(message)) GUILayout.Label(message);
-            GUILayout.EndArea();
-        }
-
         private List<ActorNavigator> Actors()
         {
             var result = new List<ActorNavigator>();
@@ -61,43 +48,6 @@ namespace ShotField.RuntimeUI
                 foreach (var nav in FindObjectsByType<ActorNavigator>(FindObjectsInactive.Exclude)) result.Add(nav);
             }
             return result;
-        }
-
-        private void DrawActorList()
-        {
-            var actors = Actors();
-            GUILayout.Label($"演员 {actors.Count} 位");
-            var current = ActorSelection.Current;
-            foreach (var nav in actors)
-            {
-                bool isCurrent = ReferenceEquals(nav, current);
-                bool hasAgent = nav.agent != null;
-                var label = (isCurrent ? "● " : "○ ") + nav.name + (hasAgent ? "" : "（无 NavMeshAgent）");
-                GUI.color = ChipColor(nav);
-                if (GUILayout.Button(label)) ActorSelection.Select(nav);
-                GUI.color = Color.white;
-            }
-        }
-
-        private void DrawMap()
-        {
-            var map = GUILayoutUtility.GetRect(290f, 170f);
-            GUI.Box(map, "1:20 俯视小地图 · 拖拽当前演员 / 点选待放道具");
-            if (tabletop == null) { message = "未找到 TabletopDirector"; return; }
-            foreach (var nav in Actors()) DrawMarker(map, nav);
-            HandleMapInput(map);
-            if (!dragging) return;
-            GUI.color = dragValid ? Color.green : Color.red;
-            var p = WorldToMap(dragWorld, map);
-            GUI.Label(new Rect(p - Vector2.one * 8f, new Vector2(16f, 16f)), "◈");
-            GUI.color = Color.white;
-        }
-
-        private void DrawMarker(Rect map, ActorNavigator nav)
-        {
-            GUI.color = ChipColor(nav);
-            GUI.Label(new Rect(WorldToMap(nav.transform.position, map) - Vector2.one * 6f, new Vector2(12f, 12f)), "●");
-            GUI.color = Color.white;
         }
 
         private void HandleMapInput(Rect map)
@@ -162,36 +112,6 @@ namespace ShotField.RuntimeUI
             var rel = (mapPos - map.center) / PixelsPerMeter;
             var tt = tabletop.TabletopAnchor.position + new Vector3(rel.x, 0f, -rel.y);
             return tabletop.TabletopToWorld(tt);
-        }
-
-        private void DrawPropList()
-        {
-            GUILayout.Label($"道具库 {PropLibrary.Count} 条");
-            // 小屏/头显里整块面板只有 500 多像素高，道具区必须能滚，否则保存按钮会被挤出屏幕
-            float listHeight = Mathf.Clamp(Screen.height - 24f - 430f, 80f, 260f);
-            propScroll = GUILayout.BeginScrollView(propScroll, GUILayout.Height(listHeight));
-            PropCategory? last = null;
-            foreach (var entry in PropLibrary.All)
-            {
-                if (entry.category != last) { last = entry.category; GUILayout.Label(entry.category.ToString()); }
-                var prefix = entry.id == pendingPropId ? "▸ " : "";
-                if (GUILayout.Button(prefix + entry.displayName))
-                {
-                    pendingPropId = entry.id;
-                    message = $"待放置: {entry.displayName}，点小地图落地";
-                }
-            }
-            GUILayout.EndScrollView();
-        }
-
-        private void DrawSaveBar()
-        {
-            GUILayout.BeginHorizontal();
-            if (GUILayout.Button("保存快照")) SaveSnapshot();
-            if (GUILayout.Button("重新加载存档")) RestoreFromDisk();
-            GUILayout.EndHorizontal();
-            if (!string.IsNullOrEmpty(savePath)) GUILayout.Label("存档: " + savePath);
-            if (!string.IsNullOrEmpty(restoredUtc)) GUILayout.Label("已恢复 " + restoredUtc);
         }
     }
 }

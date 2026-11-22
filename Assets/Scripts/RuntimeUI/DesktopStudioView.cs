@@ -49,7 +49,11 @@ namespace ShotField.RuntimeUI
             GUILayout.EndArea();
             var feed = workbench.monitor?.Feed;
             if (feed != null)
-                GUI.DrawTexture(new Rect(365, 12, Mathf.Max(1, Screen.width - 377), Mathf.Max(1, Screen.height - 24)), feed, ScaleMode.ScaleToFit);
+            {
+                // 中央预览只占左面板与右侧编辑面板之间的中栏，不再贴到右面板下沿，避免预览贴图盖住右侧按钮与小地图。
+                float feedRight = Screen.width - 336f;
+                GUI.DrawTexture(new Rect(365, 12, Mathf.Max(1, feedRight - 365), Mathf.Max(1, Screen.height - 24)), feed, ScaleMode.ScaleToFit);
+            }
         }
 
         // 折叠区：不撑高既有布局，展开后才绘制新入口。
