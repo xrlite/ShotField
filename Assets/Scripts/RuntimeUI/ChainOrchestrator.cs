@@ -6,11 +6,11 @@ using UnityEngine;
 namespace ShotField.RuntimeUI
 {
     /// <summary>
-    /// P1 离线链编排器：剧本文本 → AiScriptParser 离线 mock 解析 → 结构化提案 →
-    /// 确认 UI 处置 → 经既有公开 API 落场景 → 生成时间轴分段 → 导出 JSON 清单。
-    /// 在线段（DeepSeek / 即梦）未接 key 前，解析固定走离线 mock；不发任何在线请求。
+    /// P1 链编排器：剧本文本 → AiScriptParser（配置接通且未选离线演示时走在线 DeepSeek，否则离线结构化）
+    /// → 结构化提案 → 确认 UI 处置 → 经既有公开 API 落场景 → 生成时间轴分段 → 导出 JSON 清单。
+    /// 在线失败/超时/不可解析抛 ScriptParseException，不静默降级成假提案。
     /// </summary>
-    public class ChainOrchestrator : MonoBehaviour
+    public partial class ChainOrchestrator : MonoBehaviour
     {
         private const float SampleRadius = 0.6f;
 
@@ -28,6 +28,7 @@ namespace ShotField.RuntimeUI
         public event Action<ChainProposalDto> OnProposalReady;
         public event Action<ChainApplyReport> OnApplied;
         public event Action<string> OnExported;
+        public event Action<string> OnError;
 
         void Awake()
         {
@@ -45,9 +46,21 @@ namespace ShotField.RuntimeUI
                 Debug.LogWarning("[ChainOrchestrator] 剧本文本为空，未生成提案");
                 return;
             }
-            if (_parser == null) _parser = new AiScriptParser { IsOfflineMock = true };
+            if (_parser == null) _parser = DeepSeekConfig.CreateParser(LabFeatureFlags.OfflineDemo);
 
-            ScriptAnalysisResult result = _parser.ParseScriptAsync(rawScript).GetAwaiter().GetResult();
+            ScriptAnalysisResult result;
+            try
+            {
+                result = ScriptTaskRunner.RunSync(_parser.ParseScriptAsync(rawScript));
+            }
+            catch (ScriptParseException ex)
+            {
+                Proposal = null;
+                OnError?.Invoke($"AI 未接通：{ex.Message}（{ex.ErrorCode}）");
+                Debug.LogWarning($"[ChainOrchestrator] 解析失败 {ex.ErrorCode}: {ex.Message}");
+                return;
+            }
+
             Proposal = ProposalModel.BuildFromAnalysis(result, rawScript);
 
             if (_window != null)
@@ -117,21 +130,6 @@ namespace ShotField.RuntimeUI
             else report.placedPropIds.Add(item.propId);
         }
 
-        private void ApplyActor(ProposalItemDto item, ChainApplyReport report)
-        {
-            var actor = ResolveActor(item.actorId);
-            if (actor == null)
-            {
-                report.placementFailures.Add($"演员 {item.actorId}：场景内无已登记演员");
-                return;
-            }
-            Vector3 pos = item.position.ToUnityVector3();
-            if (actor.TryPlace(pos, SampleRadius, out Vector3 snapped))
-                report.placedActorIds.Add(actor.name);
-            else
-                report.placementFailures.Add($"演员 {actor.name}：落点不可行走，未落位");
-        }
-
         private void ApplyCamera(ProposalItemDto item, ChainApplyReport report)
         {
             if (filmCamera == null) return;
@@ -139,51 +137,6 @@ namespace ShotField.RuntimeUI
             Vector3 anchor = ResolveAnchor(actor);
             CameraPreset.Apply((CameraPresetId)item.cameraPresetId, filmCamera, anchor);
             report.cameraApplied = true;
-        }
-
-        // 解析器角色名（ActorA / Director）与场景 GameObject 名（PrevisCast_*）不一致，
-        // 在此做别名映射；未命中再按名字包含匹配，最后回退 Current。
-        private static readonly Dictionary<string, string> ActorAliases = new Dictionary<string, string>
-        {
-            ["ActorA"] = "PrevisCast_A_Red",
-            ["actorA"] = "PrevisCast_A_Red",
-            ["actorRed"] = "PrevisCast_A_Red",
-            ["ActorB"] = "PrevisCast_B_Blue",
-            ["actorB"] = "PrevisCast_B_Blue",
-            ["actorBlue"] = "PrevisCast_B_Blue",
-            ["Director"] = "PrevisCast_B_Blue",
-            ["actorYellow"] = "PrevisCast_C_Yellow",
-            ["actorGreen"] = "PrevisCast_D_Green",
-            ["actorViolet"] = "PrevisCast_E_Violet",
-            ["actorMagenta"] = "PrevisCast_F_Magenta"
-        };
-
-        private ActorNavigator ResolveActor(string actorId)
-        {
-            var all = ActorSelection.All;
-            if (all != null)
-            {
-                string sceneName = ActorAliases.TryGetValue(actorId ?? "", out var mapped) ? mapped : actorId;
-                foreach (var nav in all)
-                {
-                    if (nav == null) continue;
-                    if (nav.name == sceneName) return nav;
-                }
-                foreach (var nav in all)
-                {
-                    if (nav != null && !string.IsNullOrEmpty(actorId) && nav.name.Contains(actorId)) return nav;
-                }
-            }
-            return ActorSelection.Current;
-        }
-
-        private Vector3 ResolveAnchor(ActorNavigator fallbackActor)
-        {
-            if (anchorTransform != null) return anchorTransform.position;
-            var marker = SemanticMarker.Find("envelope");
-            if (marker != null) return marker.transform.position;
-            if (fallbackActor != null) return fallbackActor.transform.position;
-            return new Vector3(0.8f, 1.25f, 1.25f);
         }
 
         private void EnsureWired()

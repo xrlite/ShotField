@@ -35,7 +35,7 @@ namespace ShotField.Core
 
         public FiveActsProductionPipeline(AiScriptParser parser = null, SeedanceBridge seedance = null)
         {
-            _parser = parser ?? new AiScriptParser { IsOfflineMock = true };
+            _parser = parser ?? DeepSeekConfig.CreateParser(false);
             _seedance = seedance ?? new SeedanceBridge { IsOfflineMock = true };
             InitializeActs();
         }
@@ -133,9 +133,7 @@ namespace ShotField.Core
         public ScriptAnalysisResult ParseActScript(ProductionAct act)
         {
             var desc = _acts[act];
-            var task = _parser.ParseScriptAsync(desc.rawScript);
-            task.Wait();
-            return task.Result;
+            return ScriptTaskRunner.RunSync(_parser.ParseScriptAsync(desc.rawScript));
         }
     }
 }

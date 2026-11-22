@@ -16,7 +16,7 @@ namespace ShotField.RuntimeUI
 
         private void Awake()
         {
-            _parser = new AiScriptParser { IsOfflineMock = true };
+            _parser = DeepSeekConfig.CreateParser(LabFeatureFlags.OfflineDemo);
         }
 
         private void Start()
@@ -74,11 +74,12 @@ namespace ShotField.RuntimeUI
             if (string.IsNullOrWhiteSpace(rawScript)) return false;
 
             LastImportedScript = rawScript;
-            if (_parser == null) _parser = new AiScriptParser { IsOfflineMock = true };
+            if (_parser == null) _parser = DeepSeekConfig.CreateParser(LabFeatureFlags.OfflineDemo);
 
-            if (_parser.IsOfflineMock || string.IsNullOrEmpty(_parser.ApiKey))
+            bool offline = LabFeatureFlags.OfflineDemo || !DeepSeekConfig.Load().IsConfigured;
+            if (offline)
             {
-                LastParsedResult = _parser.ParseScriptAsync(rawScript).GetAwaiter().GetResult();
+                LastParsedResult = ScriptTaskRunner.RunSync(_parser.ParseScriptAsync(rawScript));
                 OnScriptImported?.Invoke(LastImportedScript, LastParsedResult);
             }
             else

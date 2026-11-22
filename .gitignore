@@ -41,6 +41,11 @@ Passports/
 /[Cc]aptures/
 /[Tt]est[Cc]aptures/
 
+# 本地 AI 凭据（含 API key，绝不进远程；公开仓库泄露 key 属事故）
+/Assets/Resources/ai_config.local.json
+/Assets/Resources/ai_config.local.json.meta
+*_config.local.json
+
 # 性能测试包在编辑器启动时自动写出的产物（不是产品资产）
 /Assets/Resources/PerformanceTestRun*.json
 /Assets/Resources/PerformanceTestRun*.json.meta

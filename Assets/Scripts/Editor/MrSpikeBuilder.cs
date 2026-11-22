@@ -29,7 +29,7 @@ namespace ShotField.EditorTools
             {
                 scenes = new[] { SpikeScenePath },
                 locationPathName = string.IsNullOrEmpty(System.Environment.GetEnvironmentVariable("SHOTFIELD_OUT_APK"))
-                    ? "Build/ShotField_mr_spike.apk"
+                    ? "Build/ShotField_mr_spike_lab.apk"
                     : System.Environment.GetEnvironmentVariable("SHOTFIELD_OUT_APK"),
                 target = BuildTarget.Android,
                 options = BuildOptions.None
