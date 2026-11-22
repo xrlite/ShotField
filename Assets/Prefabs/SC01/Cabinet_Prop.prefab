@@ -114,7 +114,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ShotField.Core::ShotField.Core.SemanticMarker
   kind: 3
-  markerId: cabinet
+  markerId: cabinetProp
   displayName: Cabinet_Prop
   criticalFaceNormal: {x: 0, y: 0, z: 1}
   criticalFaceMustStayHidden: 0

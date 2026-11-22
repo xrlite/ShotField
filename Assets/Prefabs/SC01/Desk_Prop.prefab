@@ -79,7 +79,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ShotField.Core::ShotField.Core.SemanticMarker
   kind: 3
-  markerId: table
+  markerId: deskProp
   displayName: Desk_Prop
   criticalFaceNormal: {x: 0, y: 0, z: 1}
   criticalFaceMustStayHidden: 0

@@ -171,13 +171,20 @@ namespace ShotField.RuntimeUI
             {
                 go.AddComponent<ScenePropGrab>();
             }
-            if (go.GetComponent<SemanticMarker>() == null)
+            var marker = go.GetComponent<SemanticMarker>();
+            if (marker == null) marker = go.AddComponent<SemanticMarker>();
+            string baseId = string.IsNullOrEmpty(go.name) ? propId : go.name;
+            string uniqueId = baseId;
+            int suffix = 2;
+            var other = SemanticMarker.Find(uniqueId, FindObjectsInactive.Include);
+            while (other != null && other != marker)
             {
-                var marker = go.AddComponent<SemanticMarker>();
-                marker.markerId = go.name;
-                var entry = PropLibrary.Find(propId);
-                if (entry != null) marker.kind = entry.semanticKind;
+                uniqueId = $"{baseId}_{suffix++}";
+                other = SemanticMarker.Find(uniqueId, FindObjectsInactive.Include);
             }
+            marker.RebindId(uniqueId);
+            var entry = PropLibrary.Find(propId);
+            if (entry != null) marker.kind = entry.semanticKind;
         }
     }
 }

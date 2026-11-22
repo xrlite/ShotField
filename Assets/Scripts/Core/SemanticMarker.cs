@@ -110,6 +110,15 @@ namespace ShotField.Core
                 Registry.Remove(markerId);
         }
 
+        /// <summary>运行时改 ID 并同步注册表，避免旧 ID 残留指向本物体。</summary>
+        public void RebindId(string newId)
+        {
+            if (!string.IsNullOrEmpty(markerId) && Registry.TryGetValue(markerId, out var old) && old == this)
+                Registry.Remove(markerId);
+            markerId = string.IsNullOrEmpty(newId) ? gameObject.name : newId;
+            if (gameObject.activeInHierarchy) Registry[markerId] = this;
+        }
+
         /// <summary>场景里所有带标记的对象。</summary>
         public static SemanticMarker[] All(FindObjectsInactive inactive = FindObjectsInactive.Exclude)
         {

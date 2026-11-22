@@ -47,7 +47,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: ShotField.Core::ShotField.Core.SemanticMarker
   kind: 3
-  markerId: chair
+  markerId: chairProp
   displayName: Chair_Prop
   criticalFaceNormal: {x: 0, y: 0, z: 1}
   criticalFaceMustStayHidden: 0

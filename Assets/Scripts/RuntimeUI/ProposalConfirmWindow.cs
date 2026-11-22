@@ -79,7 +79,10 @@ namespace ShotField.RuntimeUI
                 GUILayout.Label("秒", GUILayout.Width(24f));
             }
 
-            string note = GUILayout.TextField(item.note, "备注：", GUILayout.Width(w));
+            GUILayout.BeginHorizontal();
+            GUILayout.Label("备注：", GUILayout.Width(48f));
+            string note = GUILayout.TextField(item.note, GUILayout.Width(w - 48f));
+            GUILayout.EndHorizontal();
             if (note != item.note)
             {
                 item.note = note;

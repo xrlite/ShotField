@@ -1,28 +1,81 @@
 # 镜场 ShotField
 
-**面向 AI 影视创作者的多人空间导演与虚拟制片平台。**
+**让创作者走进自己想拍的故事。** 在 VR 片场定机位、排走位、存镜头意图，再交给视频生成模型出画面并对照检查。
 
-[快速开始](#快速开始) · [案例与进度](#案例与进度) · [预演文档](#预演文档) · [源码结构](#源码结构) · [Android 构建](#android-构建) · [已知限制](#已知限制) · [许可证](#许可证与来源)
+[快速开始](#快速开始) · [当前可用](#当前可用真跑过) · [实验室功能](#实验室功能有接口未真机验) · [尚未实现](#尚未实现) · [验证索引](VERIFICATION.md) · [源码结构](#源码结构) · [Android 构建](#android-构建) · [许可证](#许可证与来源)
 
 ![License](https://img.shields.io/badge/license-MIT-green) ![Unity](https://img.shields.io/badge/Unity-6000.6.5f1-blue) ![Platform](https://img.shields.io/badge/target-PICO%20Android%20ARM64-orange)
 
-创作者可以进入共享虚拟片场，通过身体、手势、摄影机和演员表演共同设计镜头。系统记录镜头意图、空间关系和团队决策，检查连续性并输出可复用的影视参考资料，再借助视频生成模型形成最终画面。创作并不在生成完成时结束——导演还可以邀请观众试看，通过反馈和审片记录持续修改作品。
+> **当前是工程验证期的测试版（`0.9.0-lab`），不是发布版。**
+> 本页严格区分「真跑过」「有接口未验」「还没做」。**代码存在不等于功能可用。**
+> 每条结论的证据见 **[验证索引 VERIFICATION.md](VERIFICATION.md)**。
 
-产品由四个不可互相替代的支柱构成。**下表同时标明实现状态，未实现的不能当作现有能力宣传**：
+---
 
-| 支柱 | 内容 | 当前状态 |
-| --- | --- | --- |
-| **多人共创** | 导演、演员、制片人、观众进入同一项目空间；联机不是额外按钮，而是制作方式 | 局域网会话有代码、未联调；房间码、双端同看一镜、远端位置光标未做 |
-| **空间导演** | 身体即摄影机、运镜路径录制、俯视沙盘、人物表演、实时监视器；VR 为主，PC 同等可用 | 机位摆放、走位、沙盘有代码；撤销栈与自动保存未做 |
-| **意图可控** | 镜头护照、越轴/遮挡/构图检查、故事圣经、导演审批、生成结果对照 | 护照与三类约束检查已验证；故事圣经与生成对照表未做 |
-| **观众反馈与 AI 生产** | 剧本辅助、资产生成、视频生成、观众试看与反馈、据此重改 | 白模帧导出已验证；运镜视频、导出包、观众模式未做 |
+## 当前可用（真跑过）
 
-| 模块 | 仓库入口 |
+以下均在 Unity 编辑器或真实 API 上有日志/截图证据。
+
+| 能力 | 证据口径 |
 | --- | --- |
-| 镜头数据、联机与导出 | [Core](Assets/Scripts/Core) |
-| 镜头连续性与空间约束 | [Constraints](Assets/Scripts/Constraints) |
-| 导演工作台、演员与相机 | [RuntimeUI](Assets/Scripts/RuntimeUI) |
-| 场景工具、构建与验证 | [Editor](Assets/Scripts/Editor) |
+| **四格式剧本导入** txt / md / docx / 文本层 pdf | `SCRIPT-IMPORT-RESULT=PASS (4/4)`，四份同内容样本的标题、人物数、对白数、场景数、摘要完全一致。`.doc` 提示另存 docx；扫描件标「需要 OCR」不静默返回空；GB18030 中文往返无乱码 |
+| **导入后先预览再确认** | 导入层零网络零 AI，成功态为 `PendingConfirmation`，**用户确认前不会调用任何 AI** |
+| **AI 剧本拆解（真实 DeepSeek）** | `SCRIPT-PROPOSAL-RESULT=PASS (3/3)`。三份不同剧本给出**不同**推荐模式：室内双人对话→走进片场、六人会议→沙盘、城市追逐→混合。回答场景规模、所需人数、资产复用/灰盒/生成建议、每镜运镜方式、越轴与穿墙风险 |
+| **AI 失败不静默** | 超时明确提示；JSON 错显示原始错误可重试；离线模板必须用户显式选择 |
+| **演员贴地与家具绕行** | 实例级门禁遍历场景全部激活演员，脚底与地板顶面间隙 ±0.02m；落位与家具重叠会被拒绝；绕行路径为 NavMesh 真实解（实测 ratio 1.376，绕开茶几而非穿过） |
+| **镜头护照与三类约束检查** | 越轴、遮挡、构图检查已验证 |
+| **白模帧导出** | 已验证 |
+| **14 项编辑器门禁** | 最近全量 `14 run / 0 failed`，见验证索引 |
+| **Android 包可构建可运行** | `com.haoyunlai.shotfield`，ARM64 + IL2CPP；模拟器装入成功、进程存活、OpenXR 正常加载、场景正常渲染 |
+
+### 凭据配置
+
+当前测试版支持 **DeepSeek、Tripo 本地配置**。凭据不进入源码和版本库。
+
+- 本地配置文件 `Assets/Resources/ai_config.local.json`（由 `.gitignore` 排除，仓库里没有这个文件）
+- 或环境变量 `SHOTFIELD_DEEPSEEK_KEY` / `SHOTFIELD_TRIPO_KEY`
+- 未配置时相关功能明确提示不可用，不会伪装成功
+
+---
+
+## 实验室功能（有接口，未真机验）
+
+**这些不阻塞主线，也不作为完成度宣传。**
+
+| 功能 | 真实状态 |
+| --- | --- |
+| **Tripo 资产生成** | 真实 API 已通到 **GLB 落盘**（实测生成一个门，2.86MB）。**运行时导入尚未实现**，生成物还进不了场景 |
+| **本地 MP4 导出** | MediaCodec + MediaMuxer 链路已落地，编辑器自测通过、两条失败分支已验。**Android 真编码 pending-APK**。目标规格 1920×1080 / 30fps / ≥8Mbps / 15 秒 / ≥3 镜头 |
+| **Android 文件选择器（SAF）** | Java 侧与 C# 桥已实现并编译通过，**选择器实际行为 pending-APK** |
+| **MR 透视沙盘** | 仅 Labs。平面识别接口已留，真机 Plane Detection 未取证。**不宣称支持真实桌面识别** |
+| **飞书会议纪要接入** | 调研完成，读接口已核实；写入端点对自建应用是否开放**未确认**。App Secret 只在服务端，**绝不进 Unity APK** |
+| **即梦视频生成** | 接口适配层存在，**轮询/下载/回填未实现**。本地导出过关后才推进 |
+| **多人共创** | 局域网会话有代码、未联调；房间码、双端同看一镜、远端光标未做 |
+
+---
+
+## 尚未实现
+
+- **六阶段引导工作流**（导入→提案→资产→预演→剪辑→导出）的统一调度与新手引导
+- **可编辑提案页**：改人物身份/数量、道具、位置、镜头时长、场景模式、资产处理方式、删镜头
+- **资产对账页**：缺件三选（现有资产 / 灰盒 / Tripo 生成）
+- **运行时 GLB 导入**：现依赖 `com.plattar.unitygltf` 实为 **Editor-only 导出器**，进不了 APK；已选 GLTFUtility(MIT) 路线待引入
+- **多机位时间轴编辑器**：素材列表、视频轨、动作轨、Clip 拖动排序与裁切、播放头、缩略图
+- **VR 掌心菜单**：控制器上的菜单组件引用未接线，属未接线非废案
+- **沙盘 1:20 与 1:1 走进片场的切换**
+- **世界画布中文显示**：场景内 66 个 legacy Text 使用内置无 CJK 字体，中文显示为方块（IMGUI 面板中文正常）。字体来源涉再分发许可，待裁定
+- 手势追踪、眼动追踪、面部捕捉
+- 撤销栈与自动保存、故事圣经、生成结果对照表、观众试看模式
+
+### 已知缺陷
+
+- **Console 未完全归零**：工程脚本侧已 0 错误 0 警告，Play 态连续 5 分钟驻留后仍有 **2 条第三方包警告**——Unity AI Assistant 的账号接口超时（editor-only，不进 APK），以及 PICO SpatialAdapter 的 `SceneValidator` 无条件索要 Spatial Camera（上游注释说应按开关判断，代码未实现）。两者均为远程包，工程侧无法持久修补。**编辑态门禁窗口内这两条不复现，故 `console_clean` 在门禁里判 PASS；Play 长驻留读数为 FAIL，以长驻留为准。**
+- Blue 演员 Play 态位置漂移，根因未追
+- NavMesh 烘焙面上浮 5cm（地面判定已改用碰撞体顶面规避）
+- prefab 的 agent radius/height 与场景覆盖值未对齐
+- 桌面 IMGUI 面板无平台守卫，Android 包内仍会绘制，头显内可操作性未确认
+
+---
 
 ## 快速开始
 
@@ -31,84 +84,67 @@ git clone https://github.com/xrlite/ShotField.git
 cd ShotField
 ```
 
-1. 安装项目记录的 Unity 版本 `6000.6.5f1`。Android 构建还需要 Unity Android Build Support、SDK、NDK 和 OpenJDK。
-2. 通过 Unity Hub 打开仓库根目录，等待 Package Manager 完成依赖解析。
-3. 打开 `Assets/Scenes/SC01_Final.unity` 检查室内预演场景。原 Android 构建入口仍使用 `Assets/Scenes/SC01_Blockout.unity`。
-4. 从 `ShotField > Verifiers` 运行编辑器验证。编辑器结果、模拟器结果与头显实测应分别记录。
+1. 安装 Unity `6000.6.5f1`。Android 构建还需 Android Build Support、SDK、NDK、OpenJDK。
+2. 用 Unity Hub 打开仓库根目录，等 Package Manager 解析完依赖。
+3. 打开 **`Assets/Scenes/SC01_Main.unity`** —— 这是**唯一主场景**，也是 Android 构建入口。
+4. 从 `ShotField > Verifiers` 运行编辑器门禁。
+5. 需要 AI 功能时，按上文「凭据配置」放好本地配置或环境变量。
 
-## 案例与进度
-
-| 案例 | 内容 | 状态 |
-| --- | --- | --- |
-| A · 桌上那封信 | 室内、演员与桌边信封。计划用门洞缓推和桌边低角度横移展示走位与视线。 | 已有布景和编辑器预演，导演操作链路持续验收。 |
-| B · 街巷追逃 | 街巷、五名演员、高空俯冲、贴地横移跟拍和巷口固定机位。 | 规划中。 |
-| C · 宏大示意 | 楼群远景、一名演员和一次五秒长拉镜头。 | 规划中。 |
-
-备件库规划为 54 件，含 12 件结构、10 件家具、20 件道具和 12 件风格件。现有资源和规划数量分别登记。发布版验收前，手势、眼追和真机帧率均须以设备证据为准。
-
-## 预演文档
-
-案例 A《桌上那封信》的创作规格随功能一起提交，说明「输入什么、演出什么、验收什么」：
-
-| 文档 | 内容 |
-| --- | --- |
-| [SC01_Previs_Script.md](Assets/Documentation/Previs/SC01_Previs_Script.md) | 预演剧本：人物、动机与 60 秒节拍 |
-| [SC01_ShotList.md](Assets/Documentation/Previs/SC01_ShotList.md) | 七组分镜的机位、焦段与运镜规格 |
-| [SC01_VisualPalette.md](Assets/Documentation/Previs/SC01_VisualPalette.md) | 视觉语言：景物两级灰、角色分色、机位琥珀色 |
+> 工程路径必须**全 ASCII**，Android 构建会拒绝非 ASCII 路径。
+> 改过工程目录名后必须删 `Library` 重建，否则会静默卡在导入阶段。
 
 ## 源码结构
 
 | 路径 | 内容 |
 | --- | --- |
-| `Assets/Scripts/Core` | 镜头数据、轨迹、保存、导出与联机基础 |
-| `Assets/Scripts/Constraints` | 视线、空间和连续性校验 |
-| `Assets/Scripts/RuntimeUI` | 工作台、演员与机位交互 |
-| `Assets/Scripts/Editor` | 场景工具、抓图、构建和验证 |
-| `Assets/Documentation/Previs` | 工作区中的预演剧本、镜头表与视觉规范，随对应功能提交 |
-| `Assets/Scenes`、`Assets/Prefabs` | 场景与可复用组件 |
+| `Assets/Scripts/Core` | 镜头数据、提案契约、AI 解析、Tripo 适配、保存与导出基础 |
+| `Assets/Scripts/Import` | 四格式剧本导入（自包含程序集，不依赖其它层） |
+| `Assets/Scripts/Constraints` | 视线、空间与连续性校验 |
+| `Assets/Scripts/RuntimeUI` | 工作台、演员导航与机位交互 |
+| `Assets/Scripts/Export` | 视频录制与 MP4 导出 |
+| `Assets/Scripts/Editor` | 场景工具、构建与门禁验证器 |
+| `Assets/Plugins/Android` | Java 桥接源码与构建必需 jar |
+| `Assets/Documentation/Previs` | 预演剧本、镜头表与视觉规范 |
 
 ## Android 构建
 
-关闭使用同一工程的 Unity 编辑器，在仓库根运行。将 Unity 安装路径换成实际路径。
+关闭占用同一工程的 Unity 编辑器，在仓库根运行：
 
 ```powershell
-# 先把 X: 换成你自己的 Unity 安装位置（Unity Hub 里能看到）
-$repo = (Get-Location).Path
-$unity = 'X:\Unity\6000.6.5f1\Editor\Unity.exe'
-$env:SHOTFIELD_OUT_APK = Join-Path $repo 'Build/ShotField.apk'
+$repo  = (Get-Location).Path
+$unity = 'X:\Unity\6000.6.5f1\Editor\Unity.exe'   # 换成你自己的 Unity 安装路径
+$env:SHOTFIELD_OUT_APK = Join-Path $repo 'Build/ShotField_lab.apk'
 New-Item -ItemType Directory -Path (Join-Path $repo 'Build') -Force | Out-Null
 & $unity -batchmode -projectPath $repo `
   -executeMethod ShotField.EditorTools.BuildAndroid.BuildIl2Cpp `
   -logFile (Join-Path $repo 'Build/android.log')
 ```
 
-现有入口使用 IL2CPP + ARM64，应用 ID 为 `com.haoyunlai.shotfield`。构建成功、Swan 运行和 PICO 真机体验分别验收。
+**PICO SDK 6.2.0 强制 ARM64 + IL2CPP**，改 Mono 或 ARMv7 会被 SDK 校验拦下。
+构建成功、模拟器运行、PICO 真机体验**分别验收**，不可互相冒充。
 
-## 展示内容与证据
+## 验收口径
 
-| 维度 | 展示内容 |
+| 栏位 | 含义 |
 | --- | --- |
-| 创新 | 在 VR 中组织演员、机位和镜头意图，用连续性检查辅助预演 |
-| 界面 | 将监视、镜头列表、质检、协作和时间轴放在空间工作台，现场以实际界面为准 |
-| 交互 | 展示摆位、走位、机位记录与回放中的已验证操作 |
-| 功能设计 | 展示可运行的案例、道具复用以及镜头参考导出 |
-| 二次开发 | 通过源码、场景和文档说明如何扩展，引用外部资源时保留对应许可 |
+| 模拟器已验证 | PICO Emulator（Swan x86_64 / PICO OS 6 / Android 16）真跑过，有日志或截图 |
+| pending-真机 | 代码已落地，只有编辑器/模拟器证据 |
+| 未验证 | 只有代码或设计 |
+
+本项目**无 PICO 真机**。Quest 3S 属 Meta 生态，装不了本项目 APK，**不作为验收层**。
+全沉浸立体首帧、90fps、手柄交互一律 pending-真机。
+
+截图、视频与日志**不进版本库**，随提交材料单独提供，文件名见 [验证索引](VERIFICATION.md)。
 
 ## PICO Space Program 参赛交付
 
 参赛入口：[PICO Space Program 中国区](https://spaceprogram-cn.picoxr.com/)。
-
-按中国区赛事快照，参赛须关联 GitHub 源码仓库。私有仓库通过赛事流程配置 Deploy Key，开源并支持二次开发属于完成度加分项。评审版本应对应具体提交，验证记录应标明 Unity 编辑器、Swan 模拟器或真机。
-
-## 已知限制
-
-工程验证期的诚实清单，逐条对应证据状态：
-
-- 编辑器验证（`ShotField > Verifiers`）与 Swan 模拟器结果分开记录；全沉浸立体首帧、90fps、手柄交互仍待 PICO 真机验收。
-- 手势追踪、眼动追踪、面捕在模拟器上不可验证，相关能力按真机可用范围实现与宣传。
-- 场景资产目前存在两个入口（`SC01_Final` 为预演主场景，Android 构建入口尚未切换），统一到单一场景前，APK 内容以构建脚本指向的场景为准。
-- 编辑器结果截图与日志不进版本库，随提交材料单独提供。
+评审版本对应具体提交，验证记录标明 Unity 编辑器 / Swan 模拟器 / 真机。
 
 ## 许可证与来源
 
-ShotField 团队拥有版权的原创代码与文档适用 [MIT](LICENSE)。Unity Starter Assets、PICO SDK、KitWright MCP 和其他第三方内容适用其各自的许可，发布前应核对对应版本的授权和声明。Poly Haven 家具为 CC0 来源资产。
+ShotField 团队拥有版权的原创代码与文档适用 [MIT](LICENSE)。
+
+第三方内容适用各自许可：**Unity Starter Assets、PICO SDK、KitWright MCP** 等发布前须核对对应版本授权与声明。Poly Haven 家具为 CC0。
+
+**红线**：Meta SDK 与 PICO SDK 的**样例源文件与场景均不得进入本公开仓库**（Meta SDK License §1.2.1/§1.2.8/§1.3；PICO SDK 为 All rights reserved）。「只要场景不要代码」不改变性质。

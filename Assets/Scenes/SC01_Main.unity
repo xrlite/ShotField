@@ -25694,11 +25694,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: ShotField.Export::ShotField.Export.VideoRecorderController
   sourceCamera: {fileID: 347616680}
   sourceTexture: {fileID: 0}
-  width: 1280
-  height: 720
-  targetFps: 24
-  durationSeconds: 5
-  bitrate: 4000000
+  width: 1920
+  height: 1080
+  targetFps: 30
+  durationSeconds: 15
+  bitrate: 8000000
 --- !u!1 &1224151772
 GameObject:
   m_ObjectHideFlags: 0
