@@ -38,7 +38,7 @@ android {
         noCompress = **BUILTIN_NOCOMPRESS** + unityStreamingAssets.tokenize(', ')
         ignoreAssetsPattern = "!.svn:!.git:!.ds_store:!*.scc:!CVS:!thumbs.db:!picasa.ini:!*~"
     }
-    packagingOptions {
+    packaging {
         // PICO SDK (LoaderForUnitySDK) 与 Unity OpenXR 插件 (openxr_loader)
         // 各自携带同名 libopenxr_loader.so，Gradle 合并 native 库时会报
         // "2 files found with path 'lib/arm64-v8a/libopenxr_loader.so'"。

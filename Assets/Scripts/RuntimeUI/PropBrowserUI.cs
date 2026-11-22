@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ShotField.Core;
 using UnityEngine;
 using UnityEngine.UI;
@@ -68,6 +69,63 @@ namespace ShotField.RuntimeUI
         {
             if (btn == null) return;
             btn.onClick.AddListener(() => SpawnProp(propId));
+        }
+
+        // 六色演员条目：点击把场景内待激活的 PrevisCast 实例放行入场。
+        // 注册走 ActorNavigator.Registry partial 的 OnEnable，不依赖面板手动 Bind。
+        private static readonly string[] ActorIds =
+        {
+            "actorRed", "actorBlue", "actorYellow",
+            "actorGreen", "actorViolet", "actorMagenta"
+        };
+
+        private static readonly Dictionary<string, string> ActorSceneName = new Dictionary<string, string>
+        {
+            ["actorRed"] = "PrevisCast_A_Red",
+            ["actorBlue"] = "PrevisCast_B_Blue",
+            ["actorYellow"] = "PrevisCast_C_Yellow",
+            ["actorGreen"] = "PrevisCast_D_Green",
+            ["actorViolet"] = "PrevisCast_E_Violet",
+            ["actorMagenta"] = "PrevisCast_F_Magenta"
+        };
+
+        private bool actorButtonsBuilt;
+
+        private void Start() => BuildActorButtons();
+
+        private void BuildActorButtons()
+        {
+            if (actorButtonsBuilt) return;
+            actorButtonsBuilt = true;
+            var panel = statusText != null ? statusText.transform.parent : transform;
+            for (var i = 0; i < ActorIds.Length; i++)
+            {
+                var entry = PropLibrary.Find(ActorIds[i]);
+                var label = entry != null ? entry.displayName : ActorIds[i];
+                var x = i % 2 == 0 ? -48f : 48f;
+                var y = -45f - (i / 2) * 58f;
+                var btn = RuntimeUiFactory.CreateButton(panel, $"Spawn_{ActorIds[i]}", label,
+                    new Vector2(x, y), new Vector2(88f, 44f));
+                var id = ActorIds[i];
+                btn.onClick.AddListener(() => ActivateActor(id));
+            }
+        }
+
+        /// <summary>放行场景内待激活的指定演员；已在场则直接返回。返回是否成功。</summary>
+        public bool ActivateActor(string actorId)
+        {
+            if (!ActorSceneName.TryGetValue(actorId, out var sceneName)) return false;
+            var nav = UnityEngine.Object.FindObjectsByType<ActorNavigator>(FindObjectsInactive.Include)
+                .FirstOrDefault(n => n.name == sceneName);
+            if (nav == null)
+            {
+                RuntimeUiFactory.SetStatus(statusText, $"未找到演员: {sceneName}");
+                return false;
+            }
+            if (!nav.gameObject.activeSelf) nav.gameObject.SetActive(true);
+            RuntimeUiFactory.SetStatus(statusText, $"已加入: {nav.name}");
+            OnPropSpawned?.Invoke(nav.gameObject);
+            return true;
         }
 
         /// <summary>

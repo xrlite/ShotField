@@ -40,10 +40,11 @@ android {
         abortOnError false
     }
 
-    packagingOptions {
+    packaging {
         pickFirst 'lib/arm64-v8a/libopenxr_loader.so'
         pickFirst 'lib/armeabi-v7a/libopenxr_loader.so'
         pickFirst 'lib/x86_64/libopenxr_loader.so'
+        pickFirst 'lib/x86/libopenxr_loader.so'
     }
 
     buildTypes {
