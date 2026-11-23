@@ -31,6 +31,10 @@ Passports/
 # 编辑器下 SceneEditStateStore 的本地快照目录（运行时产物，不入库）
 /Saves/
 
+# Unity 崩溃恢复快照（会反复再生；取证副本已移入 05_验证记录/2026-11/崩溃快照_20261122_SC01）
+/Assets/_Recovery/
+/Assets/_Recovery.meta
+
 *.log
 *.tmp
 
