@@ -25,7 +25,7 @@
 | **演员贴地与家具绕行** | 实例级门禁遍历场景全部激活演员，脚底与地板顶面间隙 ±0.02m；落位与家具重叠会被拒绝；绕行路径为 NavMesh 真实解（实测 ratio 1.376，绕开茶几而非穿过） |
 | **镜头护照与三类约束检查** | 越轴、遮挡、构图检查已验证 |
 | **白模帧导出** | 已验证 |
-| **14 项编辑器门禁** | 最近全量 `14 run / 0 failed`，见验证索引 |
+| **16 项编辑器门禁** | 最近全量 `16 run / 0 failed / 0 unverified`，日志 `verify_all_20261123_140741.log`，见验证索引 |
 | **Android 包可构建可运行** | `com.haoyunlai.shotfield`，ARM64 + IL2CPP；模拟器装入成功、进程存活、OpenXR 正常加载、场景正常渲染 |
 
 ### 凭据配置
@@ -35,7 +35,7 @@
 - **安全判据是「任何交付产物里没有 key」**，不是「git 历史 0 命中」。`.gitignore` 挡得住 git，**挡不住 Unity 打包**——`Assets/Resources/**` 会被无条件打进 APK。
 - 开发机基线配置放在 **`Assets/` 之外**（仓库内 `Tools/`，仍被 `.gitignore` 排除），**只在编辑器下读取**。
 - **Android 只走 `persistentDataPath` + 环境变量**，key 由用户在连接中心自行录入，**包里永远不带 key**。
-- 构建期有硬闸：`Assets/Resources/**` 与 `Assets/StreamingAssets/**` 一旦命中 key 模式，**构建直接失败**，带 key 的包构建不出来。
+- 构建期有硬闸：`Assets/Resources/**` 与 `Assets/StreamingAssets/**` 一旦命中 key 模式，构建器抛 `BuildFailedException`；**端到端拒包待打 APK 取证（pending-APK）**，当前不计入已验证。
 - 未配置时相关功能明确提示不可用，不会伪装成功。
 
 ---
@@ -58,7 +58,7 @@
 
 ## 尚未实现
 
-- **六阶段引导工作流**（导入→提案→资产→预演→剪辑→导出）的统一调度与新手引导
+- **六阶段引导工作流**：Core 纯状态机 `WorkflowStage{Import,Proposal,Assets,Rehearsal,Edit,Export}` + `WorkflowCoordinator`（线性前进 / 终点原地 / Reset / 变更事件）已落地，不依赖场景、UI 与网络；**RuntimeUI 驱动层、引导式面板、真实完成条件驱动的阶段推进尚未做**，不在「当前可用」内
 - **可编辑提案页**：改人物身份/数量、道具、位置、镜头时长、场景模式、资产处理方式、删镜头
 - **资产对账页**：缺件三选（现有资产 / 灰盒 / Tripo 生成）
 - **运行时 GLB 导入**：现依赖 `com.plattar.unitygltf` 实为 **Editor-only 导出器**，进不了 APK；已选 GLTFUtility(MIT) 路线待引入
@@ -71,7 +71,7 @@
 
 ### 已知缺陷
 
-- **Console 未完全归零**：工程脚本侧已 0 错误 0 警告，Play 态连续 5 分钟驻留后仍有 **2 条第三方包警告**——Unity AI Assistant 的账号接口超时（editor-only，不进 APK），以及 PICO SpatialAdapter 的 `SceneValidator` 无条件索要 Spatial Camera（上游注释说应按开关判断，代码未实现）。两者均为远程包，工程侧无法持久修补。**编辑态门禁窗口内这两条不复现，故 `console_clean` 在门禁里判 PASS；Play 长驻留读数为 FAIL，以长驻留为准。**
+- **Console 已长驻留归零**：2026-11-23 13:59:58 实跑 300s 驻留协议（摆位走位 + 时间轴寻道，60/120/180/240/300s 五次巡检全空），读数 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，日志 `console_clean_dwell_20261123_135958.log`。诚实备注：域重载时 `com.unity.xr.management` 会打一条 `Call to StopSubsystems without an initialized manager` 包生命周期警告（非我方代码，Play 初始化子系统后退出不复现，测量前已清掉）；验证器未加任何白名单。
 - Blue 演员 Play 态位置漂移，根因未追
 - NavMesh 烘焙面上浮 5cm（地面判定已改用碰撞体顶面规避）
 - prefab 的 agent radius/height 与场景覆盖值未对齐
