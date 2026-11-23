@@ -128,7 +128,11 @@ namespace ShotField.RuntimeUI
             DevToolGate.ExportRecorderVisible = GUILayout.Toggle(DevToolGate.ExportRecorderVisible, "成片视频导出小面板（开发工具）");
 
             _showAdvanced = GUILayout.Toggle(_showAdvanced, "更多设置（联机 / 高级参数）");
-            if (_showAdvanced) GUILayout.Label("联机与会话参数收在既有桌面开发工具内，主线旅程不展开。");
+            if (_showAdvanced)
+            {
+                GUILayout.Label("联机与会话参数收在既有桌面开发工具内，主线旅程不展开。");
+                DevToolPanels.LightingConsoleVisible = GUILayout.Toggle(DevToolPanels.LightingConsoleVisible, "灯光控制台（高级参数，按需呼出）");
+            }
 
             _showLabs = GUILayout.Toggle(_showLabs, "Labs 实验功能（MR 透视 / 即梦在线生成）· 与主线分离");
             if (_showLabs)

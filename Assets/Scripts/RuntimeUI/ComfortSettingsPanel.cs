@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace ShotField.RuntimeUI
 {
@@ -12,11 +13,11 @@ namespace ShotField.RuntimeUI
         public LocomotionComfortController controller;
 
         [Header("UI 文本组件")]
-        public Text locomotionModeText;
-        public Text vignetteText;
-        public Text snapAngleText;
-        public Text heightModeText;
-        public Text statusFeedbackText;
+        public TMP_Text locomotionModeText;
+        public TMP_Text vignetteText;
+        public TMP_Text snapAngleText;
+        public TMP_Text heightModeText;
+        public TMP_Text statusFeedbackText;
         public GameObject firstQuestionDialog;
 
         private void Start()
@@ -105,11 +106,11 @@ namespace ShotField.RuntimeUI
             var rt = host.GetComponent<RectTransform>();
             if (rt != null) rt.sizeDelta = new Vector2(360f, 320f);
 
-            panel.locomotionModeText = RuntimeUiFactory.CreateLabel(host.transform, "LocoLabel", "移动: Teleport", 14, new Vector2(0f, 100f));
-            panel.vignetteText = RuntimeUiFactory.CreateLabel(host.transform, "VignetteLabel", "暗角: 60%", 14, new Vector2(0f, 60f));
-            panel.snapAngleText = RuntimeUiFactory.CreateLabel(host.transform, "SnapLabel", "转向: 45°", 14, new Vector2(0f, 20f));
-            panel.heightModeText = RuntimeUiFactory.CreateLabel(host.transform, "HeightLabel", "身高: Auto", 14, new Vector2(0f, -20f));
-            panel.statusFeedbackText = RuntimeUiFactory.CreateLabel(host.transform, "StatusLabel", "就绪", 12, new Vector2(0f, -60f));
+            panel.locomotionModeText = RuntimeUiFactory.CreateTmpLabel(host.transform, "LocoLabel", "移动: Teleport", 14, new Vector2(0f, 100f));
+            panel.vignetteText = RuntimeUiFactory.CreateTmpLabel(host.transform, "VignetteLabel", "暗角: 60%", 14, new Vector2(0f, 60f));
+            panel.snapAngleText = RuntimeUiFactory.CreateTmpLabel(host.transform, "SnapLabel", "转向: 45°", 14, new Vector2(0f, 20f));
+            panel.heightModeText = RuntimeUiFactory.CreateTmpLabel(host.transform, "HeightLabel", "身高: Auto", 14, new Vector2(0f, -20f));
+            panel.statusFeedbackText = RuntimeUiFactory.CreateTmpLabel(host.transform, "StatusLabel", "就绪", 12, new Vector2(0f, -60f));
 
             var panicGo = new GameObject("PanicButton");
             panicGo.transform.SetParent(host.transform, false);
@@ -123,7 +124,7 @@ namespace ShotField.RuntimeUI
                 panicRt.sizeDelta = new Vector2(160f, 36f);
                 panicRt.anchoredPosition = new Vector2(0f, -110f);
             }
-            RuntimeUiFactory.CreateLabel(panicGo.transform, "PanicText", "我晕了！(一键防晕)", 13, Vector2.zero);
+            RuntimeUiFactory.CreateTmpLabel(panicGo.transform, "PanicText", "我晕了！(一键防晕)", 13, Vector2.zero);
 
             return panel;
         }

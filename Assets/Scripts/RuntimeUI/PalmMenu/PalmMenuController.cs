@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using TMPro;
 using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
@@ -25,7 +26,7 @@ namespace ShotField.RuntimeUI
         public Canvas menuCanvas;
         public Transform buttonRoot;
         public Button buttonPrefab;
-        public Text statusLabel;
+        public TMP_Text statusLabel;
         public string labelChildName = "Label";
 
         [Header("交互与触感")]
@@ -153,10 +154,10 @@ namespace ShotField.RuntimeUI
             return btn;
         }
 
-        private Text FindLabel(Transform root)
+        private TMP_Text FindLabel(Transform root)
         {
             var child = root.Find(labelChildName);
-            return child != null ? child.GetComponent<Text>() : root.GetComponentInChildren<Text>();
+            return child != null ? child.GetComponent<TMP_Text>() : root.GetComponentInChildren<TMP_Text>();
         }
 
         private static void MarkActive(Button btn)

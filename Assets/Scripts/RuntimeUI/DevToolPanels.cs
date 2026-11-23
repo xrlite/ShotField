@@ -14,5 +14,8 @@ namespace ShotField.RuntimeUI
 
         /// <summary>监看板缩放滑条按需呼出，不常驻顶栏。</summary>
         public static bool MonitorScalerVisible;
+
+        /// <summary>专业灯光控制台属高级参数，主线旅程不展开，默认收起按需呼出。</summary>
+        public static bool LightingConsoleVisible;
     }
 }

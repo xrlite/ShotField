@@ -4,6 +4,7 @@ using System.Linq;
 using ShotField.Core;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace ShotField.RuntimeUI
@@ -25,7 +26,7 @@ namespace ShotField.RuntimeUI
         public List<PropPrefabBinding> bindings = new List<PropPrefabBinding>();
         public Transform spawnAnchor;
         public Transform sceneRoot;
-        public Text statusText;
+        public TextMeshProUGUI statusText;
         public event Action<GameObject> OnPropSpawned;
 
         private readonly List<GameObject> spawnedProps = new List<GameObject>();
@@ -47,7 +48,7 @@ namespace ShotField.RuntimeUI
             var binding = FindBinding(propId);
             if (binding == null || binding.prefab == null)
             {
-                RuntimeUiFactory.SetStatus(statusText, $"未绑定资产: {propId}");
+                RuntimeUiFactory.SetStatusTmp(statusText, $"未绑定资产: {propId}");
                 return null;
             }
 
@@ -60,7 +61,7 @@ namespace ShotField.RuntimeUI
 
             var entry = PropLibrary.Find(binding.propId);
             string label = entry != null ? entry.displayName : binding.displayName;
-            RuntimeUiFactory.SetStatus(statusText, $"已放置: {label}");
+            RuntimeUiFactory.SetStatusTmp(statusText, $"已放置: {label}");
             OnPropSpawned?.Invoke(instance);
             return instance;
         }
@@ -104,7 +105,7 @@ namespace ShotField.RuntimeUI
                 var label = entry != null ? entry.displayName : ActorIds[i];
                 var x = i % 2 == 0 ? -48f : 48f;
                 var y = -45f - (i / 2) * 58f;
-                var btn = RuntimeUiFactory.CreateButton(panel, $"Spawn_{ActorIds[i]}", label,
+                var btn = RuntimeUiFactory.CreateTmpButton(panel, $"Spawn_{ActorIds[i]}", label,
                     new Vector2(x, y), new Vector2(88f, 44f));
                 var id = ActorIds[i];
                 btn.onClick.AddListener(() => ActivateActor(id));
@@ -119,11 +120,11 @@ namespace ShotField.RuntimeUI
                 .FirstOrDefault(n => n.name == sceneName);
             if (nav == null)
             {
-                RuntimeUiFactory.SetStatus(statusText, $"未找到演员: {sceneName}");
+                RuntimeUiFactory.SetStatusTmp(statusText, $"未找到演员: {sceneName}");
                 return false;
             }
             if (!nav.gameObject.activeSelf) nav.gameObject.SetActive(true);
-            RuntimeUiFactory.SetStatus(statusText, $"已加入: {nav.name}");
+            RuntimeUiFactory.SetStatusTmp(statusText, $"已加入: {nav.name}");
             OnPropSpawned?.Invoke(nav.gameObject);
             return true;
         }

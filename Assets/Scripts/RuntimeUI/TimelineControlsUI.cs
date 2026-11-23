@@ -2,6 +2,7 @@ using System;
 using ShotField.Core;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace ShotField.RuntimeUI
 {
@@ -19,7 +20,7 @@ namespace ShotField.RuntimeUI
         public Button motionPresetBtn;
         public Button posePresetBtn;
         public Slider scrubber;
-        public Text presetStatusText;
+        public TMP_Text presetStatusText;
 
         public CameraMotionType currentMotion = CameraMotionType.DollyPush;
         public ActorPoseType currentPose = ActorPoseType.Idle;

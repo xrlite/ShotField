@@ -17,7 +17,7 @@ namespace ShotField.EditorTools
         internal static void Attach(SpatialWorkbench wb)
         {
             if (!wb.exportBtn)
-                wb.exportBtn = RuntimeUiFactory.CreateButton(wb.transform, "ExportBtn",
+                wb.exportBtn = RuntimeUiFactory.CreateTmpButton(wb.transform, "ExportBtn",
                     "Export ZIP", new Vector2(-110f, -310f));
             if (Bound(wb)) return;
             UnityEventTools.AddPersistentListener(wb.exportBtn.onClick, wb.ExportReferencePackage);

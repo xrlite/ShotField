@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using ShotField.Core;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace ShotField.RuntimeUI
@@ -25,8 +26,8 @@ namespace ShotField.RuntimeUI
     /// </summary>
     public class SceneObjectInspector : MonoBehaviour
     {
-        public Text selectedLabel;
-        public Text statusText;
+        public TMP_Text selectedLabel;
+        public TMP_Text statusText;
         public Transform focusMarker;
         public readonly List<SceneObjectEntry> objects = new List<SceneObjectEntry>();
         public string SelectedId { get; private set; }
@@ -78,7 +79,7 @@ namespace ShotField.RuntimeUI
             if (entry == null || entry.target == null) return false;
             entry.isVisible = !entry.isVisible;
             entry.target.SetActive(entry.isVisible);
-            RuntimeUiFactory.SetStatus(statusText, $"{entry.displayName}: {(entry.isVisible ? "显示" : "隐藏")}");
+            RuntimeUiFactory.SetStatusTmp(statusText, $"{entry.displayName}: {(entry.isVisible ? "显示" : "隐藏")}");
             return true;
         }
 
@@ -89,7 +90,7 @@ namespace ShotField.RuntimeUI
             entry.isLocked = !entry.isLocked;
             var grab = entry.target.GetComponent<XRGrabInteractable>();
             if (grab != null) grab.enabled = !entry.isLocked;
-            RuntimeUiFactory.SetStatus(statusText, $"{entry.displayName}: {(entry.isLocked ? "已锁定" : "已解锁")}");
+            RuntimeUiFactory.SetStatusTmp(statusText, $"{entry.displayName}: {(entry.isLocked ? "已锁定" : "已解锁")}");
             return true;
         }
 
@@ -103,7 +104,7 @@ namespace ShotField.RuntimeUI
                 entry.isVisible = true;
                 entry.target.SetActive(true);
             }
-            RuntimeUiFactory.SetStatus(statusText, $"{entry.displayName}: 已复位");
+            RuntimeUiFactory.SetStatusTmp(statusText, $"{entry.displayName}: 已复位");
             return true;
         }
 

@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using UnityEngine.XR.Interaction.Toolkit.UI;
+using TMPro;
 using ShotField.RuntimeUI;
 using ShotField.Core;
 
@@ -61,12 +62,12 @@ namespace ShotField.EditorTools
 
             // 3. 窗口 B：镜头时间轴与控制条（底部）
             var controlPanel = RuntimeUiFactory.CreatePanel(canvasGo.transform, "WindowB_Controls", PicoCard, new Vector2(0f, -150f), new Vector2(760f, 90f));
-            wb.prevBtn = RuntimeUiFactory.CreateButton(controlPanel.transform, "PrevBtn", "◀ 上一镜", new Vector2(-280f, 0f));
-            wb.nextBtn = RuntimeUiFactory.CreateButton(controlPanel.transform, "NextBtn", "下一镜 ▶", new Vector2(-170f, 0f));
-            wb.captureViewBtn = RuntimeUiFactory.CreateButton(controlPanel.transform, "CaptureBtn", "抓取视角", new Vector2(-55f, 0f), null, PicoAccent);
-            wb.newShotBtn = RuntimeUiFactory.CreateButton(controlPanel.transform, "NewBtn", "新机位", new Vector2(55f, 0f));
-            wb.toggleAspectBtn = RuntimeUiFactory.CreateButton(controlPanel.transform, "AspectBtn", "画幅", new Vector2(165f, 0f));
-            wb.savePassportBtn = RuntimeUiFactory.CreateButton(controlPanel.transform, "SaveBtn", "存护照", new Vector2(275f, 0f));
+            wb.prevBtn = RuntimeUiFactory.CreateTmpButton(controlPanel.transform, "PrevBtn", "◀ 上一镜", new Vector2(-280f, 0f));
+            wb.nextBtn = RuntimeUiFactory.CreateTmpButton(controlPanel.transform, "NextBtn", "下一镜 ▶", new Vector2(-170f, 0f));
+            wb.captureViewBtn = RuntimeUiFactory.CreateTmpButton(controlPanel.transform, "CaptureBtn", "抓取视角", new Vector2(-55f, 0f), null, PicoAccent);
+            wb.newShotBtn = RuntimeUiFactory.CreateTmpButton(controlPanel.transform, "NewBtn", "新机位", new Vector2(55f, 0f));
+            wb.toggleAspectBtn = RuntimeUiFactory.CreateTmpButton(controlPanel.transform, "AspectBtn", "画幅", new Vector2(165f, 0f));
+            wb.savePassportBtn = RuntimeUiFactory.CreateTmpButton(controlPanel.transform, "SaveBtn", "存护照", new Vector2(275f, 0f));
 
             // 5. 窗口 D：片场灯光控制台（带 3D 四叶遮光斗白模与动态光锥）
             SpatialLightingConsoleBuilder.Build(canvasGo);
@@ -78,13 +79,13 @@ namespace ShotField.EditorTools
 
             // 4. 窗口 C：约束质检抬头卡片（右侧浮窗）
             var hudPanel = RuntimeUiFactory.CreatePanel(canvasGo.transform, "WindowC_HUD", PicoCard, new Vector2(430f, 80f), new Vector2(200f, 220f));
-            RuntimeUiFactory.CreateLabel(hudPanel.transform, "HUD_Title", "空间质检扫描", 16, new Vector2(0f, 75f), style: FontStyle.Bold);
-            
+            RuntimeUiFactory.CreateTmpLabel(hudPanel.transform, "HUD_Title", "空间质检扫描", 16, new Vector2(0f, 75f), style: FontStyle.Bold);
+
             var visPill = RuntimeUiFactory.CreatePanel(hudPanel.transform, "VisPill", new Color(0.2f, 0.7f, 0.2f, 0.9f), new Vector2(0f, 25f), new Vector2(180f, 40f)).GetComponent<Image>();
-            var visTxt = RuntimeUiFactory.CreateLabel(visPill.transform, "Txt", "信封正面 [安全]", 13, Vector2.zero);
-            
+            var visTxt = RuntimeUiFactory.CreateTmpLabel(visPill.transform, "Txt", "信封正面 [安全]", 13, Vector2.zero);
+
             var axisPill = RuntimeUiFactory.CreatePanel(hudPanel.transform, "AxisPill", new Color(0.2f, 0.7f, 0.2f, 0.9f), new Vector2(0f, -35f), new Vector2(180f, 40f)).GetComponent<Image>();
-            var axisTxt = RuntimeUiFactory.CreateLabel(axisPill.transform, "Txt", "轴线连续 [正常]", 13, Vector2.zero);
+            var axisTxt = RuntimeUiFactory.CreateTmpLabel(axisPill.transform, "Txt", "轴线连续 [正常]", 13, Vector2.zero);
 
             wb.visibilityPill = visPill;
             wb.visibilityStatusText = visTxt;
@@ -92,7 +93,7 @@ namespace ShotField.EditorTools
             wb.axisStatusText = axisTxt;
 
             // 信息提示
-            var notifyTxt = RuntimeUiFactory.CreateLabel(canvasGo.transform, "Notify", "", 18, new Vector2(0f, -220f), color: PicoAccent, style: FontStyle.Bold);
+            var notifyTxt = RuntimeUiFactory.CreateTmpLabel(canvasGo.transform, "Notify", "", 18, new Vector2(0f, -220f), color: PicoAccent, style: FontStyle.Bold);
             wb.notificationText = notifyTxt;
 
             Undo.RegisterCreatedObjectUndo(canvasGo, "创建空间多窗口工作台");
@@ -127,10 +128,10 @@ namespace ShotField.EditorTools
             var timeline = canvasGo.AddComponent<DirectorTimeline>();
             timeline.cameraRecorder = motion;
             timeline.actorPlayer = actor;
-            wb.playMotion = RuntimeUiFactory.CreateButton(canvasGo.transform, "PlayMotion", "运镜回放", new Vector2(-180,-255));
-            wb.toggleBoard = RuntimeUiFactory.CreateButton(canvasGo.transform, "ToggleBoard", "沙盘", new Vector2(-60,-255));
-            wb.playActor = RuntimeUiFactory.CreateButton(canvasGo.transform, "PlayActor", "表演回放", new Vector2(60,-255));
-            wb.screenShot = RuntimeUiFactory.CreateButton(canvasGo.transform, "ScreenShot", "观众试看", new Vector2(180,-255));
+            wb.playMotion = RuntimeUiFactory.CreateTmpButton(canvasGo.transform, "PlayMotion", "运镜回放", new Vector2(-180,-255));
+            wb.toggleBoard = RuntimeUiFactory.CreateTmpButton(canvasGo.transform, "ToggleBoard", "沙盘", new Vector2(-60,-255));
+            wb.playActor = RuntimeUiFactory.CreateTmpButton(canvasGo.transform, "PlayActor", "表演回放", new Vector2(60,-255));
+            wb.screenShot = RuntimeUiFactory.CreateTmpButton(canvasGo.transform, "ScreenShot", "观众试看", new Vector2(180,-255));
             Sprint1PanelBuilder.AttachPanels(canvasGo, wb, timeline);
             WorkbenchExportBinding.Attach(wb);
             return canvasGo;

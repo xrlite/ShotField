@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using TMPro;
 using ShotField.Core;
 using ShotField.Constraints;
 
@@ -12,7 +13,7 @@ namespace ShotField.RuntimeUI
     public partial class SpatialWorkbench
     {
         // 空间 UI 预留：由 SpatialWorkbenchBuilder 生成按钮对象后，BindHistoryButtons 自动接线
-        public Text historyText;
+        public TextMeshProUGUI historyText;
         public Button undoBtn, redoBtn;
 
         private VideoComparisonPlayer reviewPlayer;
@@ -44,7 +45,7 @@ namespace ShotField.RuntimeUI
             if (canvas == null) return;
             if (undoBtn == null) undoBtn = RuntimeUiFactory.CreateButton(canvas.transform, "UndoBtn", "Undo", new Vector2(-440f, -310f));
             if (redoBtn == null) redoBtn = RuntimeUiFactory.CreateButton(canvas.transform, "RedoBtn", "Redo", new Vector2(-330f, -310f));
-            if (historyText == null) historyText = RuntimeUiFactory.CreateLabel(canvas.transform, "HistoryText", "", 13, new Vector2(340f, -310f), new Vector2(320f, 30f));
+            if (historyText == null) historyText = RuntimeUiFactory.CreateTmpLabel(canvas.transform, "HistoryText", "", 13, new Vector2(340f, -310f), new Vector2(320f, 30f));
             BindHistoryButtons();
         }
 

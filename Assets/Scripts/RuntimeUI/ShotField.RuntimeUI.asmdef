@@ -6,6 +6,7 @@
     "ShotField.Core",
     "ShotField.Constraints",
     "UnityEngine.UI",
+    "Unity.TextMeshPro",
     "Unity.InputSystem",
     "Unity.XR.Interaction.Toolkit",
     "Unity.XR.CoreUtils",

@@ -26,6 +26,7 @@ namespace ShotField.EditorTools
 
             var panel = RuntimeUiFactory.CreatePanel(canvasGo.transform, "WindowD_Lighting",
                 Card, new Vector2(430f, -200f), new Vector2(200f, 250f));
+            console.panelRoot = panel;
             RuntimeUiFactory.CreateLabel(panel.transform, "Title", "灯光控制台", 15,
                 new Vector2(0f, 105f), color: Color.white, style: FontStyle.Bold);
             console.slotTitleText = RuntimeUiFactory.CreateLabel(panel.transform, "SlotTitle", "槽位1", 14,

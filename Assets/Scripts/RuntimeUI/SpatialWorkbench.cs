@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.InputSystem;
 using UnityEngine.EventSystems;
+using TMPro;
 using ShotField.Core;
 using ShotField.Constraints;
 
@@ -14,11 +15,11 @@ namespace ShotField.RuntimeUI
         public SpatialMonitor monitor;
 
         [Header("UI 文本组件")]
-        public Text shotTitleText;
-        public Text shotInfoText;
-        public Text visibilityStatusText;
-        public Text axisStatusText;
-        public Text notificationText;
+        public TextMeshProUGUI shotTitleText;
+        public TextMeshProUGUI shotInfoText;
+        public TextMeshProUGUI visibilityStatusText;
+        public TextMeshProUGUI axisStatusText;
+        public TextMeshProUGUI notificationText;
 
         [Header("质检状态指示卡")]
         public Image visibilityPill;

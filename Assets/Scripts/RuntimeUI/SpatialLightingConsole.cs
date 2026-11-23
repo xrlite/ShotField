@@ -39,6 +39,9 @@ namespace ShotField.RuntimeUI
         public Image colorSwatchImage;
         public Text focusTargetText;
 
+        [Header("高级工具闸位")]
+        public GameObject panelRoot;
+
         public event Action<int, LightSlot> OnSlotUpdated;
 
         public static readonly string[] ModeNames = { "主光", "辅光", "环境" };
@@ -46,6 +49,22 @@ namespace ShotField.RuntimeUI
         void Awake()
         {
             if (slots == null || slots.Length == 0) InitializeDefaultSlots();
+        }
+
+        void Start()
+        {
+            if (panelRoot == null && transform.parent != null)
+                panelRoot = transform.parent.Find("WindowD_Lighting")?.gameObject;
+            ApplyToolGate();
+        }
+
+        void Update() => ApplyToolGate();
+
+        private void ApplyToolGate()
+        {
+            if (panelRoot == null) return;
+            var want = DevToolPanels.LightingConsoleVisible;
+            if (panelRoot.activeSelf != want) panelRoot.SetActive(want);
         }
 
         public void InitializeDefaultSlots()

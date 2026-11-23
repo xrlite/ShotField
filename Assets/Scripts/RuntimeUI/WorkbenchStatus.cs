@@ -1,6 +1,7 @@
 using ShotField.Core;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 namespace ShotField.RuntimeUI
 {
@@ -11,7 +12,7 @@ namespace ShotField.RuntimeUI
         private static readonly Color PendingAmber = new Color(1.00f, 0.75f, 0.10f, 0.95f);
         private static readonly Color NeutralMuted = new Color(0.20f, 0.22f, 0.25f, 0.85f);
 
-        internal static void UpdatePill(Image pill, Text text, CheckStatus? status, string label)
+        internal static void UpdatePill(Image pill, TMP_Text text, CheckStatus? status, string label)
         {
             string detail = status switch
             {
