@@ -43,7 +43,7 @@ namespace ShotField.RuntimeUI
         {
             if (_loaded) return;
             _loaded = true;
-            foreach (var found in UnityEngine.Object.FindObjectsByType<ActorNavigator>(FindObjectsSortMode.None))
+            foreach (var found in UnityEngine.Object.FindObjectsByType<ActorNavigator>(FindObjectsInactive.Exclude))
                 AddRegistered(found);
             if (_current == null) SelectFirstActive();
         }

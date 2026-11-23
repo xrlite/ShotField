@@ -18,7 +18,6 @@ namespace ShotField.RuntimeUI
         private ShotData receivedShot, recordingShot;
         private ShotPassportDto lastPassport;
         private string address = "127.0.0.1";
-        private string note = "";
         private string status = "";
         private string videoSource = "";
         private bool showAdvanced;

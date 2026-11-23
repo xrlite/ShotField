@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace ShotField.RuntimeUI
@@ -29,8 +30,8 @@ namespace ShotField.RuntimeUI
 
         [Header("交互与触感")]
         public XRRayInteractor selectRay;
-        public UnityEngine.XR.Interaction.Toolkit.XRBaseController leftController;
-        public UnityEngine.XR.Interaction.Toolkit.XRBaseController rightController;
+        public HapticImpulsePlayer leftController;
+        public HapticImpulsePlayer rightController;
 
         [Header("业务引用（留空会在 Awake 自动查找）")]
         public PropBrowserUI browser;

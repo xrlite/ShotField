@@ -28,7 +28,7 @@ namespace ShotField.EditorTools
             if (active) return "already applied";
             var wall = ParseColor(WallHex);
             var floor = ParseColor(FloorHex);
-            foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+            foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsInactive.Exclude))
             {
                 if (!r.enabled || !r.gameObject.activeInHierarchy) continue;
                 if (IsActor(r)) continue;
@@ -40,7 +40,7 @@ namespace ShotField.EditorTools
                 r.SetPropertyBlock(Block);
                 Tinted.Add(r);
             }
-            foreach (var lr in Object.FindObjectsByType<LineRenderer>(FindObjectsSortMode.None))
+            foreach (var lr in Object.FindObjectsByType<LineRenderer>(FindObjectsInactive.Exclude))
                 if (lr.enabled && IsTrajectory(lr)) { lr.enabled = false; HiddenLines.Add(lr); }
             active = true;
             return "tinted=" + Tinted.Count + " linesOff=" + HiddenLines.Count + " objectsOff=" + HiddenObjects.Count;
@@ -106,9 +106,9 @@ namespace ShotField.EditorTools
         public static string Audit()
         {
             int lines = 0, tape = 0;
-            foreach (var lr in Object.FindObjectsByType<LineRenderer>(FindObjectsSortMode.None))
+            foreach (var lr in Object.FindObjectsByType<LineRenderer>(FindObjectsInactive.Exclude))
                 if (lr.enabled && IsTrajectory(lr)) lines++;
-            foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+            foreach (var r in Object.FindObjectsByType<Renderer>(FindObjectsInactive.Exclude))
                 if (r.gameObject.activeInHierarchy && r.name.Contains("DollyTrackMark")) tape++;
             return "PREVIS-LOOK active=" + active + " visibleTrajectoryLines=" + lines + " visibleAmberTape=" + tape;
         }

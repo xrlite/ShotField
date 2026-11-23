@@ -90,20 +90,33 @@ namespace ShotField.EditorTools
             }
         }
 
-        /// <summary>从 dataPath 向上找 05_* 证据目录；找不到退化到 persistentDataPath。</summary>
+        /// <summary>
+        /// 先从 dataPath 向上定位含 04_* 工程目录的工作区根，再取其直属 05_* 证据目录；
+        /// 避开 04_Project 下可能残留的嵌套 05_ 目录。找不到退化到 persistentDataPath。
+        /// </summary>
         private static string ResolveGateLogDir()
         {
             var dir = new DirectoryInfo(Application.dataPath);
+            DirectoryInfo workspaceRoot = null;
             while (dir != null)
             {
-                foreach (var sub in dir.GetDirectories())
+                foreach (var child in dir.GetDirectories())
+                {
+                    if (child.Name.StartsWith("04_", StringComparison.Ordinal)) { workspaceRoot = dir; break; }
+                }
+                if (workspaceRoot != null) break;
+                dir = dir.Parent;
+            }
+
+            if (workspaceRoot != null)
+            {
+                foreach (var sub in workspaceRoot.GetDirectories())
                 {
                     if (sub.Name.StartsWith("05_", StringComparison.Ordinal))
                     {
                         return Path.Combine(sub.FullName, DateTime.Now.ToString("yyyy-MM"), "gate_logs");
                     }
                 }
-                dir = dir.Parent;
             }
 
             Debug.LogWarning("[CredentialBuildGuard] 未找到 05_* 证据目录，gate 日志退化到 persistentDataPath。");

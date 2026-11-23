@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 
 namespace ShotField.RuntimeUI
 {
@@ -8,21 +9,21 @@ namespace ShotField.RuntimeUI
     /// 走位震动独立模块：沙盘给演员下达走位目标时，对应手柄短促震动反馈。
     /// 订阅 <see cref="ActorNavigator.OnDestinationSet"/>；无 XR 设备（编辑器 / 模拟器）
     /// 时只记日志，不抛异常。模块自身不触碰导航与选中逻辑。
-    /// 触感走 XRI <see cref="XRBaseController.SendHapticImpulse"/>，不自造震动通道。
+    /// 触感走 XRI <see cref="HapticImpulsePlayer.SendHapticImpulse"/>，不自造震动通道。
     /// </summary>
     public class ActorWalkHaptics : MonoBehaviour
     {
         [Range(0f, 1f)] public float amplitude = 0.5f;
         public float durationSeconds = 0.1f;
 
-        /// <summary>手柄控制器引用；留空 Start 自动在场景里找任一 XRBaseController。</summary>
-        public XRBaseController controller;
+        /// <summary>手柄触感播放器引用；留空 Start 自动在场景里找任一 HapticImpulsePlayer。</summary>
+        public HapticImpulsePlayer controller;
 
         private readonly List<ActorNavigator> _bound = new List<ActorNavigator>();
 
         void Start()
         {
-            if (controller == null) controller = FindAnyObjectByType<XRBaseController>();
+            if (controller == null) controller = FindAnyObjectByType<HapticImpulsePlayer>();
             BindAll();
             ActorSelection.Changed += OnSelectionChanged;
         }

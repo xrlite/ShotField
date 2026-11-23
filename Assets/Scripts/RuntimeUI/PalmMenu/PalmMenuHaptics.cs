@@ -1,18 +1,19 @@
 using UnityEngine.XR.Interaction.Toolkit;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Haptics;
 
 namespace ShotField.RuntimeUI
 {
     /// <summary>
     /// 手柄触感封装：呼出 / 收起 / 选中 / 确认四档脉冲。
     /// 控制器引用缺失（编辑器无头显、模拟器无触觉回传）时静默降级，不报错、不抛异常。
-    /// 走 XRI 官方 <see cref="XRBaseController.SendHapticImpulse"/>，不自造震动通道。
+    /// 走 XRI 官方 <see cref="HapticImpulsePlayer.SendHapticImpulse"/>，不自造震动通道。
     /// </summary>
     public sealed class PalmMenuHaptics
     {
-        private readonly XRBaseController _left;
-        private readonly XRBaseController _right;
+        private readonly HapticImpulsePlayer _left;
+        private readonly HapticImpulsePlayer _right;
 
-        public PalmMenuHaptics(XRBaseController left, XRBaseController right)
+        public PalmMenuHaptics(HapticImpulsePlayer left, HapticImpulsePlayer right)
         {
             _left = left;
             _right = right;
@@ -30,7 +31,7 @@ namespace ShotField.RuntimeUI
         /// <summary>命令确认（落位/保存/切模式）：右手稍强脉冲。</summary>
         public void PulseConfirm() => Send(_right, 0.6f, 0.12f);
 
-        private static void Send(XRBaseController controller, float amplitude, float duration)
+        private static void Send(HapticImpulsePlayer controller, float amplitude, float duration)
         {
             if (controller == null) return;
             controller.SendHapticImpulse(amplitude, duration);

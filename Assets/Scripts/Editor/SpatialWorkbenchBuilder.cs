@@ -140,7 +140,7 @@ namespace ShotField.EditorTools
         private static List<Transform> CollectActorTargets()
         {
             var targets = new List<Transform>();
-            var navigators = Object.FindObjectsByType<ActorNavigator>(FindObjectsSortMode.None);
+            var navigators = Object.FindObjectsByType<ActorNavigator>(FindObjectsInactive.Exclude);
             foreach (var nav in navigators)
             {
                 if (nav != null && nav.transform != null) targets.Add(nav.transform);
