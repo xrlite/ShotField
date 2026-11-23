@@ -1,0 +1,47 @@
+# ShotFieldSansSC-Regular 字体许可与留痕说明
+
+## 1. 来源与改名
+
+- 源字体：Noto Sans SC Regular（静态 Regular 400，Version 2.002）。
+- 子集件文件名：`ShotFieldSansSC-Regular.otf`；字体内嵌 family / PostScript / Full name 已改为 `ShotFieldSansSC` / `ShotFieldSansSC-Regular` / `ShotFieldSansSC Regular`。
+- 本说明与许可摘录取自子集字体内嵌 name 表（未联网拉取上游全文）。
+
+## 2. 版权与署名（取自字体内嵌 name 表，按 OFL 署名要求保留）
+
+- name[0] 版权：`© 2014-2020 Adobe (http://www.adobe.com/).`
+- name[8] 厂商：Adobe
+- name[9] 设计：Ryoko NISHIZUKA 西塚涼子 (kana, bopomofo & ideographs); Paul D. Hunt (Latin, Greek & Cyrillic); Sandoll Communications 산돌커뮤니케이션, Soo-young JANG 장수영 & Joo-yeon KANG 강주연 (hangul elements, letters & syllables)
+- name[10] 制作：Dr. Ken Lunde (project architect, glyph set definition & overall production); Masataka HATTORI 服部正貴 (production & ideograph elements)
+- name[7] 保留商标声明原文：`Noto is a trademark of Google Inc.`（子集件产品名已不含 Noto / Google 标识；该条为上游署名保留）。
+
+## 3. 许可（声明摘录，非 OFL 全文）
+
+字体内嵌 name[13] 为简短许可声明，原文如下：
+
+> This Font Software is licensed under the SIL Open Font License, Version 1.1. This Font Software is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the SIL Open Font License for the specific language, permissions and limitations governing your use of this Font Software.
+
+- 许可版本：SIL Open Font License 1.1
+- 许可 URL（name[14]）：http://scripts.sil.org/OFL
+- 注意：本文件未内嵌 OFL 1.1 完整条文；完整条款以上述 URL 上游原文为准。本工程未对源字体内嵌许可文本做全文伪造补写。
+
+## 4. 子集覆盖范围与漏字风险（务必随发布保留）
+
+本子集通过 Unicode 区间裁剪，实际覆盖：
+
+- ASCII：U+0020 – U+007E
+- 中文标点：U+3000 – U+303F
+- CJK 基本区：U+4E00 – U+9FFF
+- 全角形式：U+FF00 – U+FFEF
+
+**未包含**：
+
+- CJK 扩展 A（U+3400 – U+4DBF）及更稀有的扩展 B/C/D 等生僻字
+- 日文假名（U+3040 – U+30FF）、谚文音节、拉丁字母扩展及其他符号区（除上述区间外）
+
+风险：导入用户剧本若含生僻字、假名、谚文或未收录符号，对应字符会在文本中缺字（豆腐块 / .notdef）。本字体不应对外宣称“全中文覆盖”；如需覆盖 Ext A 及更稀字，需重新裁剪并重新评估体积与许可留痕。
+
+## 5. 体积与字形数（入库实测）
+
+- 文件大小：6,028,836 B（5.75 MiB / 6.03 MB 十进制）
+- 字形数（cmap 条目）：21,359
+- 字重：Regular 400；静态字体（无 fvar 可变轴）
