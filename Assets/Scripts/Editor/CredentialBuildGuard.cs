@@ -11,7 +11,7 @@ using UnityEngine;
 namespace ShotField.EditorTools
 {
     /// <summary>
-    /// 构建期凭据硬拦截：出包前扫描 Assets/Resources/** 与 Assets/StreamingAssets/**，
+    /// 构建期凭据硬拦截：出包前扫描 Assets 下全部文本文件（跳过二进制与 .meta），
     /// 命中已知 key 模式或明文 secret/token 赋值即 <see cref="BuildFailedException"/>，
     /// 让带 key 的包根本构建不出来。
     ///
@@ -23,9 +23,6 @@ namespace ShotField.EditorTools
     public sealed class CredentialBuildGuard : IPreprocessBuildWithReport
     {
         public int callbackOrder => 0;
-
-        // gate_logs 在仓库外（F:\pico 内），按口径用绝对路径写，UTF8 无 BOM。
-        private const string GateLogDir = @"F:\pico\05_验证记录\2026-11\gate_logs";
 
         private static readonly Regex[] Patterns =
         {
@@ -42,24 +39,20 @@ namespace ShotField.EditorTools
 
         private static readonly HashSet<string> BinaryExtensions = new HashSet<string>
         {
-            ".png", ".jpg", ".jpeg", ".mp4", ".wav", ".ogg", ".mp3", ".fbx",
-            ".glb", ".gltf", ".dll", ".so", ".ttf", ".otf", ".zip", ".bundle"
+            ".png", ".jpg", ".jpeg", ".tga", ".bmp", ".psd", ".mp4", ".mov", ".avi",
+            ".wav", ".ogg", ".mp3", ".fbx", ".glb", ".gltf", ".dll", ".so",
+            ".ttf", ".otf", ".zip", ".bundle", ".font", ".fontsettings"
         };
 
         public void OnPreprocessBuild(BuildReport report)
         {
-            var roots = new[]
-            {
-                Path.Combine(Application.dataPath, "Resources"),
-                Path.Combine(Application.dataPath, "StreamingAssets")
-            };
-
             var hits = new List<string>();
             int scanned = 0;
-            foreach (var root in roots)
+
+            var assetsRoot = Application.dataPath;
+            if (Directory.Exists(assetsRoot))
             {
-                if (!Directory.Exists(root)) continue;
-                foreach (var file in Directory.EnumerateFiles(root, "*", SearchOption.AllDirectories))
+                foreach (var file in Directory.EnumerateFiles(assetsRoot, "*", SearchOption.AllDirectories))
                 {
                     if (file.EndsWith(".meta")) continue;
                     if (BinaryExtensions.Contains(Path.GetExtension(file).ToLowerInvariant())) continue;
@@ -97,14 +90,35 @@ namespace ShotField.EditorTools
             }
         }
 
+        /// <summary>从 dataPath 向上找 05_* 证据目录；找不到退化到 persistentDataPath。</summary>
+        private static string ResolveGateLogDir()
+        {
+            var dir = new DirectoryInfo(Application.dataPath);
+            while (dir != null)
+            {
+                foreach (var sub in dir.GetDirectories())
+                {
+                    if (sub.Name.StartsWith("05_", StringComparison.Ordinal))
+                    {
+                        return Path.Combine(sub.FullName, DateTime.Now.ToString("yyyy-MM"), "gate_logs");
+                    }
+                }
+                dir = dir.Parent;
+            }
+
+            Debug.LogWarning("[CredentialBuildGuard] 未找到 05_* 证据目录，gate 日志退化到 persistentDataPath。");
+            return Path.Combine(Application.persistentDataPath, "gate_logs");
+        }
+
         /// <summary>扫描结果落 gate_logs；写日志失败只报错，不阻断构建判定。</summary>
         private static void WriteGateLog(int scanned, List<string> hits)
         {
             try
             {
-                Directory.CreateDirectory(GateLogDir);
+                var gateDir = ResolveGateLogDir();
+                Directory.CreateDirectory(gateDir);
                 var stamp = DateTime.Now.ToString("yyyyMMdd_HHmmss");
-                var path = Path.Combine(GateLogDir, $"credential_build_guard_{stamp}.log");
+                var path = Path.Combine(gateDir, $"credential_build_guard_{stamp}.log");
 
                 var sb = new StringBuilder();
                 sb.AppendLine($"time={DateTime.Now:yyyy-MM-dd HH:mm:ss}");
