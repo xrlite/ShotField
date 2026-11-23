@@ -45,7 +45,7 @@ namespace ShotField.RuntimeUI
 
         void OnGUI()
         {
-            if (!showSlider) return;
+            if (!DevToolPanels.MonitorScalerVisible || !showSlider) return;
             var rect = new Rect(Screen.width * 0.5f - 100f, 8f, 200f, 40f);
             GUI.Box(rect, "监看板缩放");
             float next = GUI.HorizontalSlider(

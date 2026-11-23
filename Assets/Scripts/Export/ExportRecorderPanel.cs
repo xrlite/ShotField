@@ -33,6 +33,7 @@ namespace ShotField.Export
 
         void OnGUI()
         {
+            if (!ShotField.Core.DevToolGate.ExportRecorderVisible) return;
             var area = new Rect(Screen.width - 352f, Screen.height - 150f, 340f, 140f);
             GUILayout.BeginArea(area, GUI.skin.box);
             GUILayout.Label("成片导出（本片无声轨）");

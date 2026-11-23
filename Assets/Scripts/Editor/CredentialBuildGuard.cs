@@ -34,7 +34,12 @@ namespace ShotField.EditorTools
             new Regex(@"AIza[0-9A-Za-z_\-]{30,}"),
             new Regex(@"ark-[a-f0-9]{24,}"),
             new Regex(@"Bearer\s+[A-Za-z0-9_\-\.]{20,}"),
-            new Regex(@"(?i)(secret|token|apikey|api_key|authorization)\s*[:=]\s*[""']?[A-Za-z0-9_\-\.]{16,}")
+            // JWT：header.payload 两段 base64url，带点号，由格式模式兜住（下面的赋值条刻意排除点号）。
+            new Regex(@"eyJ[A-Za-z0-9_\-]{10,}\.[A-Za-z0-9_\-]{10,}"),
+            // 赋值条：引号字面量直接命中；无引号时只认不含 `.()空白`、长度≥16 且含数字（或长度≥32）的紧凑 token，
+            // 方法调用/标识符 RHS（如 string.IsNullOrEmpty(...)）不算凭据；关键词要求独立成词，
+            // 排除 PublicKeyToken、TitleSecret 这类复合字段名。与巡检 secret_scan.ps1 口径一致。
+            new Regex(@"(?i)(?<![A-Za-z])(secret|token|apikey|api_key|authorization)[ \t]*[:=][ \t]*(?:""[^""\s]{16,}""|'[^'\s]{16,}'|(?=[A-Za-z0-9_-]*\d)[A-Za-z0-9_-]{16,31}|[A-Za-z0-9_-]{32,})")
         };
 
         private static readonly HashSet<string> BinaryExtensions = new HashSet<string>

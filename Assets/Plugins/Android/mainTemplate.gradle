@@ -4,7 +4,10 @@ apply from: '../shared/common.gradle'
 **APPLY_PLUGINS**
 
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    // shotfield-* 两个 jar 是 source-java 下同名 .java 的编译产物；源码已由 Unity 编入
+    // unityLibrary，再打包 jar 会在 mergeDexRelease 阶段报同类重复定义。这里只排除重复产物，
+    // jar 文件保留在 libs 不入包；如改回 jar 形态，需先删掉 source-java 对应源码，避免双向重复。
+    implementation fileTree(dir: 'libs', include: ['*.jar'], exclude: ['shotfield-script-picker.jar', 'shotfield-video-encoder.jar'])
 **DEPS**}
 
 android {

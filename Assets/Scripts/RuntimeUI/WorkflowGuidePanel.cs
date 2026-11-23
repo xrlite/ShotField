@@ -124,6 +124,8 @@ namespace ShotField.RuntimeUI
             GUILayout.Space(6f);
             DevToolPanels.MonitorFeedVisible = GUILayout.Toggle(DevToolPanels.MonitorFeedVisible, "监看器 / 时间轴画面（按需呼出）");
             DevToolPanels.LegacyDesktopVisible = GUILayout.Toggle(DevToolPanels.LegacyDesktopVisible, "桌面开发工具（既有工作室 / 编辑面板）");
+            DevToolPanels.MonitorScalerVisible = GUILayout.Toggle(DevToolPanels.MonitorScalerVisible, "监看板缩放滑条（按需呼出）");
+            DevToolGate.ExportRecorderVisible = GUILayout.Toggle(DevToolGate.ExportRecorderVisible, "成片视频导出小面板（开发工具）");
 
             _showAdvanced = GUILayout.Toggle(_showAdvanced, "更多设置（联机 / 高级参数）");
             if (_showAdvanced) GUILayout.Label("联机与会话参数收在既有桌面开发工具内，主线旅程不展开。");

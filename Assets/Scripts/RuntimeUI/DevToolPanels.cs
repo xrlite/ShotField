@@ -11,5 +11,8 @@ namespace ShotField.RuntimeUI
 
         /// <summary>右侧监看器回放画面按需呼出，不常驻占屏。</summary>
         public static bool MonitorFeedVisible;
+
+        /// <summary>监看板缩放滑条按需呼出，不常驻顶栏。</summary>
+        public static bool MonitorScalerVisible;
     }
 }
