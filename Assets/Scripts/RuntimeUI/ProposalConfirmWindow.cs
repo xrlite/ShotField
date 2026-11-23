@@ -11,7 +11,7 @@ namespace ShotField.RuntimeUI
     public class ProposalConfirmWindow : MonoBehaviour
     {
         public ChainProposalDto Proposal { get; set; }
-        public bool Visible { get; set; } = true;
+        public bool Visible { get; set; } = false;
 
         private Vector2 _scroll;
         private const float PanelW = 360f;

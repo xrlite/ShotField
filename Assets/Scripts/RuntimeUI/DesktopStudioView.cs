@@ -10,7 +10,7 @@ namespace ShotField.RuntimeUI
 
         void OnGUI()
         {
-            if (motion == null) return;
+            if (!DevToolPanels.LegacyDesktopVisible || motion == null) return;
             GUILayout.BeginArea(new Rect(12, 12, 340, Mathf.Min(Screen.height - 24f, 820f)), GUI.skin.box);
 
             GUILayout.Label($"镜场 ShotField · {LabFeatureFlags.ChannelLabel} {LabFeatureFlags.VersionLabel}");
@@ -25,7 +25,7 @@ namespace ShotField.RuntimeUI
             GUILayout.Label(status);
             GUILayout.EndArea();
 
-            var feed = workbench.monitor?.Feed;
+            var feed = DevToolPanels.MonitorFeedVisible ? workbench.monitor?.Feed : null;
             if (feed != null)
             {
                 float feedRight = Screen.width - 336f;

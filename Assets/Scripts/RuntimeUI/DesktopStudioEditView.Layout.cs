@@ -19,6 +19,7 @@ namespace ShotField.RuntimeUI
 
         void OnGUI()
         {
+            if (!DevToolPanels.LegacyDesktopVisible) return;
             var panel = new Rect(Screen.width - PanelW - 12f, 12f, PanelW, Mathf.Min(Screen.height - 24f, 860f));
             GUI.Box(panel, "", GUI.skin.box);
             GUI.BeginGroup(panel);

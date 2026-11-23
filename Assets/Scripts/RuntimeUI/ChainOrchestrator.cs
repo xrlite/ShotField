@@ -36,6 +36,7 @@ namespace ShotField.RuntimeUI
             _window = GetComponent<ProposalConfirmWindow>();
             if (_window == null) _window = gameObject.AddComponent<ProposalConfirmWindow>();
             _window.OnApplyRequested += () => ConfirmAndApply();
+            if (GetComponent<WorkflowGuidePanel>() == null) gameObject.AddComponent<WorkflowGuidePanel>();
         }
 
         /// <summary>导入剧本文本并跑离线 mock 解析，产出待确认提案。</summary>
