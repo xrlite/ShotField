@@ -5,9 +5,14 @@ using UnityEngine;
 namespace ShotField.Core
 {
     /// <summary>
-    /// 本地 AI 配置唯一读写口径：Resources 基线（已 gitignore，只读）+ persistentDataPath 覆盖合并。
+    /// 本地 AI 配置唯一读写口径。
+    /// 装载优先级（高 -> 低）：环境变量 Key > persistentDataPath 覆盖 > 编辑器基线
+    /// <c>&lt;projectRoot&gt;/Tools/ai_config.local.json</c>（仅 UNITY_EDITOR）> Resources 非敏感模板 > 空默认。
+    ///
+    /// 安全口径：Resources/** 会被 Unity 无条件打进包体，因此 Resources 资产只提供
+    /// endpoint/model/版本号等非敏感默认值，其 apiKey 字段在装载时强制清空，绝不能作为 key 来源。
+    /// 非编辑器分支不读任何 Assets 内的 key 来源，只走 persistentDataPath 与环境变量。
     /// Key 只落持久化目录，不回写 Resources；界面与日志一律走 <see cref="Mask"/> 掩码，不带明文。
-    /// Tripo 配置装载复用既有 <see cref="TripoConfig.Load"/>；这里只补持久化 Key 写入。
     /// </summary>
     public static class LocalAiConfig
     {
@@ -16,7 +21,14 @@ namespace ShotField.Core
         private static string PersistentPath =>
             Path.Combine(Application.persistentDataPath, "ai_config.local.json");
 
-        /// <summary>装载 DeepSeek 配置；环境变量 Key 兜底，Resources 配置优先。</summary>
+#if UNITY_EDITOR
+        // projectRoot 由 Application.dataPath（.../ShotField/Assets）上一级求得，不硬编码盘符。
+        private static string EditorBaselinePath =>
+            Path.Combine(Directory.GetParent(Application.dataPath).FullName,
+                "Tools", "ai_config.local.json");
+#endif
+
+        /// <summary>装载 DeepSeek 配置；环境变量 Key 优先级最高。</summary>
         public static DeepSeekConfig LoadDeepSeek()
         {
             var file = LoadMerged();
@@ -24,8 +36,7 @@ namespace ShotField.Core
             string endpoint = string.IsNullOrEmpty(d.endpoint)
                 ? "https://api.deepseek.com/chat/completions" : d.endpoint;
             string model = string.IsNullOrEmpty(d.model) ? "deepseek-chat" : d.model;
-            string apiKey = Environment.GetEnvironmentVariable("SHOTFIELD_DEEPSEEK_KEY") ?? "";
-            if (!string.IsNullOrEmpty(d.apiKey)) apiKey = d.apiKey;
+            string apiKey = ResolveKey(d.apiKey, "SHOTFIELD_DEEPSEEK_KEY");
             int timeout = d.timeoutSeconds > 0 ? d.timeoutSeconds : 60;
             int retries = d.maxRetries >= 0 ? d.maxRetries : 2;
             return new DeepSeekConfig(endpoint, model, apiKey, timeout, retries);
@@ -61,31 +72,58 @@ namespace ShotField.Core
 
         private static AiConfigFile LoadMerged()
         {
-            AiConfigFile file = null;
-            var asset = Resources.Load<TextAsset>(ResourceName);
-            if (asset != null)
-            {
-                try { file = JsonUtility.FromJson<AiConfigFile>(asset.text); }
-                catch (Exception ex) { Debug.LogWarning($"[LocalAiConfig] Resources 配置解析失败: {ex.Message}"); }
-            }
+            AiConfigFile file = LoadResourcesTemplate();
 
-            if (File.Exists(PersistentPath))
-            {
-                try
-                {
-                    var persisted = JsonUtility.FromJson<AiConfigFile>(File.ReadAllText(PersistentPath));
-                    if (persisted != null) file = Merge(file, persisted);
-                }
-                catch (Exception ex) { Debug.LogWarning($"[LocalAiConfig] 持久化配置解析失败: {ex.Message}"); }
-            }
+#if UNITY_EDITOR
+            file = Merge(file, ReadJsonFile(EditorBaselinePath));
+#endif
+            file = Merge(file, ReadJsonFile(PersistentPath));
             return file;
+        }
+
+        // Resources 只作非敏感默认模板；apiKey 强制清空，绝不作为 key 来源。
+        private static AiConfigFile LoadResourcesTemplate()
+        {
+            var asset = Resources.Load<TextAsset>(ResourceName);
+            if (asset == null) return null;
+            AiConfigFile file;
+            try { file = JsonUtility.FromJson<AiConfigFile>(asset.text); }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LocalAiConfig] Resources 模板解析失败: {ex.Message}");
+                return null;
+            }
+            if (file?.deepseek != null) file.deepseek.apiKey = "";
+            if (file?.tripo != null) file.tripo.apiKey = "";
+            return file;
+        }
+
+        private static AiConfigFile ReadJsonFile(string path)
+        {
+            if (!File.Exists(path)) return null;
+            try
+            {
+                return JsonUtility.FromJson<AiConfigFile>(File.ReadAllText(path));
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[LocalAiConfig] 配置解析失败 {Path.GetFileName(path)}: {ex.Message}");
+                return null;
+            }
+        }
+
+        // 环境变量优先级高于文件内 Key。
+        private static string ResolveKey(string fileKey, string envVar)
+        {
+            var env = Environment.GetEnvironmentVariable(envVar);
+            return !string.IsNullOrEmpty(env) ? env : (fileKey ?? "");
         }
 
         private static AiConfigFile Merge(AiConfigFile baseline, AiConfigFile over)
         {
             if (baseline == null) return over;
-            if (over.deepseek != null) baseline.deepseek = over.deepseek;
-            if (over.tripo != null) baseline.tripo = over.tripo;
+            if (over?.deepseek != null) baseline.deepseek = over.deepseek;
+            if (over?.tripo != null) baseline.tripo = over.tripo;
             return baseline;
         }
 

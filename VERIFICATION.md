@@ -108,11 +108,30 @@
 
 ## 凭据口径
 
-当前测试版支持 **DeepSeek、Tripo 本地配置**。凭据只从本地配置文件或环境变量读取，**不进入源码和版本库**。
+**安全判据 = 任何交付产物里没有 key。** 不是「git 历史 0 命中」——`.gitignore` 挡得住 git，**挡不住 Unity 打包**：`Assets/Resources/**` 会被无条件打进 APK。
 
-- 本地配置：`Assets/Resources/ai_config.local.json`，由 `.gitignore` 的 `*_config.local.json` 规则排除。
-- 环境变量兜底：`SHOTFIELD_DEEPSEEK_KEY` / `SHOTFIELD_TRIPO_KEY`。
-- 未配置时相关功能明确提示不可用，**不静默降级伪装成功**。
+| 层 | 口径 |
+| --- | --- |
+| 版本库 | 全历史扫描 0 命中；无 `ai_config*` 被跟踪 |
+| 开发机基线 | 放在 `Assets/` **之外**（仓库内 `Tools/`，仍被 gitignore），**仅编辑器读取** |
+| Android 运行时 | 只走 `persistentDataPath` + 环境变量，key 由用户在连接中心录入，**包里不带 key** |
+| 构建期硬闸 | `IPreprocessBuildWithReport` 扫 `Assets/Resources/**` 与 `Assets/StreamingAssets/**`，命中 key 模式即 `BuildFailedException`，**带 key 的包构建不出来** |
+| 门禁期取证 | `巡检/secret_scan.ps1 -Targets resources,apks -Strict`，要求 `hitCount=0` **且 `scannedFiles` 非 0**（空扫不许判 PASS） |
+
+环境变量：`SHOTFIELD_DEEPSEEK_KEY` / `SHOTFIELD_TRIPO_KEY`。未配置时明确提示不可用，**不静默降级伪装成功**。
+
+> **历史事故留痕**：两把活 key 曾放在 `Assets/Resources/ai_config.local.json`，git 侧干净但**会被打进 APK**。现存旧包未带 key 纯属时间差（包构建于配置出现之前）。据此把判据从「仓库里没有 key」改判为「交付产物里没有 key」。
+
+---
+
+## 已定死的规格口径（不得再引用作废值）
+
+| 项 | 现行规格 | 已作废 |
+| --- | --- | --- |
+| 演员 `baseOffset` | **枢轴挪到脚底后 `baseOffset = 0`** | `+0.748f` 是 2026-11-21 的历史补偿值，**已作废，不得再当规格引用** |
+| 地面基准 | 地板碰撞体顶面 **y = 0** | NavMesh 采样面（烘焙上浮 5cm），不作地面判据 |
+| 导出规格 | 1920×1080 / 30fps 固定 / 15s / ≥8Mbps / ≥3 真实切镜 | 720p / 24fps / 5s 首版参数 |
+| 导出文件名 | `Build/Video/SC01_Demo_yyyyMMdd_HHmm.mp4` | `SC01_Final.mp4` 仅作历史测试产物，**不作验收** |
 
 ---
 

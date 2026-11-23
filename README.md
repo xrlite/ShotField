@@ -30,11 +30,13 @@
 
 ### 凭据配置
 
-当前测试版支持 **DeepSeek、Tripo 本地配置**。凭据不进入源码和版本库。
+当前测试版支持 **DeepSeek、Tripo 本地配置**。凭据不进入源码、版本库与**任何交付产物**。
 
-- 本地配置文件 `Assets/Resources/ai_config.local.json`（由 `.gitignore` 排除，仓库里没有这个文件）
-- 或环境变量 `SHOTFIELD_DEEPSEEK_KEY` / `SHOTFIELD_TRIPO_KEY`
-- 未配置时相关功能明确提示不可用，不会伪装成功
+- **安全判据是「任何交付产物里没有 key」**，不是「git 历史 0 命中」。`.gitignore` 挡得住 git，**挡不住 Unity 打包**——`Assets/Resources/**` 会被无条件打进 APK。
+- 开发机基线配置放在 **`Assets/` 之外**（仓库内 `Tools/`，仍被 `.gitignore` 排除），**只在编辑器下读取**。
+- **Android 只走 `persistentDataPath` + 环境变量**，key 由用户在连接中心自行录入，**包里永远不带 key**。
+- 构建期有硬闸：`Assets/Resources/**` 与 `Assets/StreamingAssets/**` 一旦命中 key 模式，**构建直接失败**，带 key 的包构建不出来。
+- 未配置时相关功能明确提示不可用，不会伪装成功。
 
 ---
 
@@ -140,6 +142,17 @@ New-Item -ItemType Directory -Path (Join-Path $repo 'Build') -Force | Out-Null
 
 参赛入口：[PICO Space Program 中国区](https://spaceprogram-cn.picoxr.com/)。
 评审版本对应具体提交，验证记录标明 Unity 编辑器 / Swan 模拟器 / 真机。
+
+## 对外口径
+
+**GitHub About（用户已批，待本人粘贴）**
+
+> PICO 空间预演与虚拟制片工具：AI 剧本拆解、沙盘排演、机位调度与镜头约束校验、时间轴剪辑；本地 1080p 导出测试中。
+
+**topics**：`pico` `pico-xr` `openxr` `virtual-production` `previs` `unity` `filmmaking` `storyboarding` `ai-director`
+
+粘贴位置：仓库页右侧 About 的齿轮 → Description 与 Topics。
+措辞纪律：不写「一键导出 1080p」这类未验证表述；目标设备是 **PICO Space Pro / Swan**，不提 PICO 4 Ultra。
 
 ## 许可证与来源
 
