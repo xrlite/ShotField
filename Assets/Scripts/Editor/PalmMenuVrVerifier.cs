@@ -40,7 +40,7 @@ namespace ShotField.EditorTools
 
             // —— 尺寸规格：必须与 P5 版式规范 §0.1 一致 ——
             Assert("板宽 240 px（世界 0.24 m）", Mathf.Approximately(PalmMenuUiFactory.PanelWidth, 240f));
-            Assert("板高 340 px（世界 0.34 m）", Mathf.Approximately(PalmMenuUiFactory.PanelHeight, 340f));
+            Assert("板高 400 px（世界 0.40 m，四栏+三卡条目）", Mathf.Approximately(PalmMenuUiFactory.PanelHeight, 400f));
             Assert("像素基准 1000 px/m（1 px = 1 mm）",
                 Mathf.Approximately(PalmMenuUiFactory.PixelsPerMeter, 1000f));
             Assert("条目按钮高 44 px，不低于 poke 直触 30 mm 下限",
@@ -76,7 +76,7 @@ namespace ShotField.EditorTools
                     allTabsBuildable = false;
                 }
             }
-            Assert("三个分栏在无绑定对象时都能构建条目且不抛异常", allTabsBuildable);
+            Assert("四个分栏在无绑定对象时都能构建条目且不抛异常", allTabsBuildable);
 
             Assert("空视觉效果被判为无效（IsValid=false）",
                 !default(PalmMenuVisuals).IsValid);

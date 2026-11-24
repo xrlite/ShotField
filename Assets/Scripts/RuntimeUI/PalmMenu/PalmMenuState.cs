@@ -15,6 +15,7 @@ namespace ShotField.RuntimeUI
     {
         public PropBrowserUI Browser;
         public TabletopDirector Tabletop;
+        public ThreeCardWorkspace Cards;
 
         private readonly List<KeyValuePair<string, GameObject>> _placedProps =
             new List<KeyValuePair<string, GameObject>>();
@@ -56,6 +57,7 @@ namespace ShotField.RuntimeUI
                 case PalmMenuTab.Actors: BuildActorEntries(entries); break;
                 case PalmMenuTab.Props: BuildPropEntries(entries); break;
                 case PalmMenuTab.Scene: BuildSceneEntries(entries); break;
+                case PalmMenuTab.Cards: BuildCardEntries(entries); break;
             }
             return entries;
         }
@@ -71,6 +73,7 @@ namespace ShotField.RuntimeUI
                 case PalmMenuActionKind.SaveSnapshot: SaveSnapshot(); return false;
                 case PalmMenuActionKind.ReloadSnapshot: ReloadSnapshot(); return false;
                 case PalmMenuActionKind.ToggleMode: ToggleMode(); return false;
+                case PalmMenuActionKind.ToggleCard: ToggleCard(entry.CardId); return false;
                 default: return false;
             }
         }
@@ -141,7 +144,30 @@ namespace ShotField.RuntimeUI
                 Label = tabletop ? "回到 1:1 片场" : "进入 1:20 沙盘"
             });
         }
-
+        private void BuildCardEntries(List<PalmMenuEntry> entries)
+        {
+            if (Cards == null) return;
+            AddCardEntry(entries, ThreeCardWorkspace.MonitorId, "监看板");
+            AddCardEntry(entries, ThreeCardWorkspace.TimelineId, "时间轴");
+            AddCardEntry(entries, ThreeCardWorkspace.DrawerId, "剧本 / 资产");
+        }
+        private void AddCardEntry(List<PalmMenuEntry> entries, string id, string label)
+        {
+            bool open = Cards.IsOpen(id);
+            entries.Add(new PalmMenuEntry
+            {
+                Kind = PalmMenuActionKind.ToggleCard,
+                CardId = id,
+                Label = (open ? "收纳 " : "呼出 ") + label,
+                Active = open
+            });
+        }
+        private void ToggleCard(string id)
+        {
+            if (Cards == null) { SetStatus("三卡工作区未绑定"); return; }
+            Cards.ToggleCard(id);
+            SetStatus(Cards.LastNote);
+        }
         private void ToggleMode()
         {
             if (Tabletop == null) { SetStatus("未绑定 TabletopDirector"); return; }

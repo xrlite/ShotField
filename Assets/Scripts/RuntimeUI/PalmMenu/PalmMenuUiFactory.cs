@@ -31,7 +31,7 @@ namespace ShotField.RuntimeUI
     /// 掌心菜单的世界空间 UI 构建器。只建结构与尺寸，不碰数据、不订阅事件。
     ///
     /// 尺寸口径（见 03_制作/镜场ShotField-P5界面版式规范_20261123.md §0.1）：
-    /// 1 px = 1 mm，故 Canvas localScale = 0.001，板面 240×340 px 即世界 0.24×0.34 m。
+    /// 1 px = 1 mm，故 Canvas localScale = 0.001，板面 240×400 px 即世界 0.24×0.40 m。
     /// 按钮走 <see cref="RuntimeUiFactory"/> 的 TMP 通道，中文由 ShotFieldSansSC 渲染。
     ///
     /// buttonPrefab 是运行时生成的模板对象（inactive，挂在 Canvas 下作为模板），
@@ -40,7 +40,7 @@ namespace ShotField.RuntimeUI
     public static class PalmMenuUiFactory
     {
         public const float PanelWidth = 240f;
-        public const float PanelHeight = 340f;
+        public const float PanelHeight = 400f;
         /// <summary>像素↔米换算：1 px = 1 mm。</summary>
         public const float PixelsPerMeter = 1000f;
 
@@ -96,19 +96,11 @@ namespace ShotField.RuntimeUI
 
         private static RectTransform CreateButtonRoot(Transform parent)
         {
-            var go = new GameObject("ButtonRoot", typeof(RectTransform), typeof(VerticalLayoutGroup));
+            var go = new GameObject("ButtonRoot", typeof(RectTransform));
             go.transform.SetParent(parent, false);
             var rt = (RectTransform)go.transform;
             rt.sizeDelta = new Vector2(PanelWidth - 16f, PanelHeight - HeaderHeight - StatusHeight - 16f);
             rt.anchoredPosition = new Vector2(0f, -(HeaderHeight - StatusHeight) * 0.5f);
-
-            var layout = go.GetComponent<VerticalLayoutGroup>();
-            layout.spacing = 6f;
-            layout.childAlignment = TextAnchor.UpperCenter;
-            layout.childControlHeight = true;
-            layout.childControlWidth = true;
-            layout.childForceExpandHeight = false;
-            layout.childForceExpandWidth = true;
             return rt;
         }
 

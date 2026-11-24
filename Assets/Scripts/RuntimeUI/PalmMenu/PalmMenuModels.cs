@@ -7,7 +7,8 @@ namespace ShotField.RuntimeUI
         SpawnProp,
         SaveSnapshot,
         ReloadSnapshot,
-        ToggleMode
+        ToggleMode,
+        ToggleCard
     }
 
     /// <summary>菜单内部分栏：演员 / 道具 / 场景（快照与模式切换）。</summary>
@@ -15,7 +16,8 @@ namespace ShotField.RuntimeUI
     {
         Actors,
         Props,
-        Scene
+        Scene,
+        Cards
     }
 
     /// <summary>一条菜单项；Actor 仅 SelectActor 用，PropId 仅 SpawnProp 用。</summary>
@@ -24,6 +26,7 @@ namespace ShotField.RuntimeUI
         public PalmMenuActionKind Kind;
         public string Label;
         public string PropId;
+        public string CardId;
         public ActorNavigator Actor;
         public bool Active;
     }

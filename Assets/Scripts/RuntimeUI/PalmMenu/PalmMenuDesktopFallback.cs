@@ -66,6 +66,7 @@ namespace ShotField.RuntimeUI
             DrawTab("演员", PalmMenuTab.Actors);
             DrawTab("道具", PalmMenuTab.Props);
             DrawTab("场景", PalmMenuTab.Scene);
+            DrawTab("卡片", PalmMenuTab.Cards);
             GUILayout.EndHorizontal();
         }
 
