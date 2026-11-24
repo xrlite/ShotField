@@ -19,7 +19,7 @@
 
 | 版本 | Commit | 判据 | 状态 |
 | --- | --- | --- | --- |
-| 0.9.0-lab.20261124 | `03a36ad` | 天工 FBX 合并为 1 renderer / 68,569 三角形；Resources 运行时加载、白模/天工往返切换、桌面一键按钮；`STAGE-PRESET-RESULT=PASS (7/7)` | 编辑器已验证；APK/真机 pending；天工权属/许可待核 |
+| 0.9.0-lab.20261124 | `03a36ad` | 天工 FBX 合并为 1 renderer / 68,569 三角形；Resources 运行时加载、白模/天工往返切换、桌面一键按钮；`STAGE-PRESET-RESULT=PASS (7/7)`、Play Mode `STAGE-PRESET-PLAY=PASS` | 编辑器已验证；APK/真机 pending；天工权属/许可待核 |
 | 0.9.0-lab.20261124 | `53934fe` | GLTFUtility pin `dfdc508...`；真实 `door_v01.glb` 运行时导入、归一化、Collider/抓取补齐；`TRIPO-RUNTIME-IMPORT=PASS (5/5)` | 编辑器已验证；Android IL2CPP 导入 pending |
 | 0.9.0-lab.20261124 | `c27a3c2` | Passthrough + Spatial Mesh 配置、无 subsystem 时虚拟创作台回退；`MR-TABLETOP-CONFIG=PASS (3/3)` | 编辑器配置与回退已验证；模拟器/真机桌面识别 pending |
 | 0.9.0-lab.20261124 | `d8a1a55` | SceneEdit 本地单次回调、per-actor revision 冲突拒绝、重连快照；`NET-VERIFY-RESULT=PASS (13/13)`、`NET-SCENE-EDIT-RESULT=PASS (6/6)` | 编辑器已验证；VR 入口/真机 pending |
