@@ -19,6 +19,8 @@
 
 | 版本 | Commit | 判据 | 状态 |
 | --- | --- | --- | --- |
+| 0.9.0-lab.20261124 | `809f468` | 1~5 层时间轴架构分层（`TimelineTrackLayer`：机位、演员、道具/载具、音频、灯光）与空间探针状态绑定骨架（`SpatialProbeBindingDto` + `BindProbe` / `TryGetProbe`）；`TimelineCardView` 拆分 partial class `TimelineCardView.Tracks.cs` 守住 ≤200 行红线；`THREE-CARD-RESULT=PASS (13/13)`、`TIMELINE-RESULT=PASS (5/5)`，全量 31 项门禁全通，Console 0 错误 0 警告 | 编辑器已验证；真机抓握/寻道 pending-真机 |
+| 0.9.0-lab.20261124 | `c8e14e5` | DeepSeek 四道闸场景命令流水线（Gate 1 JSON/Schema/空/越界防注入、Gate 2 视锥与遮挡空间几何、Gate 3 轴线法则与跳轴预警、Gate 4 执行回退）；自证截图相机角度修正（正对世界空间 Canvas，消除文字镜像反转）；`SCENE-COMMAND-GATE-RESULT=PASS (15/15)` | 编辑器已验证；真机语音/手势指令 pending-真机 |
 | 0.9.0-lab.20261124 | `ea04f3c` | `NetworkSessionController` 成为桌面/VR 唯一会话，PalmMenu 场景栏可呼出 WorldSpace 联机 modal；IPv4/端口校验、Host/Join/断开、心跳与主线程 Tick；`NETWORK-ENTRY-RESULT=PASS (9/9)`，Play Mode 双菜单与控制器同实例，Host 按钮进入 Hosting | 编辑器与 Play Mode 已验证；真机双端同步 pending-设备 |
 | 0.9.0-lab.20261124 | `401bc71` | 同一真实机位先判 Violation（信封正面 5/5 采样点可见），加挡板后 Pass，撤挡板恢复 Violation；`CONSTRAINT-PAIR-RESULT=PASS (6/6)`，成对 FAIL/PASS 图与两份日志已落盘 | 编辑器已验证；真机交互未纳入本判据 |
 | 0.9.0-lab.20261124 | `1f85736` | 资产抽屉显示 Tripo/现有资产/灰盒的来源、路径、导入状态、实测面数与包围盒；GLB 几何无效即失败并销毁临时模型，失败保留灰盒；`ASSET-RECONCILIATION-RESULT=PASS (10/10)`，真实门样本 4,163 tris / 0.34497×1.50×0.99418m | 编辑器 UI 与导入已验证；Android IL2CPP/模拟器 pending-APK |
@@ -47,13 +49,13 @@
 | 0.9.0-lab | `5c61097` | **P3**：`SCRIPT-PROPOSAL-RESULT=PASS (3/3)` 通用提案契约，三剧本模式各异 | 真实 API 已验证；**可编辑提案 UI 未做** |
 | 0.9.0-lab | `0c1844d` | **P6 前置**：导出规格升至 1920×1080 / 30fps / 15s / ≥8Mbps，命名规则集中 | **PENDING-APK**，真 mp4 未出 |
 
-> 提交链（新→旧）：`ea04f3c` ← `401bc71` ← `1f85736` ← `30cb0de` ← `1856a95` ← `720c4cb` ← `03a36ad` ← `53934fe` ← `c27a3c2` ← `d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 新提交均在本地，**尚未 push**。
+> 提交链（新→旧）：`809f468` ← `c8e14e5` ← `ea04f3c` ← `401bc71` ← `1f85736` ← `30cb0de` ← `1856a95` ← `720c4cb` ← `03a36ad` ← `53934fe` ← `c27a3c2` ← `d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 新提交均在本地，**尚未 push**。
 > 后续版本 tag 规划：`v0.9.1-alpha`（Console 归零 + 统一工作流）→ `v0.9.2-alpha`（四格式 + AI 提案）→ `v0.9.3-alpha`（资产 + Tripo）→ `v0.9.4-alpha`（沙盘 1:1 + VR UI）→ `v0.9.5-beta`（时间轴 + MP4）→ `v0.9.6-beta`（模拟器完整旅程）。
 > **tag 只在对应判据真过后打，不提前占位。**
 
 ---
 
-## 门禁（30 项）
+## 门禁（31 项）
 
 运行入口：`ShotField > Verifiers`，或工作区脚本 `04_Project/巡检/verify_all.ps1`（走 live-bridge 直调）。
 
@@ -89,8 +91,9 @@
 | `block_layout` | `BLOCK-LAYOUT-RESULT=PASS (10/10)`：弧面布局、距离档、板尺寸与排序 |
 | `tabletop_scale` | `TABLETOP-SCALE-RESULT=PASS (10/10)`：1:20/1:1 换算、演员预算、MR 平面识别 pending-真机 |
 | `studio_fade` | `STUDIO-FADE-RESULT=PASS (10/10)`：淡入淡出状态机与遮罩参数；人眼观感 pending-真机 |
+| `scene_command_gates` | `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`：DeepSeek 场景命令四道闸（Gate 1 语法/防御/空参数拦截、Gate 2 视锥与遮挡空间几何、Gate 3 轴线法则与跳轴预警、Gate 4 执行失败回退原状态） |
 
-最近一次全量（2026-11-24 17:33:55）：**30 run / 0 failed/no-verdict / 0 no-error**，日志 `verify_all_20261124_173355.log`。其中 `network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`network_entry` 输出 `NETWORK-ENTRY-RESULT=PASS (9/9)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`credential_path` 输出 `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`b5_dual_track` 输出 `B5-DUAL-TRACK-RESULT=PASS (8/8)`；`asset_reconciliation` 输出 `ASSET-RECONCILIATION-RESULT=PASS (10/10)`；`constraint_pair` 输出 `CONSTRAINT-PAIR-RESULT=PASS (6/6)`；`console_clean` 读数 `Errors=0 Warnings=0`，此前 300s 驻留协议见 `console_clean_dwell_20261123_135958.log`。
+最近一次全量（2026-11-24 19:55:23）：**31 run / 0 failed/no-verdict / 0 no-error（全部通过）**，日志 `verify_all_20261124_195523.log`。其中 `scene_command_gates` 输出 `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`；`network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`network_entry` 输出 `NETWORK-ENTRY-RESULT=PASS (9/9)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`credential_path` 输出 `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`b5_dual_track` 输出 `B5-DUAL-TRACK-RESULT=PASS (8/8)`；`asset_reconciliation` 输出 `ASSET-RECONCILIATION-RESULT=PASS (10/10)`；`constraint_pair` 输出 `CONSTRAINT-PAIR-RESULT=PASS (6/6)`；`console_clean` 读数 `Errors=0 Warnings=0`，此前 300s 驻留协议见 `console_clean_dwell_20261123_135958.log`。
 
 > ✅ **Console 长驻留归零（2026-11-23 13:59:58 实跑通过）**：协议为 清 Console → 域重载 → 清重载噪音 → 进 Play → 摆位走位（`PrevisCast_A_Red` MoveTo）+ 时间轴寻道（`SH_04`）→ Play 态驻留 300s，60/120/180/240/300s 五次巡检 Console 全空 → 退出 Play。读数 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，日志 `console_clean_dwell_20261123_135958.log`。
 >
@@ -114,6 +117,8 @@
 
 | 结论 | 证据 | 环境 | 判定 |
 | --- | --- | --- | --- |
+| DeepSeek 四道闸与自证截图（无镜像反转） | `scene_command_evidence_20261124_1931/scene_command_ghost.png`、`scene_command_preview_panel.png`、`scene_command_evidence.json`；`SCENE-COMMAND-GATE-RESULT=PASS (15/15)`；正对 Canvas 前面拍摄，文字正面无镜像反转 | 编辑器 Play + UI 隔离 | 已验证 |
+| 1~5 层时间轴与空间探针绑定 | `TimelineCardView.Tracks.cs` (119 行) + `TimelineClipModel.cs` (180 行)；5 层轨道枚举（机位、演员、道具/载具、音频、灯光）与空间探针状态绑定骨架；`THREE-CARD-RESULT=PASS (13/13)`、`TIMELINE-RESULT=PASS (5/5)` | 编辑器 | 已验证 |
 | 六人脚底贴地（Play 态） | `20261123_0005_SceneView_修复后_红蓝演员贴地与茶几.png` + 门禁 `actor_grounding` | 编辑器 Scene + Play | 模拟器已验证（编辑器层） |
 | 家具真实绕行 | `20261123_0042_GameView_运行时绕行虚线_东侧绕开茶几.png`；起 (0.8,0,0.6)→终 (0.8,0,3.2)，4 拐点，路径 3.576m / 直线 2.600m，ratio 1.376 | 编辑器 Play | 已验证 |
 | 约束 FAIL→PASS→FAIL 可逆对照 | `constraint_evidence_20261124_1647/20261124_1647_约束_FAIL.png`、`..._约束_PASS.png`、两份同名 `.log` 与 `constraint_evidence.json`；同一机位 (0.95,1.453,2.25)，Violation→Pass→Violation | 编辑器真实场景 + 现有 VisibilityConstraint | 编辑器已验证；非真机交互验收 |
