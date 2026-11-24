@@ -2,8 +2,8 @@ namespace ShotField.Core
 {
     /// <summary>
     /// DeepSeek 接入配置快照。
-    /// 来源优先级：<c>Resources/ai_config.local.json</c>（已加入 .gitignore，绝不进 git）
-    /// -> 环境变量 <c>SHOTFIELD_DEEPSEEK_KEY</c> 兜底 key。
+    /// 来源优先级：环境变量 <c>SHOTFIELD_DEEPSEEK_KEY</c> -> <c>persistentDataPath/ai_credentials.json</c>
+    /// -> 旧持久化文件/编辑器基线 -> Resources 非敏感模板；Resources 中的 apiKey 永远不作为来源。
     /// 代码不硬编码 key，key 不写日志、不进任何报错文案。
     /// 实测可用地址：<c>https://api.deepseek.com/chat/completions</c>（不带 /v1）；
     /// 旧默认 <c>https://api.deepseek.com/v1/chat/completions</c> 在实测环境 404，已弃用。
@@ -25,7 +25,7 @@ namespace ShotField.Core
             MaxRetries = maxRetries;
         }
 
-        /// <summary>从 Resources 基线 + 持久化覆盖装载配置；委托 <see cref="LocalAiConfig"/> 单一口径。</summary>
+        /// <summary>从环境变量、持久化凭据、编辑器基线与非敏感模板装载；委托 <see cref="LocalAiConfig"/> 单一口径。</summary>
         public static DeepSeekConfig Load() => LocalAiConfig.LoadDeepSeek();
 
         /// <summary>在线分支配齐 Key 与端点才算已配置。</summary>

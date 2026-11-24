@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using System.Text.RegularExpressions;
+using ShotField.Core;
 using UnityEditor;
 using UnityEditor.Build;
 using UnityEditor.Build.Reporting;
@@ -62,6 +63,11 @@ namespace ShotField.EditorTools
                     if (file.EndsWith(".meta")) continue;
                     if (BinaryExtensions.Contains(Path.GetExtension(file).ToLowerInvariant())) continue;
                     scanned++;
+                    if (string.Equals(Path.GetFileName(file), LocalAiConfig.CredentialFileName, StringComparison.OrdinalIgnoreCase))
+                    {
+                        hits.Add($"{file}: forbidden credential file in Assets");
+                        continue;
+                    }
                     ScanFile(file, hits);
                 }
             }

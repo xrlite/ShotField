@@ -49,6 +49,7 @@ Passports/
 /Assets/Resources/ai_config.local.json
 /Assets/Resources/ai_config.local.json.meta
 *_config.local.json
+ai_credentials.json
 
 # 性能测试包在编辑器启动时自动写出的产物（不是产品资产）
 /Assets/Resources/PerformanceTestRun*.json
