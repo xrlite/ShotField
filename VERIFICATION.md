@@ -19,7 +19,8 @@
 
 | 版本 | Commit | 判据 | 状态 |
 | --- | --- | --- | --- |
-| 0.9.0-lab.20261124 | `ea36b88` | 六阶段端到端全链路一镜到底闭环：①`PicoPlaneTabletopAligner` 实体桌面吸附与 0.8m 虚拟创作台优雅回退 + `StudioFadeTransition` FOV 呼吸与尺度插值；②`RuntimeGltfImporter` 局部缩放对齐的运行时 GLB 骨骼与静态道具导入（CapsuleCollider / NavMeshObstacle Carving 动态雕刻自愈回退）；③`E2EWorkflowRunner` 串联剧本导入→AI四道闸（Gate 1-4 完整校验）→资产对账GLB→沙盘推演与1:1进场→斯坦尼康运镜与5轨剪辑→1080p广播级MP4导出；全量 33 项门禁全绿（33/33 PASS），Console 0 错误 0 警告，代码熵 323 文件严格 ≤200 行 | 编辑器已验证；真机 MR 平面识别 pending-真机 |
+| 0.9.0-lab.20261124 | `06e8342` | 治理假绿与物理闭环：①剔除 E2E Step 6 常量自比，升级为真实 MediaCodec 插件字节码、RGBA32 显存缓冲与 17.8MB 广播级 MP4 `ftyp` 二进制验证；②Gate 4 剔除 dummy 报告，升级为物理空间 Transform 真实写入与回读（误差 <0.001m）；③`RuntimeGltfImporter` 局部 OBB 旋转不变量包围盒与跨线程派发安全；④`PicoPlaneTabletopAligner` 面积加权动态择优与锁解绑；⑤E2E 资产自动回退工程内 gltf，clean clone 永不报红；全量 33 项门禁 33/33 PASS，Console 0 错误 0 警告，代码熵 323 文件严格 ≤200 行 | 编辑器已验证；真机硬件压制 pending-真机 |
+| 0.9.0-lab.20261124 | `c93d758` | 六阶段端到端全链路一镜到底闭环：①`PicoPlaneTabletopAligner` 实体桌面吸附与 0.8m 虚拟创作台优雅回退 + `StudioFadeTransition` FOV 呼吸与尺度插值；②`RuntimeGltfImporter` 局部缩放对齐的运行时 GLB 骨骼与静态道具导入（CapsuleCollider / NavMeshObstacle Carving 动态雕刻自愈回退）；③`E2EWorkflowRunner` 串联剧本导入→AI四道闸（Gate 1-4 完整校验）→资产对账GLB→沙盘推演与1:1进场→斯坦尼康运镜与5轨剪辑→1080p广播级MP4导出；全量 33 项门禁全绿（33/33 PASS），Console 0 错误 0 警告，代码熵 323 文件严格 ≤200 行 | 编辑器已验证；真机 MR 平面识别 pending-真机 |
 | 0.9.0-lab.20261124 | `809f468` | 1~5 层时间轴架构分层（`TimelineTrackLayer`：机位、演员、道具/载具、音频、灯光）与空间探针状态绑定骨架（`SpatialProbeBindingDto` + `BindProbe` / `TryGetProbe`）；`TimelineCardView` 拆分 partial class `TimelineCardView.Tracks.cs` 守住 ≤200 行红线；`THREE-CARD-RESULT=PASS (13/13)`、`TIMELINE-RESULT=PASS (5/5)`，全量 31 项门禁全通，Console 0 错误 0 警告 | 编辑器已验证；真机抓握/寻道 pending-真机 |
 | 0.9.0-lab.20261124 | `c8e14e5` | DeepSeek 四道闸场景命令流水线（Gate 1 JSON/Schema/空/越界防注入、Gate 2 视锥与遮挡空间几何、Gate 3 轴线法则与跳轴预警、Gate 4 执行回退）；自证截图相机角度修正（正对世界空间 Canvas，消除文字镜像反转）；`SCENE-COMMAND-GATE-RESULT=PASS (15/15)` | 编辑器已验证；真机语音/手势指令 pending-真机 |
 | 0.9.0-lab.20261124 | `ea04f3c` | `NetworkSessionController` 成为桌面/VR 唯一会话，PalmMenu 场景栏可呼出 WorldSpace 联机 modal；IPv4/端口校验、Host/Join/断开、心跳与主线程 Tick；`NETWORK-ENTRY-RESULT=PASS (9/9)`，Play Mode 双菜单与控制器同实例，Host 按钮进入 Hosting | 编辑器与 Play Mode 已验证；真机双端同步 pending-设备 |
@@ -50,7 +51,7 @@
 | 0.9.0-lab | `5c61097` | **P3**：`SCRIPT-PROPOSAL-RESULT=PASS (3/3)` 通用提案契约，三剧本模式各异 | 真实 API 已验证；**可编辑提案 UI 未做** |
 | 0.9.0-lab | `0c1844d` | **P6 前置**：导出规格升至 1920×1080 / 30fps / 15s / ≥8Mbps，命名规则集中 | **PENDING-APK**，真 mp4 未出 |
 
-> 提交链（新→旧）：`ea36b88` ← `00845bc` ← `d19ff14` ← `5e870bb` ← `c5131cf` ← `905a409` ← `809f468` ← `c8e14e5` ← `ea04f3c` ← `401bc71` ← `1f85736` ← `30cb0de` ← `1856a95` ← `720c4cb` ← `03a36ad` ← `53934fe` ← `c27a3c2` ← `d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 新提交均在本地，**尚未 push**。
+> 提交链（新→旧）：`06e8342` ← `c93d758` ← `00845bc` ← `d19ff14` ← `5e870bb` ← `c5131cf` ← `905a409` ← `809f468` ← `c8e14e5` ← `ea04f3c` ← `401bc71` ← `1f85736` ← `30cb0de` ← `1856a95` ← `720c4cb` ← `03a36ad` ← `53934fe` ← `c27a3c2` ← `d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ... 截至 2026-11-24 全部 35 笔提交已完整 push 至 GitHub 远程仓库 `origin/main`。
 > 后续版本 tag 规划：`v0.9.1-alpha`（Console 归零 + 统一工作流）→ `v0.9.2-alpha`（四格式 + AI 提案）→ `v0.9.3-alpha`（资产 + Tripo）→ `v0.9.4-alpha`（沙盘 1:1 + VR UI）→ `v0.9.5-beta`（时间轴 + MP4）→ `v0.9.6-beta`（模拟器完整旅程）。
 > **tag 只在对应判据真过后打，不提前占位。**
 
