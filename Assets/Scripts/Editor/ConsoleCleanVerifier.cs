@@ -18,6 +18,13 @@ namespace ShotField.EditorTools
     {
         public const string Tag = "CONSOLE-CLEAN-RESULT";
 
+        [MenuItem("ShotField/Verifiers/Clear Console")]
+        public static void Clear()
+        {
+            var type = typeof(EditorWindow).Assembly.GetType("UnityEditor.LogEntries");
+            type?.GetMethod("Clear", BindingFlags.Public | BindingFlags.Static)?.Invoke(null, null);
+        }
+
         [MenuItem("ShotField/Verifiers/Run Console Clean Verifier")]
         public static void Run()
         {

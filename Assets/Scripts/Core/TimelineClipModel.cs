@@ -4,8 +4,32 @@ using UnityEngine;
 
 namespace ShotField.Core
 {
+    /// <summary>1~5 层时间轴架构分层枚举：机位、演员、道具/载具、音频、灯光。</summary>
+    public enum TimelineTrackLayer
+    {
+        Camera = 0,      // 第 1 层：机位
+        Actor = 1,       // 第 2 层：演员
+        PropVehicle = 2, // 第 3 层：道具/载具
+        Audio = 3,       // 第 4 层：音频
+        Light = 4        // 第 5 层：灯光
+    }
+
+    /// <summary>空间探针状态绑定骨架：时间切片下的空间坐标、探针置信度与绑定对象。</summary>
+    [Serializable]
+    public class SpatialProbeBindingDto
+    {
+        public TimelineTrackLayer layer = TimelineTrackLayer.Camera;
+        public string targetId = "";
+        public Vector3Dto position;
+        public Vector3Dto rotationEuler;
+        public bool isBound;
+        public bool isOccluded;
+        public float confidence = 1.0f;
+        public string probeSummary = "";
+    }
+
     /// <summary>
-    /// 剪映式时间轴分段：一段 clip = 机位预设 + 时长 + 演员动作引用。
+    /// 剪映式时间轴分段：一段 clip = 机位预设 + 时长 + 演员动作引用 + 空间探针绑定。
     /// 纯数据模型，不驱动播放；播放寻道由 RuntimeUI 层 ChainTimelineController 衔接 DirectorTimeline。
     /// </summary>
     [Serializable]
@@ -19,6 +43,30 @@ namespace ShotField.Core
         public string actionTag = "";
         public float durationSeconds = 4.0f;
         public string intent = "";
+        public TimelineTrackLayer primaryLayer = TimelineTrackLayer.Camera;
+        public List<SpatialProbeBindingDto> probeBindings = new List<SpatialProbeBindingDto>();
+
+        public void BindProbe(TimelineTrackLayer layer, string targetId, Vector3 pos, bool bound = true)
+        {
+            if (probeBindings == null) probeBindings = new List<SpatialProbeBindingDto>();
+            var existing = probeBindings.Find(p => p.layer == layer);
+            if (existing == null)
+            {
+                existing = new SpatialProbeBindingDto { layer = layer };
+                probeBindings.Add(existing);
+            }
+            existing.targetId = targetId ?? "";
+            existing.position = pos;
+            existing.isBound = bound;
+            existing.confidence = bound ? 1.0f : 0f;
+            existing.probeSummary = $"{layer}:{existing.targetId}@{pos}";
+        }
+
+        public bool TryGetProbe(TimelineTrackLayer layer, out SpatialProbeBindingDto probe)
+        {
+            probe = probeBindings?.Find(p => p.layer == layer);
+            return probe != null && probe.isBound;
+        }
     }
 
     /// <summary>
@@ -116,7 +164,7 @@ namespace ShotField.Core
             {
                 var shot = acceptedShots[i];
                 var actor = i < acceptedActors.Count ? acceptedActors[i] : null;
-                model.Add(new TimelineClipDto
+                var clip = new TimelineClipDto
                 {
                     clipId = shot.itemId,
                     shotId = shot.itemId,
@@ -126,7 +174,11 @@ namespace ShotField.Core
                     actionTag = actor != null ? actor.actionText : "",
                     durationSeconds = Mathf.Max(0.1f, shot.durationSeconds),
                     intent = shot.intent
-                });
+                };
+                clip.BindProbe(TimelineTrackLayer.Camera, shot.itemId, shot.position.ToUnityVector3(), true);
+                if (actor != null && !string.IsNullOrEmpty(actor.actorId))
+                    clip.BindProbe(TimelineTrackLayer.Actor, actor.actorId, actor.position.ToUnityVector3(), true);
+                model.Add(clip);
             }
             return model;
         }

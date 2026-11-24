@@ -9,7 +9,7 @@ namespace ShotField.RuntimeUI
 {
     /// <summary>空间时间轴卡：真实分段模型、双轨内容、播放控制与 Edit Mode 编辑接口。</summary>
     [ExecuteAlways]
-    public sealed class TimelineCardView : MonoBehaviour
+    public sealed partial class TimelineCardView : MonoBehaviour
     {
         private const float TrackWidth = 510f;
         private const float TrackCenter = 35f;
@@ -49,13 +49,16 @@ namespace ShotField.RuntimeUI
             {
                 int end = Mathf.Min(i + 1, DirectorTimeline.ShotCutTimes.Length - 1);
                 string actor = i % 2 == 0 ? "SC01_Performer_A" : "SC01_Performer_B";
-                chain.Add(new TimelineClipDto
+                var clip = new TimelineClipDto
                 {
                     clipId = "clip_" + DirectorTimeline.ShotNames[i], shotId = DirectorTimeline.ShotNames[i],
                     cameraPresetId = i, actorId = actor, actionTag = actor,
                     durationSeconds = Mathf.Max(0.1f, DirectorTimeline.ShotCutTimes[end] - DirectorTimeline.ShotCutTimes[i]),
                     intent = "Timeline block " + (i + 1)
-                });
+                };
+                clip.BindProbe(TimelineTrackLayer.Camera, clip.shotId, Vector3.zero, true);
+                clip.BindProbe(TimelineTrackLayer.Actor, actor, Vector3.zero, true);
+                chain.Add(clip);
             }
             return chain;
         }
@@ -71,46 +74,12 @@ namespace ShotField.RuntimeUI
             BuildRuler(root);
             _track = Panel(root, "ClipTrack", new Vector2(TrackCenter, 20f), new Vector2(TrackWidth, 56f), new Color(0.07f, 0.08f, 0.10f, 0.95f));
             _actorTrack = Panel(root, "ActorTrack", new Vector2(TrackCenter, -70f), new Vector2(TrackWidth, 56f), new Color(0.07f, 0.08f, 0.10f, 0.95f));
+            BuildLayerTracks(root);
             RebuildClips();
             _playhead = Panel(root, "Playhead", Vector2.zero, new Vector2(3f, 130f), new Color(0.95f, 0.76f, 0.25f)).GetComponent<Image>();
             _playhead.raycastTarget = false;
             _noteLabel = Label(root, "TimelineNote", LastNote, new Vector2(0f, -145f), new Vector2(550f, 32f), 16, new Color(0.72f, 0.74f, 0.78f));
             RefreshPlayhead();
-        }
-
-        private void BuildRuler(Transform root)
-        {
-            float total = Model?.TotalDuration ?? 60f;
-            for (int i = 0; i <= 4; i++)
-            {
-                float x = TrackCenter - TrackWidth * 0.5f + TrackWidth * i / 4f;
-                Panel(root, "Tick", new Vector2(x, 87f), new Vector2(2f, 10f), new Color(0.5f, 0.52f, 0.56f));
-                Label(root, "Time", (total * i / 4f).ToString("0.#"), new Vector2(x, 107f), new Vector2(60f, 22f), 14, new Color(0.7f, 0.72f, 0.76f));
-            }
-        }
-
-        private void RebuildClips()
-        {
-            _clipRects.Clear();
-            if (_track == null || Model == null) return;
-            for (int i = _track.childCount - 1; i >= 0; i--) Remove(_track.GetChild(i).gameObject);
-            for (int i = _actorTrack.childCount - 1; i >= 0; i--) Remove(_actorTrack.GetChild(i).gameObject);
-            float total = Model.TotalDuration, start = 0f;
-            for (int i = 0; i < Model.Count; i++)
-            {
-                var clip = Model.clips[i];
-                float duration = Mathf.Max(0.1f, clip.durationSeconds), width = TrackWidth * duration / total;
-                float x = -TrackWidth * 0.5f + start + width * 0.5f;
-                var rect = Panel(_track, "Clip_" + i, new Vector2(x, 0f), new Vector2(width, 48f), new Color(0.20f, 0.42f, 0.56f, 0.96f));
-                _clipRects.Add((RectTransform)rect.transform);
-                rect.gameObject.AddComponent<TimelineClipDrag>().Bind(this, i);
-                Label(rect.transform, "Shot", string.IsNullOrEmpty(clip.shotId) ? "Clip" : clip.shotId, Vector2.zero, new Vector2(Mathf.Max(1f, width - 14f), 28f), 14);
-                var trim = Panel(rect.transform, "Trim", new Vector2(-4f, 0f), new Vector2(12f, 48f), new Color(0.95f, 0.64f, 0.24f, 0.98f));
-                trim.gameObject.AddComponent<TimelineTrimHandle>().Bind(this, i);
-                var actor = Panel(_actorTrack, "ActorBlock_" + i, new Vector2(x, 0f), new Vector2(width, 48f), new Color(0.38f, 0.29f, 0.48f, 0.96f));
-                Label(actor.transform, "Actor", string.IsNullOrEmpty(clip.actorId) ? "演员" : clip.actorId.Replace("SC01_Performer_", "演员 "), Vector2.zero, new Vector2(Mathf.Max(1f, width - 14f), 28f), 13);
-                start += duration;
-            }
         }
 
         private void Button(Transform parent, string name, string text, float x, Action action) =>
