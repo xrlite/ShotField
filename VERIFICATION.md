@@ -19,6 +19,9 @@
 
 | 版本 | Commit | 判据 | 状态 |
 | --- | --- | --- | --- |
+| 0.9.0-lab.20261124 | `d8a1a55` | SceneEdit 本地单次回调、per-actor revision 冲突拒绝、重连快照；`NET-VERIFY-RESULT=PASS (13/13)`、`NET-SCENE-EDIT-RESULT=PASS (6/6)` | 编辑器已验证；VR 入口/真机 pending |
+| 0.9.0-lab.20261124 | `11ff013` | 演员/代理预算、选中联动、可逆恢复、淡入淡出、PalmMenu 触感重绑定；P5 四验证器 10/10 | 编辑器已验证；真机手感 pending |
+| 0.9.0-lab.20261124 | `35e8d57` | 18 个 Editor 文件菜单根统一为 `ShotField` | 编辑器已验证 |
 | 0.9.0-lab.20261124 | `04748f2` | M1 六步自动演示 `PASS (6/6)`，演员/道具重载 delta=0；P6 四机位 15 秒编辑器出片，验片 `PASS (11/11)`（1080p30 / 450 帧 / 11.927Mbps / 全帧中位 1.96） | 编辑器已验证；**Android 真编码 pending-APK** |
 | 0.9.0-lab.20261124 | `0ba5ac8` | 中文字体 SDF 从 1x1 占位重建为 2048x2048 真实字形表 | 编辑器已验证 |
 | 0.9.0-lab.20261124 | `cbab098` | P5 元数据补齐、掌心菜单 XR 射线器、非废弃查询 API、变体工具指向唯一主场景 | 编辑器已验证；VR 手感 pending-真机 |
@@ -35,13 +38,13 @@
 | 0.9.0-lab | `5c61097` | **P3**：`SCRIPT-PROPOSAL-RESULT=PASS (3/3)` 通用提案契约，三剧本模式各异 | 真实 API 已验证；**可编辑提案 UI 未做** |
 | 0.9.0-lab | `0c1844d` | **P6 前置**：导出规格升至 1920×1080 / 30fps / 15s / ≥8Mbps，命名规则集中 | **PENDING-APK**，真 mp4 未出 |
 
-> 提交链（新→旧）：`04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 三笔新提交已在本地，**尚未 push**。
+> 提交链（新→旧）：`d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 新提交均在本地，**尚未 push**。
 > 后续版本 tag 规划：`v0.9.1-alpha`（Console 归零 + 统一工作流）→ `v0.9.2-alpha`（四格式 + AI 提案）→ `v0.9.3-alpha`（资产 + Tripo）→ `v0.9.4-alpha`（沙盘 1:1 + VR UI）→ `v0.9.5-beta`（时间轴 + MP4）→ `v0.9.6-beta`（模拟器完整旅程）。
 > **tag 只在对应判据真过后打，不提前占位。**
 
 ---
 
-## 门禁（20 项）
+## 门禁（21 项）
 
 运行入口：`ShotField > Verifiers`，或工作区脚本 `04_Project/巡检/verify_all.ps1`（走 live-bridge 直调）。
 
@@ -63,12 +66,13 @@
 | `console_clean` | Console 错误与警告计数均为 0（反射读 `LogEntries.GetCountsByType`，**无白名单豁免**）；长驻留 300s 协议见下 |
 | `workflow_assembly` | `WORKFLOW-ASSEMBLY-RESULT=PASS (6/6)`：反射核对六阶段枚举顺序与数值 0..5、初始阶段 Import、五次前进到 Export、终点原地、Reset、类型归属 `ShotField.Core`，无 RuntimeUI/Editor 泄漏 |
 | `scene_single_entry` | `SCENE-SINGLE-ENTRY-RESULT=PASS (3/3)`：EditorBuildSettings 恰好 1 个启用条目、路径 == `BuildAndroid.ScenePath`、场景资产真实存在 |
+| `network_session` | `NET-VERIFY-RESULT=PASS (13/13)`，含 `NET-SCENE-EDIT-RESULT=PASS (6/6)`：双向同步、本地单次回调、revision 拒绝、重连快照、旧 JSON 兼容 |
 | `palm_menu_vr` | `PALM-MENU-VR-RESULT=PASS (10/10)`：掌心菜单构建、分栏、空引用降级；运行时手感 pending-真机 |
 | `block_layout` | `BLOCK-LAYOUT-RESULT=PASS (10/10)`：弧面布局、距离档、板尺寸与排序 |
 | `tabletop_scale` | `TABLETOP-SCALE-RESULT=PASS (10/10)`：1:20/1:1 换算、演员预算、MR 平面识别 pending-真机 |
 | `studio_fade` | `STUDIO-FADE-RESULT=PASS (10/10)`：淡入淡出状态机与遮罩参数；人眼观感 pending-真机 |
 
-最近一次全量（2026-11-24）：**20 run / 19 PASS / 1 首轮 FAIL**。唯一失败是 `console_clean` 读到冷启动的 52 条 KitWright/PICO 包编译与导入警告；按既有协议清一次性启动噪音、域重载、进 Play、操作演员与时间轴、驻留 300s 后，五次读数全 0，官方 verifier 输出 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`。日志：`verify_all_20261124_092507.log`、`console_clean_dwell_20261124_1000.log`。
+最近一次全量（2026-11-24 11:09）：**21 run / 0 failed/no-verdict / 0 no-error**，日志 `verify_all_20261124_110912.log`。其中 `network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`console_clean` 在清一次性启动噪音后读数 `Errors=0 Warnings=0`，此前 300s 驻留协议见 `console_clean_dwell_20261124_1000.log`。
 
 > ✅ **Console 长驻留归零（2026-11-23 13:59:58 实跑通过）**：协议为 清 Console → 域重载 → 清重载噪音 → 进 Play → 摆位走位（`PrevisCast_A_Red` MoveTo）+ 时间轴寻道（`SH_04`）→ Play 态驻留 300s，60/120/180/240/300s 五次巡检 Console 全空 → 退出 Play。读数 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，日志 `console_clean_dwell_20261123_135958.log`。
 >
@@ -119,7 +123,7 @@
 
 - **运行时 GLB 导入未实现**：`com.plattar.unitygltf` 实为 **Editor-only 导出器**（`Compiler.asmdef` / `PlattarCompile.asmdef` 均 `includePlatforms:["Editor"]`），**进不了 APK**。已选 GLTFUtility(MIT) 路线，待引入。
 - **世界画布中文豆腐块已修**：TMP 迁移 + `ShotFieldSansSC-Regular.otf` + 2048x2048 SDF 字形表（`0ba5ac8`）；M1/P6 实录已见中文 UI。字体许可仍需补进资产来源清单。
-- **P5 运行态接线仍部分**：四验证器 10/10 PASS，但积木抓取、触感重绑定、代理预算/选中联动仍是脚手架，未当真机验收。
+- **P5 运行态接线已补**：演员/代理预算、选中联动、可逆恢复、淡入淡出、触感重绑定已完成（`11ff013`）；三块空间卡片的抓取/缩放/吸附与真机手感仍待做。
 - **P6 Android 真编码未验**：编辑器交付片已 PASS (11/11)，MediaCodec/MediaMuxer 需重打 APK 后在模拟器取证。
 - **掌心菜单 VR 侧未接线**：`PalmMenuController` 的 8 个引用全为 0，`InstantiateButton` 遇空引用返回 null。属未接线，非废案。
 - **Blue 演员 Play 态漂位**：序列化 (-1.00,0,1.40) → Play (-0.636,0.050,1.082)，根因未追。
