@@ -19,6 +19,7 @@
 
 | 版本 | Commit | 判据 | 状态 |
 | --- | --- | --- | --- |
+| 0.9.0-lab.20261124 | `720c4cb` | 三块独立空间卡：监看板/多轨时间轴/剧本资产抽屉；抓取、0.5–3m 缩放、吸附、Clip 调序/裁切、Tripo 失败回退灰盒、PalmMenu 呼出；`THREE-CARD-RESULT=PASS (13/13)`、Play Mode `THREE-CARD-PLAY=PASS` | 编辑器已验证；真机抓握/射线手感 pending |
 | 0.9.0-lab.20261124 | `03a36ad` | 天工 FBX 合并为 1 renderer / 68,569 三角形；Resources 运行时加载、白模/天工往返切换、桌面一键按钮；`STAGE-PRESET-RESULT=PASS (7/7)`、Play Mode `STAGE-PRESET-PLAY=PASS` | 编辑器已验证；APK/真机 pending；天工权属/许可待核 |
 | 0.9.0-lab.20261124 | `53934fe` | GLTFUtility pin `dfdc508...`；真实 `door_v01.glb` 运行时导入、归一化、Collider/抓取补齐；`TRIPO-RUNTIME-IMPORT=PASS (5/5)` | 编辑器已验证；Android IL2CPP 导入 pending |
 | 0.9.0-lab.20261124 | `c27a3c2` | Passthrough + Spatial Mesh 配置、无 subsystem 时虚拟创作台回退；`MR-TABLETOP-CONFIG=PASS (3/3)` | 编辑器配置与回退已验证；模拟器/真机桌面识别 pending |
@@ -41,13 +42,13 @@
 | 0.9.0-lab | `5c61097` | **P3**：`SCRIPT-PROPOSAL-RESULT=PASS (3/3)` 通用提案契约，三剧本模式各异 | 真实 API 已验证；**可编辑提案 UI 未做** |
 | 0.9.0-lab | `0c1844d` | **P6 前置**：导出规格升至 1920×1080 / 30fps / 15s / ≥8Mbps，命名规则集中 | **PENDING-APK**，真 mp4 未出 |
 
-> 提交链（新→旧）：`03a36ad` ← `53934fe` ← `c27a3c2` ← `d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 新提交均在本地，**尚未 push**。
+> 提交链（新→旧）：`720c4cb` ← `03a36ad` ← `53934fe` ← `c27a3c2` ← `d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 新提交均在本地，**尚未 push**。
 > 后续版本 tag 规划：`v0.9.1-alpha`（Console 归零 + 统一工作流）→ `v0.9.2-alpha`（四格式 + AI 提案）→ `v0.9.3-alpha`（资产 + Tripo）→ `v0.9.4-alpha`（沙盘 1:1 + VR UI）→ `v0.9.5-beta`（时间轴 + MP4）→ `v0.9.6-beta`（模拟器完整旅程）。
 > **tag 只在对应判据真过后打，不提前占位。**
 
 ---
 
-## 门禁（24 项）
+## 门禁（25 项）
 
 运行入口：`ShotField > Verifiers`，或工作区脚本 `04_Project/巡检/verify_all.ps1`（走 live-bridge 直调）。
 
@@ -71,6 +72,7 @@
 | `scene_single_entry` | `SCENE-SINGLE-ENTRY-RESULT=PASS (3/3)`：EditorBuildSettings 恰好 1 个启用条目、路径 == `BuildAndroid.ScenePath`、场景资产真实存在 |
 | `tripo_runtime_import` | `TRIPO-RUNTIME-IMPORT=PASS (5/5)`：真实 GLB 导入、Mesh/Renderer、Collider、目标高度；Android IL2CPP pending |
 | `stage_preset` | `STAGE-PRESET-RESULT=PASS (7/7)`：Resources 预设、单 renderer、68,569 三角形、灰模材质、主场景组件、白模/天工往返 |
+| `three_card_workspace` | `THREE-CARD-RESULT=PASS (13/13)`：三卡默认隐藏、独立 Canvas、抓取/缩放/吸附、双轨 Clip 调序/裁切、轨迹引用不变、Tripo 失败回退灰盒、PalmMenu 三入口、无 legacy Text |
 | `mr_tabletop_config` | `MR-TABLETOP-CONFIG=PASS (3/3)`：Passthrough、Spatial Mesh、虚拟台回退；真实桌面识别 pending-设备 |
 | `network_session` | `NET-VERIFY-RESULT=PASS (13/13)`，含 `NET-SCENE-EDIT-RESULT=PASS (6/6)`：双向同步、本地单次回调、revision 拒绝、重连快照、旧 JSON 兼容 |
 | `palm_menu_vr` | `PALM-MENU-VR-RESULT=PASS (10/10)`：掌心菜单构建、分栏、空引用降级；运行时手感 pending-真机 |
@@ -78,7 +80,7 @@
 | `tabletop_scale` | `TABLETOP-SCALE-RESULT=PASS (10/10)`：1:20/1:1 换算、演员预算、MR 平面识别 pending-真机 |
 | `studio_fade` | `STUDIO-FADE-RESULT=PASS (10/10)`：淡入淡出状态机与遮罩参数；人眼观感 pending-真机 |
 
-最近一次全量（2026-11-24 12:06）：**24 run / 0 failed/no-verdict / 0 no-error**，日志 `verify_all_20261124_120602.log`。其中 `network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`console_clean` 在清掉一次性 XR 域重载包噪音后读数 `Errors=0 Warnings=0`，此前 300s 驻留协议见 `console_clean_dwell_20261123_135958.log`。
+最近一次全量（2026-11-24 13:59）：**25 run / 0 failed/no-verdict / 0 no-error**，日志 `verify_all_20261124_135914.log`。其中 `network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`console_clean` 读数 `Errors=0 Warnings=0`，此前 300s 驻留协议见 `console_clean_dwell_20261123_135958.log`。
 
 > ✅ **Console 长驻留归零（2026-11-23 13:59:58 实跑通过）**：协议为 清 Console → 域重载 → 清重载噪音 → 进 Play → 摆位走位（`PrevisCast_A_Red` MoveTo）+ 时间轴寻道（`SH_04`）→ Play 态驻留 300s，60/120/180/240/300s 五次巡检 Console 全空 → 退出 Play。读数 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，日志 `console_clean_dwell_20261123_135958.log`。
 >
@@ -109,6 +111,7 @@
 | Tripo 真实生成 | `tripo_spike_20261122_2305.log`，末行 `TRIPO-SPIKE-RESULT=PASS`；GLB 落盘 2,856,144 字节 | 真实 API | 已验证到**落盘**；运行时导入见下一行 |
 | Tripo GLB 运行时导入 | `TRIPO-RUNTIME-IMPORT=PASS (5/5)`；真实样本 `06_素材/Tripo生成/door_v01.glb` | 编辑器 Play | 编辑器已验证；Android IL2CPP pending |
 | 天工宏大叙事预设 | 源 FBX SHA256 `b49a0702...ec1ee89`；`TIANGONG-PRESET=PASS renderers=1 triangles=68569`；`STAGE-PRESET-RESULT=PASS (7/7)` | 编辑器 + 本地 Resources | 编辑器已验证；权属/许可待核；APK/真机 pending |
+| 三块空间卡与掌心呼出 | `20261124_1335_监看板_v05.png`、`20261124_1335_时间轴_v05.png`、`20261124_1335_剧本资产抽屉_v05.png`、`20261124_1357_掌心菜单卡片栏_v09.png`；`THREE-CARD-RESULT=PASS (13/13)`、`THREE-CARD-PLAY=PASS` | 编辑器 Play | 编辑器已验证；真机抓握/射线手感 pending |
 | M1 六步连续实录 | `20261124_M1六步操作_v02.mp4`；`M1-SIXSTEP-DEMO=PASS (6/6)`，actorDelta=0.0000 / propDelta=0.0000 | 编辑器 Play + Recorder | 编辑器已验证；模拟器六步 pending-APK |
 | P6 四机位本地出片 | `20261124_P6预演_15s_8Mbps_v06.mp4`；15/45 两档 `VIDEO-EXPORT-RESULT=PASS (11/11)`：1920x1080 / 30fps / 15.00s / 450 帧 / 11.927Mbps / 全帧中位 1.96 / 切镜达标 | 编辑器 Play + Recorder + ffmpeg CBR | 编辑器已验证；Android 真编码 pending-APK |
 | mp4 导出链路 | 编辑器菜单自测 PASS；两条失败分支已验；验片脚本改为全帧运动/切镜扫描，`--pairs` 仅诊断 | 编辑器 | **Android 真编码 pending-APK** |
@@ -131,7 +134,7 @@
 
 - **运行时 GLB 导入已实现，Android 侧未验**：`com.plattar.unitygltf` 是 Editor-only 导出器，已改用 pin 的 GLTFUtility(MIT)；真实 `door_v01.glb` 在编辑器导入/缩放/Collider/抓取补齐 `PASS (5/5)`。IL2CPP 裁剪、URP shader 与端上加载仍 pending-APK。
 - **世界画布中文豆腐块已修**：TMP 迁移 + `ShotFieldSansSC-Regular.otf` + 2048x2048 SDF 字形表（`0ba5ac8`）；M1/P6 实录已见中文 UI。字体许可仍需补进资产来源清单。
-- **P5 运行态接线已补**：演员/代理预算、选中联动、可逆恢复、淡入淡出、触感重绑定已完成（`11ff013`）；三块空间卡片的抓取/缩放/吸附与真机手感仍待做。
+- **P5 运行态接线已补**：演员/代理预算、选中联动、可逆恢复、淡入淡出、触感重绑定已完成（`11ff013`）；三块空间卡片及 PalmMenu 呼出已完成（`720c4cb`），真机抓握、射线与触感手感仍 pending。
 - **MR 只有配置与 Editor 回退证据**：`MrTabletopBootstrap` 已接 Passthrough + Spatial Mesh，无 subsystem 时回退虚拟创作台；模拟器/真机真实桌面识别与贴合精度 pending-设备。
 - **天工预设仅 1:1 舞台切换**：已合并为单网格灰模并提供桌面一键切换；沙盘迷你模式、演员/相机自动重排、权属/许可与 Android 包内加载未验。
 - **P6 Android 真编码未验**：编辑器交付片已 PASS (11/11)，MediaCodec/MediaMuxer 需重打 APK 后在模拟器取证。
