@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit.UI;
 using TMPro;
 
 namespace ShotField.RuntimeUI
@@ -55,7 +56,8 @@ namespace ShotField.RuntimeUI
         /// <summary>在 parent 下建一整套菜单视觉；parent 为空时自建根节点。</summary>
         public static PalmMenuVisuals Build(Transform parent, string canvasName = "PalmMenu_Canvas")
         {
-            var root = new GameObject(canvasName, typeof(RectTransform), typeof(Canvas), typeof(Image));
+            var root = new GameObject(canvasName, typeof(RectTransform), typeof(Canvas),
+                typeof(Image), typeof(TrackedDeviceGraphicRaycaster));
             if (parent != null) root.transform.SetParent(parent, false);
 
             var canvas = root.GetComponent<Canvas>();

@@ -76,7 +76,7 @@ namespace ShotField.RuntimeUI
 
         private static Transform FindTransform(string name)
         {
-            var all = FindObjectsByType<Transform>(FindObjectsSortMode.None);
+            var all = FindObjectsByType<Transform>(FindObjectsInactive.Exclude);
             foreach (var t in all)
                 if (t.name == name) return t;
             return null;
@@ -92,7 +92,7 @@ namespace ShotField.RuntimeUI
 
         private static XRRayInteractor FindRightRay()
         {
-            var rays = FindObjectsByType<XRRayInteractor>(FindObjectsSortMode.None);
+            var rays = FindObjectsByType<XRRayInteractor>(FindObjectsInactive.Exclude);
             foreach (var ray in rays)
                 if (IsUnder(ray.transform, RightControllerName)) return ray;
             return rays.Length > 0 ? rays[0] : null;
@@ -100,7 +100,7 @@ namespace ShotField.RuntimeUI
 
         private static HapticImpulsePlayer FindHaptics(string controllerName)
         {
-            var players = FindObjectsByType<HapticImpulsePlayer>(FindObjectsSortMode.None);
+            var players = FindObjectsByType<HapticImpulsePlayer>(FindObjectsInactive.Exclude);
             foreach (var p in players)
                 if (IsUnder(p.transform, controllerName)) return p;
             return null;

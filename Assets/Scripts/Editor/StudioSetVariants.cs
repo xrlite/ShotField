@@ -9,7 +9,7 @@ namespace ShotField.EditorTools
 {
     public static class StudioSetVariants
     {
-        const string Source = "Assets/Scenes/SC01_Blockout.unity";
+        const string Source = "Assets/Scenes/SC01_Main.unity";
 
         [MenuItem("ShotField/Art/Build alternate sets")]
         public static void Build()
