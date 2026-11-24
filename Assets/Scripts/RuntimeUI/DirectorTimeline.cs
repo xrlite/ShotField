@@ -9,7 +9,7 @@ namespace ShotField.RuntimeUI
     /// 位于 RuntimeUI 层，协调底层 Core 数据与运行时 Actor/Camera 播放器。
     /// </summary>
     [ExecuteAlways]
-    public class DirectorTimeline : MonoBehaviour
+    public partial class DirectorTimeline : MonoBehaviour
     {
         [Header("时间与状态")]
         [Min(0.1f)] public float duration = 60.0f;
@@ -36,7 +36,12 @@ namespace ShotField.RuntimeUI
         public event Action<float> OnTimeUpdated;
         public event Action<bool> OnPlayStateChanged;
 
-        void Awake() => AutoWireReferences();
+        void Awake()
+        {
+            AutoWireReferences();
+            AutoWireExtensions();
+        }
+        partial void AutoWireExtensions();
 
         public void AutoWireReferences()
         {
@@ -123,46 +128,6 @@ namespace ShotField.RuntimeUI
         {
             duration = Mathf.Max(0.1f, newDuration);
             if (currentTime > duration) Seek(duration);
-        }
-
-        public void ApplyCurrentFrame()
-        {
-            if (cameraRecorder != null && cameraRecorder.filmCamera != null)
-            {
-                var traj = cameraRecorder.ActiveTrajectory;
-                if (traj != null && traj.Count > 0)
-                {
-                    float sampleTime = NormalizedTime * traj.totalDuration;
-                    var sample = traj.Evaluate(sampleTime);
-                    cameraRecorder.filmCamera.transform.SetPositionAndRotation(sample.position, sample.rotation);
-                    cameraRecorder.filmCamera.fieldOfView = sample.fieldOfView;
-                }
-            }
-
-            if (actorPlayer != null && actorPlayer.actorTransform != null && actorPlayer.currentTake != null && actorPlayer.currentTake.Count > 0)
-            {
-                var take = actorPlayer.currentTake;
-                var sample = take.Evaluate(NormalizedTime * take.duration);
-                actorPlayer.actorTransform.SetPositionAndRotation(sample.position, sample.rotation);
-            }
-            if (actorA != null)
-            {
-                actorA.transform.position = Sc01PrevisShotData.EvaluateActorA(currentTime);
-                actorA.transform.rotation = Sc01PrevisShotData.EvaluateActorARotation(currentTime);
-            }
-            if (actorB != null)
-            {
-                actorB.transform.position = Sc01PrevisShotData.EvaluateActorB(currentTime);
-                actorB.transform.rotation = Sc01PrevisShotData.EvaluateActorBRotation(currentTime);
-            }
-
-            if (videoPlayer != null && videoPlayer.HasSource) videoPlayer.SeekNormalized(NormalizedTime);
-
-            if (playableDirector != null && playableDirector.playableAsset != null)
-            {
-                playableDirector.time = currentTime;
-                playableDirector.Evaluate();
-            }
         }
     }
 }
