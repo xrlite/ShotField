@@ -75,13 +75,14 @@ namespace ShotField.EditorTools
             var payload = new ProposeShotPayload
             {
                 shotId = "shot_01",
-                cameraPosition = new Vector3(0f, 1.2f, -1.5f),
+                cameraPosition = new Vector3(0f, 1.2f, 0.5f),
                 cameraRotation = Quaternion.identity,
                 fieldOfView = 50f
             };
             var cmd = new SceneCommandEnvelopeDto("shot_01", SceneCommandType.ProposeShot, "shot_01", JsonUtility.ToJson(payload));
-            var schemaRes = SceneCommandPipeline.ValidateSchema(cmd);
-            bool gate1Ok = schemaRes.isValid;
+            bool gate1Ok = SceneCommandPipeline.ValidateSchema(cmd).isValid;
+            var shotState = new ShotCameraState { position = payload.cameraPosition, rotation = payload.cameraRotation, fieldOfView = payload.fieldOfView, usesUnityCameraRotation = true };
+            bool gate2Ok = CameraPreset.IsPlausible(shotState);
 
             var ghostGo = new GameObject("AI_Ghost_Preview", typeof(GhostPreviewMarker));
             bool gate3Ok = ghostGo.GetComponent<GhostPreviewMarker>() != null;
@@ -90,9 +91,9 @@ namespace ShotField.EditorTools
             var report = new ChainApplyReport { executedCount = 3, readbackFailedCount = 0 };
             bool gate4Ok = report.executedCount == 3 && report.readbackFailedCount == 0;
 
-            bool allGates = gate1Ok && gate3Ok && gate4Ok && proposal.AcceptedItems.Count == 3;
+            bool allGates = gate1Ok && gate2Ok && gate3Ok && gate4Ok && proposal.AcceptedItems.Count == 3;
             return new StepReport { stepIndex = 2, stepName = "AI分镜拆解与四道闸", success = allGates,
-                detail = $"Gate1={gate1Ok}, Gate3(Ghost)={gate3Ok}, Gate4(Readback)={gate4Ok}, 采纳项={proposal.AcceptedItems.Count}" };
+                detail = $"Gate1={gate1Ok}, Gate2(Boundary)={gate2Ok}, Gate3(Ghost)={gate3Ok}, Gate4(Readback)={gate4Ok}, 采纳项={proposal.AcceptedItems.Count}" };
         }
 
         public static StepReport Step3_AssetReconciliationAndGlb()

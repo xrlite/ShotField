@@ -19,7 +19,7 @@
 
 | 版本 | Commit | 判据 | 状态 |
 | --- | --- | --- | --- |
-| 0.9.0-lab.20261124 | `22e25f6` | 六阶段端到端全链路一镜到底闭环：①`PicoPlaneTabletopAligner` 实体桌面吸附与 0.8m 虚拟创作台优雅回退 + `StudioFadeTransition` FOV 呼吸与尺度插值；②`RuntimeGltfImporter` 运行时 GLB 骨骼与静态道具导入（CapsuleCollider / NavMeshObstacle Carving 动态雕刻自愈回退）；③`E2EWorkflowRunner` 串联剧本导入→AI四道闸→资产对账GLB→沙盘推演与1:1进场→斯坦尼康运镜与5轨剪辑→1080p广播级MP4导出；全量 33 项门禁全绿（33/33 PASS），Console 0 错误 0 警告，代码熵 323 文件严格 ≤200 行 | 编辑器已验证；真机 MR 平面识别 pending-真机 |
+| 0.9.0-lab.20261124 | `ea36b88` | 六阶段端到端全链路一镜到底闭环：①`PicoPlaneTabletopAligner` 实体桌面吸附与 0.8m 虚拟创作台优雅回退 + `StudioFadeTransition` FOV 呼吸与尺度插值；②`RuntimeGltfImporter` 局部缩放对齐的运行时 GLB 骨骼与静态道具导入（CapsuleCollider / NavMeshObstacle Carving 动态雕刻自愈回退）；③`E2EWorkflowRunner` 串联剧本导入→AI四道闸（Gate 1-4 完整校验）→资产对账GLB→沙盘推演与1:1进场→斯坦尼康运镜与5轨剪辑→1080p广播级MP4导出；全量 33 项门禁全绿（33/33 PASS），Console 0 错误 0 警告，代码熵 323 文件严格 ≤200 行 | 编辑器已验证；真机 MR 平面识别 pending-真机 |
 | 0.9.0-lab.20261124 | `809f468` | 1~5 层时间轴架构分层（`TimelineTrackLayer`：机位、演员、道具/载具、音频、灯光）与空间探针状态绑定骨架（`SpatialProbeBindingDto` + `BindProbe` / `TryGetProbe`）；`TimelineCardView` 拆分 partial class `TimelineCardView.Tracks.cs` 守住 ≤200 行红线；`THREE-CARD-RESULT=PASS (13/13)`、`TIMELINE-RESULT=PASS (5/5)`，全量 31 项门禁全通，Console 0 错误 0 警告 | 编辑器已验证；真机抓握/寻道 pending-真机 |
 | 0.9.0-lab.20261124 | `c8e14e5` | DeepSeek 四道闸场景命令流水线（Gate 1 JSON/Schema/空/越界防注入、Gate 2 视锥与遮挡空间几何、Gate 3 轴线法则与跳轴预警、Gate 4 执行回退）；自证截图相机角度修正（正对世界空间 Canvas，消除文字镜像反转）；`SCENE-COMMAND-GATE-RESULT=PASS (15/15)` | 编辑器已验证；真机语音/手势指令 pending-真机 |
 | 0.9.0-lab.20261124 | `ea04f3c` | `NetworkSessionController` 成为桌面/VR 唯一会话，PalmMenu 场景栏可呼出 WorldSpace 联机 modal；IPv4/端口校验、Host/Join/断开、心跳与主线程 Tick；`NETWORK-ENTRY-RESULT=PASS (9/9)`，Play Mode 双菜单与控制器同实例，Host 按钮进入 Hosting | 编辑器与 Play Mode 已验证；真机双端同步 pending-设备 |
@@ -50,7 +50,7 @@
 | 0.9.0-lab | `5c61097` | **P3**：`SCRIPT-PROPOSAL-RESULT=PASS (3/3)` 通用提案契约，三剧本模式各异 | 真实 API 已验证；**可编辑提案 UI 未做** |
 | 0.9.0-lab | `0c1844d` | **P6 前置**：导出规格升至 1920×1080 / 30fps / 15s / ≥8Mbps，命名规则集中 | **PENDING-APK**，真 mp4 未出 |
 
-> 提交链（新→旧）：`809f468` ← `c8e14e5` ← `ea04f3c` ← `401bc71` ← `1f85736` ← `30cb0de` ← `1856a95` ← `720c4cb` ← `03a36ad` ← `53934fe` ← `c27a3c2` ← `d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 新提交均在本地，**尚未 push**。
+> 提交链（新→旧）：`ea36b88` ← `00845bc` ← `d19ff14` ← `5e870bb` ← `c5131cf` ← `905a409` ← `809f468` ← `c8e14e5` ← `ea04f3c` ← `401bc71` ← `1f85736` ← `30cb0de` ← `1856a95` ← `720c4cb` ← `03a36ad` ← `53934fe` ← `c27a3c2` ← `d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 新提交均在本地，**尚未 push**。
 > 后续版本 tag 规划：`v0.9.1-alpha`（Console 归零 + 统一工作流）→ `v0.9.2-alpha`（四格式 + AI 提案）→ `v0.9.3-alpha`（资产 + Tripo）→ `v0.9.4-alpha`（沙盘 1:1 + VR UI）→ `v0.9.5-beta`（时间轴 + MP4）→ `v0.9.6-beta`（模拟器完整旅程）。
 > **tag 只在对应判据真过后打，不提前占位。**
 
@@ -90,12 +90,12 @@
 | `network_entry` | `NETWORK-ENTRY-RESULT=PASS (9/9)`：IPv4/端口校验、真实回环握手、WorldSpace modal、Host/Join/断开/关闭、PalmMenu 呼出、断开归零；真机双端 pending |
 | `palm_menu_vr` | `PALM-MENU-VR-RESULT=PASS (10/10)`：掌心菜单构建、分栏、空引用降级；运行时手感 pending-真机 |
 | `block_layout` | `BLOCK-LAYOUT-RESULT=PASS (10/10)`：弧面布局、距离档、板尺寸与排序 |
-| `tabletop_scale` | `TABLETOP-SCALE-RESULT=PASS (10/10)`：1:20/1:1 换算、演员预算、MR 平面识别 pending-真机 |
+| `tabletop_scale` | `TABLETOP-SCALE-RESULT=PASS (14/14)`：1:20/1:1 换算、演员预算、PicoPlaneTabletopAligner 吸附与回退契约已闭环；真机 MR 平面识别 pending-真机 |
 | `studio_fade` | `STUDIO-FADE-RESULT=PASS (10/10)`：淡入淡出状态机与遮罩参数；人眼观感 pending-真机 |
 | `scene_command_gates` | `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`：DeepSeek 场景命令四道闸（Gate 1 语法/防御/空参数拦截、Gate 2 视锥与遮挡空间几何、Gate 3 轴线法则与跳轴预警、Gate 4 执行失败回退原状态） |
-| `e2e_pipeline` | `E2E-PIPELINE-RESULT=PASS (6/6)`：六阶段端到端全链路一镜到底（①剧本导入→②AI四道闸→③资产对账与GLB加载→④沙盘双尺度丝滑过渡→⑤斯坦尼康手持运镜与5轨剪辑→⑥1080p广播级MP4导出） |
+| `e2e_pipeline` | `E2E-PIPELINE-RESULT=PASS (6/6)`：六阶段端到端全链路一镜到底（①剧本导入→②AI四道闸完整校验→③资产对账与GLB加载→④沙盘双尺度丝滑过渡→⑤斯坦尼康手持运镜与5轨剪辑→⑥1080p广播级MP4导出） |
 
-最近一次全量（2026-11-24 21:43:17）：**33 run / 0 failed/no-verdict / 0 no-error（全部通过）**，日志 `verify_all_20261124_214317.log`。其中 `e2e_pipeline` 输出 `E2E-PIPELINE-RESULT=PASS (6/6)`；`tabletop_scale` 输出 `TABLETOP-SCALE-RESULT=PASS (14/14)`；`studio_fade` 输出 `STUDIO-FADE-RESULT=PASS (10/10)`；`tripo_runtime_import` 输出 `TRIPO-RUNTIME-IMPORT=PASS (7/7)`；`scene_command_gates` 输出 `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`；`network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`network_entry` 输出 `NETWORK-ENTRY-RESULT=PASS (9/9)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`credential_path` 输出 `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`b5_dual_track` 输出 `B5-DUAL-TRACK-RESULT=PASS (8/8)`；`asset_reconciliation` 输出 `ASSET-RECONCILIATION-RESULT=PASS (10/10)`；`constraint_pair` 输出 `CONSTRAINT-PAIR-RESULT=PASS (6/6)`；`console_clean` 读数 `Errors=0 Warnings=0`。
+最近一次全量（2026-11-24 22:14:55）：**33 run / 0 failed/no-verdict / 0 no-error（全部通过）**，日志 `verify_all_20261124_221455.log`。其中 `e2e_pipeline` 输出 `E2E-PIPELINE-RESULT=PASS (6/6)`；`tabletop_scale` 输出 `TABLETOP-SCALE-RESULT=PASS (14/14)`；`studio_fade` 输出 `STUDIO-FADE-RESULT=PASS (10/10)`；`tripo_runtime_import` 输出 `TRIPO-RUNTIME-IMPORT=PASS (7/7)`；`scene_command_gates` 输出 `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`；`network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`network_entry` 输出 `NETWORK-ENTRY-RESULT=PASS (9/9)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`credential_path` 输出 `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`b5_dual_track` 输出 `B5-DUAL-TRACK-RESULT=PASS (8/8)`；`asset_reconciliation` 输出 `ASSET-RECONCILIATION-RESULT=PASS (10/10)`；`constraint_pair` 输出 `CONSTRAINT-PAIR-RESULT=PASS (6/6)`；`console_clean` 读数 `Errors=0 Warnings=0`。
 
 > ✅ **Console 长驻留归零（2026-11-23 13:59:58 实跑通过）**：协议为 清 Console → 域重载 → 清重载噪音 → 进 Play → 摆位走位（`PrevisCast_A_Red` MoveTo）+ 时间轴寻道（`SH_04`）→ Play 态驻留 300s，60/120/180/240/300s 五次巡检 Console 全空 → 退出 Play。读数 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，日志 `console_clean_dwell_20261123_135958.log`。
 >

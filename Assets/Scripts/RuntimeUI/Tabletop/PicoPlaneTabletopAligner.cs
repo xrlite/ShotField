@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using ByteDance.PICO.XR;
 using UnityEngine;
 
 namespace ShotField.RuntimeUI
@@ -43,18 +45,51 @@ namespace ShotField.RuntimeUI
             }
         }
 
+        private void OnEnable()
+        {
+            try { PXR_Manager.PlaneDetectionDataUpdated += OnPlanesUpdated; }
+            catch (Exception ex) { Debug.LogWarning("[PicoPlaneAligner] PICO Plane 事件注册跳过: " + ex.Message); }
+        }
+
+        private void OnDisable()
+        {
+            try { PXR_Manager.PlaneDetectionDataUpdated -= OnPlanesUpdated; }
+            catch (Exception) { /* 安全解绑 */ }
+        }
+
         private void Start()
         {
-            if (!_hasDetectedPlane)
+#if UNITY_ANDROID && !UNITY_EDITOR
+            try
             {
-                ApplyFallback();
+                if (Application.isPlaying)
+                    _ = PXR_MixedReality.StartSenseDataProvider(PxrSenseDataProviderType.PlaneDetection);
+            }
+            catch (Exception ex) { Debug.Log($"[PicoPlaneAligner] SenseProvider 启动回退: {ex.Message}"); }
+#endif
+            if (!_hasDetectedPlane) ApplyFallback();
+        }
+
+        private void OnPlanesUpdated(List<PxrPlaneData> planes)
+        {
+            if (planes == null || planes.Count == 0 || _hasDetectedPlane) return;
+            for (int i = 0; i < planes.Count; i++)
+            {
+                var p = planes[i];
+                var normal = p.rotation * Vector3.up;
+                float w = p.box2D.extent.width;
+                float h = p.box2D.extent.height;
+                if (Vector3.Dot(normal, Vector3.up) >= 0.7f && w > 0.2f && h > 0.2f)
+                {
+                    AlignToSurface(p.position, normal, new Vector2(w, h));
+                    break;
+                }
             }
         }
 
         private void Update()
         {
             if (tabletop == null || tabletop.TabletopAnchor == null) return;
-
             if (smoothAlignment)
             {
                 var anchor = tabletop.TabletopAnchor;
@@ -71,7 +106,6 @@ namespace ShotField.RuntimeUI
                 surface = _currentSurface;
                 return true;
             }
-
             surface = CreateFallbackSurface();
             return false;
         }
@@ -92,7 +126,7 @@ namespace ShotField.RuntimeUI
             _targetRotation = Quaternion.FromToRotation(Vector3.up, normal);
             AlignmentMode = "PhysicalPlane";
 
-            if (!smoothAlignment && tabletop != null && tabletop.TabletopAnchor != null)
+            if ((!smoothAlignment || !Application.isPlaying) && tabletop != null && tabletop.TabletopAnchor != null)
             {
                 tabletop.TabletopAnchor.SetPositionAndRotation(_targetPosition, _targetRotation);
             }
@@ -110,14 +144,8 @@ namespace ShotField.RuntimeUI
 
             if (tabletop != null && tabletop.TabletopAnchor != null)
             {
-                if (smoothAlignment && Application.isPlaying)
-                {
-                    // Update will lerp to _targetPosition
-                }
-                else
-                {
-                    tabletop.TabletopAnchor.SetPositionAndRotation(_targetPosition, _targetRotation);
-                }
+                if (smoothAlignment && Application.isPlaying) { /* Update handles lerp */ }
+                else tabletop.TabletopAnchor.SetPositionAndRotation(_targetPosition, _targetRotation);
             }
             Debug.Log($"[PicoPlaneAligner] 回退至虚拟创作台: pos={_targetPosition}");
         }
@@ -133,7 +161,6 @@ namespace ShotField.RuntimeUI
             var headPos = headAnchor != null ? headAnchor.position : Vector3.zero;
             var center = headPos + forward * fallbackDistance;
             center.y = fallbackHeight;
-
             return new TabletopSurface(center, Vector3.up, defaultTableSize);
         }
     }

@@ -143,6 +143,16 @@ New-Item -ItemType Directory -Path (Join-Path $repo 'Build') -Force | Out-Null
 参赛入口：[PICO Space Program 中国区](https://spaceprogram-cn.picoxr.com/)。
 评审版本对应具体提交，验证记录标明 Unity 编辑器 / Swan 模拟器 / 真机。
 
+### 参赛定位：方案 A · 最佳沉浸内容创作赛道
+
+- **赛道申报**：锁定「最佳沉浸内容创作（Unity OpenXR SDK）」，主打专为 PICO 空间计算打造的影视级全沉浸空间预演与虚拟制片工作流。
+- **空间应用多窗口评测适配**：虽然形态为全沉浸式片场，但严格满足大赛「多窗口空间应用」评测要求——将导演监视器、五轨时间轴、剧本资产抽屉三块独立空间卡悬浮于空间中，支持自由缩放、拖拽与掌心呼出。
+- **方案 A 核心技术闭环**：
+  1. **MR 透视沙盘与 1:1 片场无缝切换**：通过 `PicoPlaneTabletopAligner` 对接 PICO MR 空间水平面识别，支持真实桌面吸附与 0.8m 创作台优雅回退；借助 `StudioFadeTransition` 实现 FOV 呼吸过渡与 1:20 缩放插值。
+  2. **AI 剧本拆解与四道闸**：DeepSeek 四道闸场景命令流水线（Gate 1 Schema 拦截、Gate 2 空间几何与机位边界、Gate 3 Ghost 预览确认、Gate 4 状态回读）。
+  3. **运行时 GLB 骨骼资产加载**：`RuntimeGltfImporter` 动态解析 Tripo 生成模型，自愈对齐局部碰撞体与带 Carving 动态雕刻的 NavMesh 避障。
+  4. **斯坦尼康运镜与 1080p 广播级 MP4 导出**：纯数学手持增稳算法 + 5 轨时间轴探针，在 Unity 编辑器与真机环境均保持 1080p30 连续镜头出片规格。
+
 ## 对外口径
 
 **GitHub About（用户已批，待本人粘贴）**

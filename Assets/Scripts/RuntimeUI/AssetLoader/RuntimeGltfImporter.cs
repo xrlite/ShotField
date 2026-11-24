@@ -86,11 +86,17 @@ namespace ShotField.RuntimeUI
 
         /// <summary>
         /// 挂载物理与寻路避障：若包含骨骼网格挂载胶囊体与胶囊避障，否则自愈回退为盒状碰撞体。
+        /// 碰撞体与避障在局部坐标系下严格根据 lossyScale 换算以贴合真实渲染包围盒。
         /// </summary>
         public static void EnsurePhysicsAndObstacle(GameObject model)
         {
             var bounds = GetRenderBounds(model);
             var localCenter = model.transform.InverseTransformPoint(bounds.center);
+            var lossy = model.transform.lossyScale;
+            float sx = Mathf.Abs(lossy.x) > 0.0001f ? Mathf.Abs(lossy.x) : 1f;
+            float sy = Mathf.Abs(lossy.y) > 0.0001f ? Mathf.Abs(lossy.y) : 1f;
+            float sz = Mathf.Abs(lossy.z) > 0.0001f ? Mathf.Abs(lossy.z) : 1f;
+            var localSize = new Vector3(bounds.size.x / sx, bounds.size.y / sy, bounds.size.z / sz);
             var skinned = model.GetComponentInChildren<SkinnedMeshRenderer>();
 
             if (skinned != null)
@@ -98,8 +104,8 @@ namespace ShotField.RuntimeUI
                 var capsule = model.GetComponent<CapsuleCollider>();
                 if (capsule == null) capsule = model.AddComponent<CapsuleCollider>();
                 capsule.center = localCenter;
-                capsule.height = Mathf.Max(0.2f, bounds.size.y);
-                capsule.radius = Mathf.Max(0.1f, Mathf.Max(bounds.size.x, bounds.size.z) * 0.4f);
+                capsule.height = Mathf.Max(0.2f, localSize.y);
+                capsule.radius = Mathf.Max(0.1f, Mathf.Max(localSize.x, localSize.z) * 0.4f);
 
                 var obstacle = model.GetComponent<NavMeshObstacle>();
                 if (obstacle == null) obstacle = model.AddComponent<NavMeshObstacle>();
@@ -116,14 +122,14 @@ namespace ShotField.RuntimeUI
                 {
                     var box = model.AddComponent<BoxCollider>();
                     box.center = localCenter;
-                    box.size = Vector3.Max(bounds.size, Vector3.one * 0.1f);
+                    box.size = Vector3.Max(localSize, Vector3.one * 0.1f);
                 }
 
                 var obstacle = model.GetComponent<NavMeshObstacle>();
                 if (obstacle == null) obstacle = model.AddComponent<NavMeshObstacle>();
                 obstacle.shape = NavMeshObstacleShape.Box;
                 obstacle.center = localCenter;
-                obstacle.size = Vector3.Max(bounds.size, Vector3.one * 0.1f);
+                obstacle.size = Vector3.Max(localSize, Vector3.one * 0.1f);
                 obstacle.carving = true;
                 obstacle.carveOnlyStationary = false;
             }
