@@ -96,7 +96,7 @@
 | `scene_command_gates` | `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`：DeepSeek 场景命令四道闸（Gate 1 语法/防御/空参数拦截、Gate 2 视锥与遮挡空间几何、Gate 3 轴线法则与跳轴预警、Gate 4 执行失败回退原状态） |
 | `e2e_pipeline` | `E2E-PIPELINE-RESULT=PASS (6/6)`：六阶段端到端串联（①剧本导入→②AI四道闸**离线契约**→③资产对账与GLB加载→④沙盘双尺度过渡→⑤斯坦尼康5轨剪辑→⑥**导出规格/编码器在位，真编码 PENDING_APK**）。第②⑥步不调网络、不产视频，不得当作 AI 真调用或导出跑通 |
 
-**最近一次可复跑基线待重建。** 2026-11-24 22:14 那次 `33 run / 0 failed` 是在「`console_clean` 前置 `Clear()` + `E2E Step6` 依赖预置 17.8MB mp4」的旧实现下取得的，**不再作为当前口径**。当前代码（`206413b`）已回退清屏、重写 Step6、删除预置 mp4 依赖，须在编辑器完成脚本编译后重跑 `verify_all.ps1`，以其新日志为准。
+**最近一次可复跑基线待重建。** 2026-11-24 22:14 那次 `33 run / 0 failed` 是在「`console_clean` 前置 `Clear()` + `E2E Step6` 依赖预置 17.8MB mp4」的旧实现下取得的，**不再作为当前口径**。当前代码已回退清屏、重写 Step6、删除预置 mp4 依赖，须在编辑器完成脚本编译后重跑 `verify_all.ps1`，以其新日志为准。2026-11-25 熵巡检另发现 `E2EWorkflowRunner.cs` 为 212 行、超预算 12 行（`entropy_20261125_0000.txt`）；不得沿用“323 文件零超行”的旧说法。
 
 > ⚠️ **已知第三方污染**：`console_clean` 可能读到 1 条 `[KitWright MCP Server] Failed to start HTTP transport`，根因是开发期 MCP 工具与 gate bridge 争用 8765 端口，**非产品运行时错误**，该包不进 APK。是否在交付工程移除该开发期包，待项目负责人决定；在此之前门禁如实报 FAIL，不做白名单豁免。
 

@@ -1,6 +1,6 @@
 # P1 离线工作流链 + 剪映式时间轴 · 暂存集成说明
 
-> 暂存目录：`F:\pico\04_Project\ShotField\Staging\P1Chain\`
+> 暂存目录：`Staging/P1Chain/`（相对于仓库根目录）
 > 状态：**全部为新文件，未放入 Assets/，未编译验证（编译 pending-集成）**。
 > 离线链已串通：剧本 mock 解析 → 提案确认 UI → 场景应用 → 时间轴分段 → 导出 JSON 清单。
 > 在线段（DeepSeek 解析、即梦/Seedance 成片）接口壳子已搭好；未配置 key 时明确报「未配置」，不造假结果。
@@ -114,5 +114,5 @@
 ## 8. 红线遵守说明
 
 - 未写 `Assets/` 下任何文件；未改场景；未碰 `Staging\PalmMenu\`；未动验证器、`ActorNavigator` / `ActorSelection` / `DesktopStudio*` 文件。
-- 未删文件；未写 `F:\pico` 之外；未改 `AGENTS.md`；未执行 git add/commit/push；未杀 Unity 进程。
+- 未删文件；未写工作区根目录之外；未改 `AGENTS.md`；未执行 git add/commit/push；未杀 Unity 进程。
 - 无实测效率数字，文中一律标「未验证」。

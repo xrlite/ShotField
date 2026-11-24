@@ -2,31 +2,31 @@
 
 **让创作者走进自己想拍的故事。** 专为 PICO 空间计算打造的影视级空间预演与虚拟制片工具：AI 剧本拆解、MR 透视沙盘与 1:1 片场无缝切换、斯坦尼康运镜增稳、五轨空间探针剪辑、多域载具导航与 1080p 导出规格（Android 真编码 pending-APK）。
 
-[快速开始](#快速开始) · [核心特性](#核心特性已闭环) · [六阶段端到端流程](#六阶段端到端全链路) · [实验室功能](#实验室功能有接口未真机验) · [尚未实现](#尚未实现) · [验证索引](VERIFICATION.md) · [源码结构](#源码结构) · [Android 构建](#android-构建) · [许可证](#许可证与来源)
+[快速开始](#快速开始) · [核心能力与证据](#核心能力与证据) · [六阶段端到端流程](#六阶段端到端全链路) · [实验室功能](#实验室功能有接口未真机验) · [尚未实现](#尚未实现) · [验证索引](VERIFICATION.md) · [源码结构](#源码结构) · [Android 构建](#android-构建) · [许可证](#许可证与来源)
 
-![License](https://img.shields.io/badge/license-MIT-green) ![Unity](https://img.shields.io/badge/Unity-6000.6.5f1-blue) ![Platform](https://img.shields.io/badge/target-PICO%20Android%20ARM64-orange) ![Status](https://img.shields.io/badge/git-main%20sync-brightgreen) ![Gates](https://img.shields.io/badge/gates-33%2F33%20PASS-brightgreen)
+![License](https://img.shields.io/badge/license-MIT-green) ![Unity](https://img.shields.io/badge/Unity-6000.6.5f1-blue) ![Platform](https://img.shields.io/badge/target-PICO%20Android%20ARM64-orange) ![Status](https://img.shields.io/badge/status-lab-orange) ![Gates](https://img.shields.io/badge/gates-current%20baseline%20pending-lightgrey)
 
-> **当前是工程验证期的测试版（`0.9.0-lab`），代码已与 GitHub 远程 `main` 同步。**
+> **当前是工程验证期的测试版（`0.9.0-lab`），代码托管于 GitHub；本地验证进度与远端同步状态以 git 记录为准。**
 > 本项目严守工程纪律，严格区分「真跑过」「有接口未验」「还没做」。**代码存在不等于功能可用。**
 > 每条结论均有对应日志与截图支撑，详见 **[验证索引 VERIFICATION.md](VERIFICATION.md)**。
 
 ---
 
-## 核心特性（已闭环）
+## 核心能力与证据
 
-以下核心模块均在 Unity 6 编辑器及 PICO OpenXR 工具链中通过真实断言与自动化门禁验证。
+以下模块已有代码与对应 Editor 证据；真机、模拟器与当前全量门禁基线分别标注，不互相替代。
 
 | 模块 | 能力与技术实现 | 验收断言 / 门禁 |
 | :--- | :--- | :--- |
 | **四格式剧本导入** | 支持 `txt` / `md` / `docx` / 文本层 `pdf`。自包含解析层，GB18030 中文往返无乱码；非扫描件不静默返回空，导入后先预览再确认，**用户确认前零网络、零 AI 触发**。 | `SCRIPT-IMPORT-RESULT=PASS (4/4)` |
 | **AI 剧本拆解与四道闸** | 对接真实 DeepSeek，根据剧本智能推荐空间排戏模式（室内对话→片场、会议多角色→沙盘、追逐→混合）；通过**四道闸流水线**（Gate 1 Schema 合规、Gate 2 空间几何机位边界、Gate 3 Ghost 预览标记隔离、Gate 4 真实物理空间 Transform 回读验算，误差 $<0.001\text{m}$）。 | `SCENE-COMMAND-GATE-RESULT=PASS (15/15)` |
-| **MR 透视沙盘与双尺度过渡** | 基于 `PicoPlaneTabletopAligner` 对接 PICO MR OpenXR 水平面识别，支持**面积动态加权择优吸附真实桌面**；未检测到实体桌面时优雅回退至导演前方 0.8m 虚拟创作台；`StudioFadeTransition` 实现 FOV 呼吸平滑过渡与 1:20 沙盘/1:1 沉浸片场双尺度自由缩放。 | `TABLETOP-SCALE-RESULT=PASS (14/14)`<br>`STUDIO-FADE-RESULT=PASS (10/10)` |
+| **MR 透视沙盘与双尺度过渡** | 基于 `PicoPlaneTabletopAligner` 对接 PICO MR OpenXR 水平面识别，支持**面积动态加权择优吸附真实桌面**；未检测到实体桌面时优雅回退至导演前方 0.8m 虚拟创作台；`StudioFadeTransition` 实现 FOV 呼吸平滑过渡与 1:20 沙盘/1:1 沉浸片场双尺度自由缩放。Editor 回退与切换已验证，真实桌面识别与贴合精度 pending-设备。 | `TABLETOP-SCALE-RESULT=PASS (14/14)`<br>`STUDIO-FADE-RESULT=PASS (10/10)` |
 | **虚拟摄影机斯坦尼康防抖** | `VirtualCameraStabilizer` 内置三档运镜模式（Handheld 手持拟真 / Steadicam 机械增稳 / Dolly 轨道平滑）。结合 **One Euro 滤波器自适应频宽衰减** + **SmoothDamp 临界阻尼** + **水平零横滚锁（Roll Horizon Lock）**，彻底消除 VR 自由视角拍摄下的画面高频抖动与机位倾斜。 | `STEADICAM-SYNC-RESULT=PASS (5/5)` |
 | **5 轨时间轴与空间探针** | 借鉴专业导轨剪辑体验，构建 **Camera、Actor、Prop/Vehicle、Audio、Light** 五层独立轨道；`DirectorTimeline` 实现多对象时间轴同步调度；`SpatialProbeVisualizer` 提供零 GC 的摄影机视锥线框、演员视线连线（Eye-line Ray）与载具车灯锥体（Headlight Cone）探针实时渲染。 | `DIRECTOR-TIMELINE-RESULT=PASS (5/5)`<br>`M3-ASSEMBLY-VERIFY-RESULT=PASS (5/5)` |
 | **多域地空智能载具寻路** | `VehiclePathNavigator` 支持马车/汽车/飞船多类型载具：地面模式贴合 NavMesh 智能寻路贴地并开启动态障碍雕刻（Carving）；空中模式自动关闭雕刻，沿着 3D Catmull-Rom 空间样条平滑航行并引入空气侧倾（Bank Roll），解决大空间与立体运镜推演需求。 | `STEADICAM-SYNC-RESULT=PASS (5/5)` |
-| **Tripo 运行时 GLB 骨骼加载** | `RuntimeGltfImporter` 基于局部坐标系计算**旋转不变量精确包围盒**，跨线程安全调度回主线程；自动挂载 `SkinnedMeshRenderer`、`CapsuleCollider` 与带 Carving 的 `NavMeshObstacle`；静态道具自愈回退为 `BoxCollider`，与资产抽屉形成几何对账。 | `TRIPO-RUNTIME-IMPORT=PASS (7/7)`<br>`ASSET-RECONCILIATION-RESULT=PASS (10/10)` |
-| **三块空间工作区卡片** | 满足大赛「空间应用多窗口」要求：导演监视器卡、五轨时间轴卡、剧本与资产抽屉卡三卡独立 WorldSpace Canvas 悬浮排布（角间距 55°，宽度严格控在 0.7~1.0m，彻底规避千米巨幅画布），支持射线抓取与边缘缩放。 | `THREE-CARD-RESULT=PASS (13/13)`<br>`BLOCK-LAYOUT-RESULT=PASS (10/10)` |
-| **代码熵与工程健康守卫** | 全库 323 个脚本**单文件严格 $\le 200$ 行**（核心业务类 $\le 195$ 行），0 孤儿 .meta；凭据严格隔离于源码外，全 Assets 扫描 0 泄露；全量自动化门禁 33 项全绿。 | `verify_all`: **33 run / 0 fail / 0 unverified**<br>`SECRET-SCAN=PASS` |
+| **Tripo 运行时 GLB 骨骼加载** | `RuntimeGltfImporter` 基于局部坐标系计算**旋转不变量精确包围盒**，跨线程安全调度回主线程；自动挂载 `SkinnedMeshRenderer`、`CapsuleCollider` 与带 Carving 的 `NavMeshObstacle`；静态道具自愈回退为 `BoxCollider`，与资产抽屉形成几何对账。 | `TRIPO-RUNTIME-IMPORT=PASS (5/5，最近日志)`<br>`ASSET-RECONCILIATION-RESULT=PASS (10/10)` |
+| **三块空间工作区卡片** | 满足大赛「空间应用多窗口」要求：导演监视器卡、五轨时间轴卡、剧本与资产抽屉卡三卡独立 WorldSpace Canvas 悬浮排布（角间距 55°，宽度严格控在 0.7~1.0m，彻底规避千米巨幅画布），支持射线抓取与边缘缩放；Editor 接线已验证，真机抓握与射线手感 pending-真机。 | `THREE-CARD-RESULT=PASS (13/13)`<br>`BLOCK-LAYOUT-RESULT=PASS (10/10)` |
+| **代码熵与工程健康守卫** | 2026-11-25 巡检：323 个脚本 / 34,196 行 / 7 个 asmdef / 0 缺 .meta；`E2EWorkflowRunner.cs` 为 212 行，超预算 12 行，当前熵巡检不通过。33 项门禁新基线待重跑，历史 33/33 不作为当前结论。 | `entropy_20261125_0000.txt`: **1 oversize / 92 raw same-name groups**<br>当前全量门禁：**baseline pending** |
 
 ---
 
@@ -97,7 +97,7 @@ cd ShotField
 1. **开发环境**：Unity `6000.6.5f1`。Android 构建需配备 Android Build Support、SDK 34、NDK 27、OpenJDK 17。
 2. **打开工程**：使用 Unity Hub 打开仓库根目录，等待 UPM 包依赖还原完毕。
 3. **加载主场景**：打开 **`Assets/Scenes/SC01_Main.unity`** —— 这是**唯一主场景**，也是 Android 构建入口。
-4. **运行全量门禁**：在 PowerShell 中执行 `powershell -ExecutionPolicy Bypass -File 巡检\verify_all.ps1` 校验 33 项指标。
+4. **运行验证器**：在 Unity 菜单 `ShotField > Verifiers` 逐项运行。完整工作区门禁的权威脚本位于 `04_Project/巡检/verify_all.ps1`；仓库内 `Tools/gates/` 只是供评审查看的只读镜像，不保证在单独 clone 的仓库根直接运行。
 5. **配置 AI 凭据**：按上文「凭据配置」说明在本地放置配置文件或环境变量。
 
 > 工程路径必须为**纯 ASCII**，Android 构建会拒绝非 ASCII 路径。
@@ -119,7 +119,7 @@ ShotField/
 │   ├── Plugins/Android/    # 原生 MediaCodec 录制插件 jar 与 Java 桥接源码
 │   ├── Scenes/             # SC01_Main.unity（唯一主场景）
 │   └── Documentation/      # 预演剧本、机位规范与路演参考
-└── 巡检/                   # verify_all.ps1、entropy_check.ps1、secret_scan.ps1 全套门禁脚本
+└── Tools/gates/            # 门禁只读镜像；权威脚本在工作区 04_Project/巡检/
 ```
 
 ---
@@ -130,7 +130,7 @@ ShotField/
 
 ```powershell
 $repo  = (Get-Location).Path
-$unity = 'D:\unity\6000.6.5f1\Editor\Unity.exe'   # 替换为你本地 Unity 路径
+$unity = '<UnityEditorPath>\Unity.exe'          # 替换为你本地 Unity 编辑器路径
 $env:SHOTFIELD_OUT_APK = Join-Path $repo 'Build/ShotField_lab.apk'
 New-Item -ItemType Directory -Path (Join-Path $repo 'Build') -Force | Out-Null
 & $unity -batchmode -projectPath $repo `

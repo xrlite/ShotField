@@ -35,9 +35,15 @@ function Test-GateBridge {
 }
 
 function Get-UnityExePath {
-  $defaultPath = "D:\unity\6000.6.5f1\Editor\Unity.exe"
-  if (Test-Path -LiteralPath $defaultPath) { return $defaultPath }
   if ($env:UNITY_EXE -and (Test-Path -LiteralPath $env:UNITY_EXE)) { return $env:UNITY_EXE }
+  $hubRoot = Join-Path $env:ProgramFiles "Unity\Hub\Editor"
+  if (Test-Path -LiteralPath $hubRoot) {
+    $editor = Get-ChildItem -LiteralPath $hubRoot -Directory | Sort-Object Name -Descending | Select-Object -First 1
+    if ($editor) {
+      $candidate = Join-Path $editor.FullName "Editor\Unity.exe"
+      if (Test-Path -LiteralPath $candidate) { return $candidate }
+    }
+  }
   return "Unity.exe"
 }
 
