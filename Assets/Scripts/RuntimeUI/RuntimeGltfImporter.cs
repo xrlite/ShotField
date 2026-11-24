@@ -9,8 +9,15 @@ namespace ShotField.RuntimeUI
     public static class RuntimeGltfImporter
     {
         public static GameObject Import(string glbPath, Transform parent, Vector3 position,
-            float targetHeight = 1.5f, string propId = "tripo")
+            float targetHeight = 1.5f, string propId = "tripo") =>
+            Import(glbPath, parent, position, out _, targetHeight, propId);
+
+        public static GameObject Import(string glbPath, Transform parent, Vector3 position,
+            out RuntimeAssetReconciliation reconciliation, float targetHeight = 1.5f,
+            string propId = "tripo")
         {
+            reconciliation = new RuntimeAssetReconciliation
+                { source = "tripo", assetId = propId, assetPath = glbPath, state = "待导入" };
             if (string.IsNullOrEmpty(glbPath) || !File.Exists(glbPath))
                 throw new FileNotFoundException("GLB 不存在", glbPath);
 
@@ -21,9 +28,20 @@ namespace ShotField.RuntimeUI
 
             model.name = Path.GetFileNameWithoutExtension(glbPath);
             model.transform.SetParent(parent, false);
-            Normalize(model, position, targetHeight);
-            PropBrowserUI.EnsureGrabReady(model, propId);
-            return model;
+            try
+            {
+                Normalize(model, position, targetHeight);
+                PropBrowserUI.EnsureGrabReady(model, propId);
+                reconciliation = RuntimeAssetReconciliation.Inspect(model, "tripo", propId, glbPath, "导入成功");
+                if (!reconciliation.measured)
+                    throw new InvalidDataException("GLB 几何对账失败: 面数或包围盒无效");
+                return model;
+            }
+            catch
+            {
+                UnityEngine.Object.Destroy(model);
+                throw;
+            }
         }
 
         public static void ImportAsync(string glbPath, Transform parent, Vector3 position,
@@ -44,9 +62,19 @@ namespace ShotField.RuntimeUI
                     model.transform.SetParent(parent, false);
                     Normalize(model, position, targetHeight);
                     PropBrowserUI.EnsureGrabReady(model, propId);
+                    var record = RuntimeAssetReconciliation.Inspect(model, "tripo", propId, glbPath, "导入成功");
+                    if (!record.measured)
+                    {
+                        UnityEngine.Object.Destroy(model);
+                        throw new InvalidDataException("GLB 几何对账失败: 面数或包围盒无效");
+                    }
                     onSuccess?.Invoke(model);
                 }
-                catch (Exception ex) { onError?.Invoke(ex); }
+                catch (Exception ex)
+                {
+                    UnityEngine.Object.Destroy(model);
+                    onError?.Invoke(ex);
+                }
             });
         }
 
