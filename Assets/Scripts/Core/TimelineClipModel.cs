@@ -64,8 +64,14 @@ namespace ShotField.Core
 
         public bool TryGetProbe(TimelineTrackLayer layer, out SpatialProbeBindingDto probe)
         {
-            probe = probeBindings?.Find(p => p.layer == layer);
-            return probe != null && probe.isBound;
+            var found = probeBindings?.Find(p => p.layer == layer);
+            if (found != null && found.isBound)
+            {
+                probe = found;
+                return true;
+            }
+            probe = null;
+            return false;
         }
     }
 

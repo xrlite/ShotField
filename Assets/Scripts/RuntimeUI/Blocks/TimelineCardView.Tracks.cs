@@ -26,10 +26,16 @@ namespace ShotField.RuntimeUI
 
         public TimelineTrackLayer ActiveLayer => _activeLayer;
 
+        private static string GetLayerName(TimelineTrackLayer layer)
+        {
+            int idx = (int)layer;
+            return idx >= 0 && idx < LayerNames.Length ? LayerNames[idx] : layer.ToString();
+        }
+
         public void SelectTrackLayer(TimelineTrackLayer layer)
         {
             _activeLayer = layer;
-            Note($"切换轨道: {LayerNames[(int)layer]}");
+            Note($"切换轨道: {GetLayerName(layer)}");
         }
 
         public bool BindSpatialProbe(int clipIndex, TimelineTrackLayer layer, string targetId, Vector3 worldPos)
@@ -38,7 +44,7 @@ namespace ShotField.RuntimeUI
             var clip = Model.clips[clipIndex];
             if (clip == null) return false;
             clip.BindProbe(layer, targetId, worldPos, true);
-            Commit($"探针绑定: {LayerNames[(int)layer]} -> {targetId}");
+            Commit($"探针绑定: {GetLayerName(layer)} -> {targetId}");
             return true;
         }
 
@@ -46,7 +52,9 @@ namespace ShotField.RuntimeUI
         {
             probe = null;
             if (Model == null || clipIndex < 0 || clipIndex >= Model.Count) return false;
-            return Model.clips[clipIndex].TryGetProbe(layer, out probe);
+            var clip = Model.clips[clipIndex];
+            if (clip == null) return false;
+            return clip.TryGetProbe(layer, out probe);
         }
 
         public void SyncSpatialProbesFromContext(SceneContextDto context)
@@ -69,10 +77,10 @@ namespace ShotField.RuntimeUI
         public string GetTrackLayerSummary(TimelineTrackLayer layer)
         {
             int boundCount = 0;
-            if (Model != null)
+            if (Model?.clips != null)
                 for (int i = 0; i < Model.Count; i++)
-                    if (Model.clips[i].TryGetProbe(layer, out _)) boundCount++;
-            return $"{LayerNames[(int)layer]}轨 (绑定探针: {boundCount}/{ClipCount})";
+                    if (Model.clips[i] != null && Model.clips[i].TryGetProbe(layer, out _)) boundCount++;
+            return $"{GetLayerName(layer)}轨 (绑定探针: {boundCount}/{ClipCount})";
         }
 
         private void BuildLayerTracks(Transform root)
@@ -97,13 +105,14 @@ namespace ShotField.RuntimeUI
         private void RebuildClips()
         {
             _clipRects.Clear();
-            if (_track == null || Model == null) return;
+            if (_track == null || Model?.clips == null) return;
             for (int i = _track.childCount - 1; i >= 0; i--) Remove(_track.GetChild(i).gameObject);
             for (int i = _actorTrack.childCount - 1; i >= 0; i--) Remove(_actorTrack.GetChild(i).gameObject);
             float total = Model.TotalDuration, start = 0f;
             for (int i = 0; i < Model.Count; i++)
             {
                 var clip = Model.clips[i];
+                if (clip == null) continue;
                 float duration = Mathf.Max(0.1f, clip.durationSeconds), width = TrackWidth * duration / total;
                 float x = -TrackWidth * 0.5f + start + width * 0.5f;
                 var rect = Panel(_track, "Clip_" + i, new Vector2(x, 0f), new Vector2(width, 48f), LayerColors[0]);
