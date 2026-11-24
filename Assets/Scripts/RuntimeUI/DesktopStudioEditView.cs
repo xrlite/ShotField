@@ -34,6 +34,18 @@ namespace ShotField.RuntimeUI
             browser = FindAnyObjectByType<PropBrowserUI>();
         }
 
+        /// <summary>供自动演示驱动器调用；与 GUI 的“保存快照”按钮走同一实现。</summary>
+        public void SaveSnapshotNow() => SaveSnapshot();
+
+        /// <summary>供自动演示驱动器调用；与“选道具→点小地图”走同一放置与登记实现。</summary>
+        public bool PlacePropNow(string propId, Vector3 worldPos)
+        {
+            int before = placedProps.Count;
+            pendingPropId = propId;
+            PlacePendingProp(worldPos);
+            return placedProps.Count > before;
+        }
+
         private List<ActorNavigator> Actors()
         {
             var result = new List<ActorNavigator>();

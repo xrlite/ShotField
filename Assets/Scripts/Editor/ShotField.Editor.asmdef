@@ -13,7 +13,8 @@
     "ByteDance.PICO.Platform",
     "Unity.XR.Interaction.Toolkit",
     "Unity.XR.CoreUtils",
-    "Compiler"
+    "Compiler",
+    "GUID:847b179520b009e4c8d15c296b1cbf35"
   ],
   "includePlatforms": [
     "Editor"
