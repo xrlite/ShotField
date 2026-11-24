@@ -68,22 +68,26 @@ namespace ShotField.RuntimeUI
             else if (CurrentState == State.Playing) TickPlayback();
         }
 
-        public void StartRecording()
+        public void StartRecording() => StartRecording(Time.time);
+
+        public void StartRecording(float startTime)
         {
             if (poseSource == null || CurrentState != State.Idle) return;
             CurrentState = State.Recording;
             rawTrajectory = new CameraTrajectory();
             smoothedTrajectory = new CameraTrajectory();
-            clock.BeginRecording(Time.time, sampleRate);
+            clock.BeginRecording(startTime, sampleRate);
             UpdateLineStyle(recordColor);
             RecordSample(0f);
             RefreshTrajectoryLine();
         }
 
-        public void StopRecording()
+        public void StopRecording() => StopRecording(Time.time);
+
+        public void StopRecording(float endTime)
         {
             if (CurrentState != State.Recording) return;
-            RecordSample(clock.EndRecording(Time.time));
+            RecordSample(clock.EndRecording(endTime));
             CurrentState = State.Idle;
 
             if (smoothEnabled && rawTrajectory.Count > 2)
@@ -106,17 +110,18 @@ namespace ShotField.RuntimeUI
 
         public void StopPlayback() { if (CurrentState == State.Playing) CurrentState = State.Idle; }
 
-        private void TickRecording()
+        private void TickRecording() => TickRecordingAt(Time.time);
+
+        public bool TickRecordingAt(float now)
         {
-            if (clock.PollSample(Time.time, sampleRate, out float elapsed))
+            if (!clock.PollSample(now, sampleRate, out float elapsed)) return false;
+            RecordSample(elapsed);
+            if (trajectoryLine != null)
             {
-                RecordSample(elapsed);
-                if (trajectoryLine != null)
-                {
-                    trajectoryLine.positionCount = rawTrajectory.Count;
-                    trajectoryLine.SetPosition(rawTrajectory.Count - 1, rawTrajectory.points[rawTrajectory.Count - 1].position);
-                }
+                trajectoryLine.positionCount = rawTrajectory.Count;
+                trajectoryLine.SetPosition(rawTrajectory.Count - 1, rawTrajectory.points[rawTrajectory.Count - 1].position);
             }
+            return true;
         }
 
         private void TickPlayback()
