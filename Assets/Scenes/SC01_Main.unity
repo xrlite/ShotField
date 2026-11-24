@@ -35963,6 +35963,7 @@ GameObject:
   - component: {fileID: 1601099774}
   - component: {fileID: 1601099773}
   - component: {fileID: 1601099775}
+  - component: {fileID: 1601099776}
   m_Layer: 5
   m_Name: Spatial_Workbench_Canvas
   m_TagString: Untagged
@@ -57977,6 +57978,28 @@ MonoBehaviour:
   viewportFrame: {fileID: 381265253}
   scale: 1
   showSlider: 1
+--- !u!114 &1601099776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1601099756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44387ccb39182ae42a4e53928cff1776, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ShotField.RuntimeUI::ShotField.RuntimeUI.MrTabletopBootstrap
+  tabletop: {fileID: 0}
+  headAnchor: {fileID: 0}
+  virtualDistance: 0.8
+  virtualHeight: 0.75
+  scanInterval: 0.5
+  scanTimeout: 8
+  minPlaneWidth: 0.5
+  maxPlaneWidth: 3
+  minPlaneHeight: 0.4
+  maxPlaneHeight: 1.2
 --- !u!1 &1602665743
 GameObject:
   m_ObjectHideFlags: 0

@@ -612,7 +612,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25fd7afe1de6d1545bfb5621a8e3aad5, type: 3}
   m_Name: PassthroughFeature Android
   m_EditorClassIdentifier: ByteDance.PICO.XR::ByteDance.PICO.OpenXR.PassthroughFeature
-  m_enabled: 0
+  m_enabled: 1
   nameUi: OpenXR Passthrough
   version: 6.2.0
   featureIdInternal: com.pico.openxr.feature.passthrough
