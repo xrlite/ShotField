@@ -96,7 +96,9 @@
 | `scene_command_gates` | `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`：DeepSeek 场景命令四道闸（Gate 1 语法/防御/空参数拦截、Gate 2 视锥与遮挡空间几何、Gate 3 轴线法则与跳轴预警、Gate 4 执行失败回退原状态） |
 | `e2e_pipeline` | `E2E-PIPELINE-RESULT=PASS (6/6)`：六阶段端到端串联（①剧本导入→②AI四道闸**离线契约**→③资产对账与GLB加载→④沙盘双尺度过渡→⑤斯坦尼康5轨剪辑→⑥**导出规格/编码器在位，真编码 PENDING_APK**）。第②⑥步不调网络、不产视频，不得当作 AI 真调用或导出跑通 |
 
-最近一次全量（2026-11-24 22:14:55）：**33 run / 0 failed/no-verdict / 0 no-error（全部通过）**，日志 `verify_all_20261124_221455.log`。其中 `e2e_pipeline` 输出 `E2E-PIPELINE-RESULT=PASS (6/6)`；`tabletop_scale` 输出 `TABLETOP-SCALE-RESULT=PASS (14/14)`；`studio_fade` 输出 `STUDIO-FADE-RESULT=PASS (10/10)`；`tripo_runtime_import` 输出 `TRIPO-RUNTIME-IMPORT=PASS (7/7)`；`scene_command_gates` 输出 `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`；`network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`network_entry` 输出 `NETWORK-ENTRY-RESULT=PASS (9/9)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`credential_path` 输出 `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`b5_dual_track` 输出 `B5-DUAL-TRACK-RESULT=PASS (8/8)`；`asset_reconciliation` 输出 `ASSET-RECONCILIATION-RESULT=PASS (10/10)`；`constraint_pair` 输出 `CONSTRAINT-PAIR-RESULT=PASS (6/6)`；`console_clean` 读数 `Errors=0 Warnings=0`。
+**最近一次可复跑基线待重建。** 2026-11-24 22:14 那次 `33 run / 0 failed` 是在「`console_clean` 前置 `Clear()` + `E2E Step6` 依赖预置 17.8MB mp4」的旧实现下取得的，**不再作为当前口径**。当前代码（`206413b`）已回退清屏、重写 Step6、删除预置 mp4 依赖，须在编辑器完成脚本编译后重跑 `verify_all.ps1`，以其新日志为准。
+
+> ⚠️ **已知第三方污染**：`console_clean` 可能读到 1 条 `[KitWright MCP Server] Failed to start HTTP transport`，根因是开发期 MCP 工具与 gate bridge 争用 8765 端口，**非产品运行时错误**，该包不进 APK。是否在交付工程移除该开发期包，待项目负责人决定；在此之前门禁如实报 FAIL，不做白名单豁免。
 
 > ✅ **Console 长驻留归零（2026-11-23 13:59:58 实跑通过）**：协议为 清 Console → 域重载 → 清重载噪音 → 进 Play → 摆位走位（`PrevisCast_A_Red` MoveTo）+ 时间轴寻道（`SH_04`）→ Play 态驻留 300s，60/120/180/240/300s 五次巡检 Console 全空 → 退出 Play。读数 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，日志 `console_clean_dwell_20261123_135958.log`。
 > ⚠️ **自动化 `console_clean` 只做快照读数，不跑 300s**；且验证器前置 `Clear()` 会把累积日志一并擦除——2026-11-24 曾出现 `entries=0` 的恒真读数，已回退为「不清屏、直接读累积条目」。300s 长驻留仍须按上述人工协议执行并留时序日志。
