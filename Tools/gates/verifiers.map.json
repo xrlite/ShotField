@@ -1,0 +1,435 @@
+{
+  "repo": "04_Project/ShotField",
+  "note": "File-to-verifier map for verify_changed.ps1. Patterns are git pathspecs relative to the repo root. A verifier needs either 'tag' (its own machine-readable verdict line) or it can only ever report NO-ERROR. 'code' is used when the menu path cannot be invoked through the bridge. 'method' is used for headless batchmode fallback.",
+  "verifiers": [
+    {
+      "id": "palette",
+      "menu": "ShotField/Verifiers/Run Previs Palette Verifier",
+      "method": "ShotField.EditorTools.PrevisPaletteVerifier.Run",
+      "code": "ShotField.EditorTools.PrevisPaletteVerifier.Run();",
+      "tag": "PALETTE-VERIFIER",
+      "watch": [
+        "Assets/Models/Characters/*",
+        "Assets/Prefabs/SC01/*",
+        "Assets/Scripts/Core/PrevisPalette.cs",
+        "Assets/Scripts/Editor/PrevisPaletteVerifier.cs"
+      ]
+    },
+    {
+      "id": "actor_navigator",
+      "menu": "ShotField/Verifiers/Run Actor Navigator Verifier",
+      "method": "ShotField.EditorTools.ActorNavigatorVerifier.Run",
+      "code": "ShotField.EditorTools.ActorNavigatorVerifier.Run();",
+      "tag": "ACTOR-NAVIGATOR",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/ActorNavigator.cs",
+        "Assets/Scripts/RuntimeUI/ActorWalkTarget.cs",
+        "ProjectSettings/NavMeshAreas.asset",
+        "Assets/Scenes/SC01_Walkable.asset"
+      ]
+    },
+    {
+      "id": "actor_grounding",
+      "menu": "ShotField/Verifiers/Run Actor Grounding Verifier",
+      "method": "ShotField.EditorTools.ActorGroundingVerifier.Run",
+      "code": "ShotField.EditorTools.ActorGroundingVerifier.Run();",
+      "tag": "ACTOR-GROUNDING",
+      "watch": [
+        "Assets/Prefabs/SC01/Actor*.prefab",
+        "Assets/Scripts/RuntimeUI/ActorNavigator.Anchor.cs",
+        "Assets/Scripts/RuntimeUI/ActorNavigator.Registry.cs",
+        "Assets/Scripts/Editor/ActorGroundingVerifier.cs",
+        "Assets/Scenes/SC01_Main.unity"
+      ]
+    },
+    {
+      "id": "actor_placement",
+      "menu": "ShotField/Verifiers/Run Actor Placement Verifier",
+      "method": "ShotField.EditorTools.ActorPlacementVerifier.Run",
+      "tag": "ACTOR-PLACEMENT",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/ActorNavigator.Placement.cs",
+        "Assets/Scripts/RuntimeUI/ActorNavigator.PathLine.cs",
+        "Assets/Scripts/Editor/ActorPlacementVerifier.cs",
+        "Assets/Scenes/SC01_Main.unity"
+      ],
+      "code": "ShotField.EditorTools.ActorPlacementVerifier.Run();"
+    },
+    {
+      "id": "constraint_pair",
+      "menu": "ShotField/Verifiers/Run Constraint Pair Verifier",
+      "method": "ShotField.EditorTools.ConstraintPairVerifier.Run",
+      "tag": "CONSTRAINT-PAIR-RESULT",
+      "watch": [
+        "Assets/Scripts/Constraints/VisibilityConstraint.cs",
+        "Assets/Scripts/Core/SemanticMarker.cs",
+        "Assets/Scripts/Core/ShotData.cs",
+        "Assets/Scripts/Editor/ConstraintPairVerifier.cs",
+        "Assets/Scripts/Editor/ConstraintEvidence.cs",
+        "Assets/Scenes/SC01_Main.unity"
+      ]
+    },
+    {
+      "id": "scene_command_gates",
+      "menu": "ShotField/Verifiers/Run Scene Command Gate Verifier",
+      "method": "ShotField.EditorTools.SceneCommandGateVerifier.Run",
+      "tag": "SCENE-COMMAND-GATE-RESULT",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/SceneContextCapture.cs",
+        "Assets/Scripts/RuntimeUI/GhostPreviewMarker.cs",
+        "Assets/Scripts/RuntimeUI/PropGhostVisualizer.cs",
+        "Assets/Scripts/RuntimeUI/PropBrowserUI.cs",
+        "Assets/Scripts/RuntimeUI/SceneCommandPipeline*.cs",
+        "Assets/Scripts/RuntimeUI/SceneCommandPreviewPanel.cs",
+        "Assets/Scripts/RuntimeUI/ChainOrchestrator*.cs",
+        "Assets/Scripts/RuntimeUI/ChainApplyReport.cs",
+        "Assets/Scripts/Editor/SceneCommandGateVerifier.cs"
+      ]
+    },
+    {
+      "id": "console_clean",
+      "menu": "ShotField/Verifiers/Run Console Clean Verifier",
+      "method": "ShotField.EditorTools.ConsoleCleanVerifier.Run",
+      "code": "ShotField.EditorTools.ConsoleCleanVerifier.Run();",
+      "tag": "CONSOLE-CLEAN-RESULT",
+      "watch": [
+        "Assets/Scripts/Editor/ConsoleCleanVerifier.cs",
+        "Assets/Scripts/Core/ShotLibrary*.cs",
+        "Assets/Scripts/RuntimeUI/**/*.cs"
+      ]
+    },
+    {
+      "id": "locomotion",
+      "menu": "ShotField/Verifiers/Run SC01 Locomotion Verifier",
+      "method": "ShotField.EditorTools.Sc01LocomotionVerifier.Run",
+      "tag": "LOCOMOTION=",
+      "watch": [
+        "Assets/Scenes/SC01_ActorBiped.controller",
+        "Assets/Scripts/RuntimeUI/ActorNavigator.cs",
+        "Assets/Scripts/Editor/Sc01LocomotionVerifier.cs",
+        "Assets/Animations/SC01/*"
+      ],
+      "code": "ShotField.EditorTools.Sc01LocomotionVerifier.Run();"
+    },
+    {
+      "id": "navmesh",
+      "menu": "ShotField/Verifiers/Run SC01 NavMesh Challenger Verifier",
+      "method": "ShotField.EditorTools.Sc01NavMeshChallengerVerifier.Run",
+      "tag": "NAVMESH-CHALLENGER-AUDIT=",
+      "watch": [
+        "Assets/Scripts/Editor/Sc01NavMeshBuilder.cs",
+        "Assets/Scenes/SC01_Walkable.asset",
+        "Assets/Scenes/SC01_Main.unity",
+        "ProjectSettings/NavMeshAreas.asset"
+      ],
+      "code": "ShotField.EditorTools.Sc01NavMeshChallengerVerifier.Run();"
+    },
+    {
+      "id": "m3_assembly",
+      "menu": "ShotField/Verifiers/Run M3 Assembly Verifier",
+      "method": "ShotField.EditorTools.Sc01M3AssemblyVerifier.Run",
+      "tag": "M3-ASSEMBLY-VERIFY-RESULT=",
+      "watch": [
+        "Assets/Scripts/Editor/Sc01PrevisBuilder.cs",
+        "Assets/Scripts/Core/Sc01PrevisShotData.cs",
+        "Assets/Prefabs/SC01/*"
+      ],
+      "code": "ShotField.EditorTools.Sc01M3AssemblyVerifier.Run();"
+    },
+    {
+      "id": "timeline",
+      "menu": "ShotField/Verifiers/Run Director Timeline Verifier",
+      "method": "ShotField.EditorTools.DirectorTimelineVerifier.Run",
+      "tag": "DIRECTOR-TIMELINE-RESULT",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/DirectorTimeline.cs",
+        "Assets/Scripts/RuntimeUI/DirectorTimeline.Dispatch.cs",
+        "Assets/Scenes/*.playable"
+      ],
+      "code": "ShotField.EditorTools.DirectorTimelineVerifier.Run();"
+    },
+    {
+      "id": "steadicam_sync",
+      "menu": "ShotField/Verifiers/Run Steadicam And Timeline Sync Verifier",
+      "method": "ShotField.EditorTools.SteadicamAndTimelineSyncVerifier.Run",
+      "tag": "STEADICAM-SYNC-RESULT",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/VirtualCameraStabilizer.cs",
+        "Assets/Scripts/RuntimeUI/DirectorTimeline.cs",
+        "Assets/Scripts/RuntimeUI/DirectorTimeline.Dispatch.cs",
+        "Assets/Scripts/RuntimeUI/Tabletop/VehiclePathNavigator.cs",
+        "Assets/Scripts/RuntimeUI/Probes/SpatialProbeVisualizer.cs",
+        "Assets/Scripts/Editor/SteadicamAndTimelineSyncVerifier.cs"
+      ],
+      "code": "ShotField.EditorTools.SteadicamAndTimelineSyncVerifier.Run();"
+    },
+    {
+      "id": "b5_dual_track",
+      "menu": "ShotField/Verifiers/Run B5 Dual Track Verifier",
+      "method": "ShotField.EditorTools.B5DualTrackVerifier.Run",
+      "code": "ShotField.EditorTools.B5DualTrackVerifier.Run();",
+      "tag": "B5-DUAL-TRACK-RESULT",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/CameraMotionRecorder.cs",
+        "Assets/Scripts/Core/CameraTrajectory.cs",
+        "Assets/Scripts/RuntimeUI/DirectorTimeline.cs",
+        "Assets/Scripts/Editor/B5DualTrackVerifier.cs"
+      ]
+    },
+    {
+      "id": "layout",
+      "menu": "ShotField/Verifiers/Run SC01 Layout Verifier",
+      "method": "ShotField.EditorTools.Sc01LayoutVerifier.Run",
+      "tag": "SC01-LAYOUT-RESULT",
+      "code": "ShotField.EditorTools.Sc01LayoutVerifier.Run();",
+      "watch": [
+        "Assets/Scenes/SC01_Main.unity",
+        "Assets/Scripts/Editor/Sc01LayoutVerifier.cs"
+      ]
+    },
+    {
+      "id": "camera_preset",
+      "menu": "ShotField/Verifiers/Run Camera Preset Verifier",
+      "method": "ShotField.EditorTools.CameraPresetVerifier.Run",
+      "tag": "CAMERA-PRESET-RESULT",
+      "code": "ShotField.EditorTools.CameraPresetVerifier.Run();",
+      "watch": [
+        "Assets/Scripts/Editor/Sc01LookCapture.cs",
+        "Assets/Scripts/**/CameraPreset*.cs"
+      ]
+    },
+    {
+      "id": "props",
+      "menu": "ShotField/Verifiers/Run Prop Library Verifier",
+      "method": "ShotField.EditorTools.PropLibraryVerifier.Run",
+      "tag": "PROP-LIBRARY-RESULT",
+      "code": "ShotField.EditorTools.PropLibraryVerifier.Run();",
+      "watch": [
+        "Assets/Prefabs/Props/*",
+        "Assets/Scripts/**/Prop*.cs"
+      ]
+    },
+    {
+      "id": "architecture",
+      "menu": "ShotField/Verifiers/Run Architecture Refactor Verifier",
+      "method": "ShotField.EditorTools.ArchitectureRefactorVerifier.Run",
+      "tag": "ARCH-REFACTOR-RESULT",
+      "watch": [
+        "Assets/Scripts/Core/KeyframeTrack.cs",
+        "Assets/Scripts/Core/CameraTrajectory.cs",
+        "Assets/Scripts/Core/ActorTake.cs",
+        "Assets/Scripts/Core/NetworkSession*.cs",
+        "Assets/Scripts/Editor/ArchitectureRefactorVerifier.cs",
+        "04_Project/ENGINEERING.md"
+      ]
+    },
+    {
+      "id": "m1_edit",
+      "menu": "ShotField/Verifiers/Run M1 Edit Verifier",
+      "method": "ShotField.EditorTools.Sc01M1EditVerifier.Run",
+      "tag": "M1-EDIT-RESULT=",
+      "watch": [
+        "Assets/Scripts/Editor/Sc01M1EditVerifier.cs",
+        "Assets/Scripts/Core/SceneEditState.cs",
+        "Assets/Scripts/RuntimeUI/DesktopStudioEditView.cs",
+        "Assets/Scripts/RuntimeUI/SceneEditRestore.cs",
+        "Assets/Scripts/Core/PropLibrary.cs",
+        "Assets/Scenes/SC01_Main.unity"
+      ],
+      "code": "ShotField.EditorTools.Sc01M1EditVerifier.Run();"
+    },
+    {
+      "id": "workflow_assembly",
+      "menu": "ShotField/Verifiers/Run Workflow Assembly Verifier",
+      "method": "ShotField.EditorTools.WorkflowAssemblyVerifier.Run",
+      "code": "ShotField.EditorTools.WorkflowAssemblyVerifier.Run();",
+      "tag": "WORKFLOW-ASSEMBLY-RESULT",
+      "watch": [
+        "Assets/Scripts/Core/WorkflowStage.cs",
+        "Assets/Scripts/Core/WorkflowCoordinator.cs",
+        "Assets/Scripts/Editor/WorkflowAssemblyVerifier.cs"
+      ]
+    },
+    {
+      "id": "scene_single_entry",
+      "menu": "ShotField/Verifiers/Run Scene Single Entry Verifier",
+      "method": "ShotField.EditorTools.SceneSingleEntryVerifier.Run",
+      "code": "ShotField.EditorTools.SceneSingleEntryVerifier.Run();",
+      "tag": "SCENE-SINGLE-ENTRY-RESULT",
+      "watch": [
+        "Assets/Scripts/Editor/BuildAndroid.cs",
+        "Assets/Scripts/Editor/SceneSingleEntryVerifier.cs",
+        "Assets/Scenes/SC01_Main.unity"
+      ]
+    },
+    {
+      "id": "tripo_runtime_import",
+      "menu": "ShotField/Verifiers/Run Tripo Runtime Import Verifier",
+      "method": "ShotField.EditorTools.TripoRuntimeImportVerifier.Run",
+      "code": "ShotField.EditorTools.TripoRuntimeImportVerifier.Run();",
+      "tag": "TRIPO-RUNTIME-IMPORT",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/AssetLoader/RuntimeGltfImporter.cs",
+        "Assets/Scripts/Editor/TripoRuntimeImportVerifier.cs",
+        "Packages/manifest.json",
+        "Packages/packages-lock.json"
+      ]
+    },
+    {
+      "id": "asset_reconciliation",
+      "menu": "ShotField/Verifiers/Run Asset Reconciliation Verifier",
+      "method": "ShotField.EditorTools.AssetReconciliationVerifier.Run",
+      "code": "ShotField.EditorTools.AssetReconciliationVerifier.Run();",
+      "tag": "ASSET-RECONCILIATION-RESULT",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/AssetLoader/RuntimeGltfImporter.cs",
+        "Assets/Scripts/RuntimeUI/Blocks/AssetDrawer*.cs",
+        "Assets/Scripts/RuntimeUI/Blocks/RuntimeAssetReconciliation.cs",
+        "Assets/Scripts/Editor/AssetReconciliationVerifier.cs"
+      ]
+    },
+    {
+      "id": "stage_preset",
+      "menu": "ShotField/Verifiers/Run Stage Preset Verifier",
+      "method": "ShotField.EditorTools.StagePresetVerifier.Run",
+      "code": "ShotField.EditorTools.StagePresetVerifier.Run();",
+      "tag": "STAGE-PRESET-RESULT",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/StagePresetSwitcher.cs",
+        "Assets/Scripts/RuntimeUI/DesktopStudioPanel.cs",
+        "Assets/Scripts/RuntimeUI/DesktopStudioView.cs",
+        "Assets/Scripts/Editor/StagePresetVerifier.cs",
+        "Assets/Scenes/SC01_Main.unity"
+      ]
+    },
+    {
+      "id": "three_card_workspace",
+      "menu": "ShotField/Verifiers/Run Three Card Workspace Verifier",
+      "method": "ShotField.EditorTools.ThreeCardWorkspaceVerifier.Run",
+      "code": "ShotField.EditorTools.ThreeCardWorkspaceVerifier.Run();",
+      "tag": "THREE-CARD-RESULT",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/Blocks/SpatialBlockCard.cs",
+        "Assets/Scripts/RuntimeUI/Blocks/CardScaleHandle.cs",
+        "Assets/Scripts/RuntimeUI/Blocks/ThreeCardWorkspace.cs",
+        "Assets/Scripts/RuntimeUI/Blocks/MonitorCardView.cs",
+        "Assets/Scripts/RuntimeUI/Blocks/Timeline*.cs",
+        "Assets/Scripts/RuntimeUI/Blocks/AssetDrawerCardView.cs",
+        "Assets/Scripts/RuntimeUI/PalmMenu/*",
+        "Assets/Scripts/RuntimeUI/P5RuntimeBootstrap.cs",
+        "Assets/Scripts/Editor/ThreeCardWorkspaceVerifier.cs"
+      ]
+    },
+    {
+      "id": "credential_path",
+      "menu": "ShotField/Verifiers/Run Credential Path Verifier",
+      "method": "ShotField.EditorTools.CredentialPathVerifier.Run",
+      "code": "ShotField.EditorTools.CredentialPathVerifier.Run();",
+      "tag": "CREDENTIAL-PATH-RESULT",
+      "watch": [
+        "Assets/Scripts/Core/LocalAiConfig.cs",
+        "Assets/Scripts/Core/Adapters/TripoConfig.cs",
+        "Assets/Scripts/Core/DeepSeekConfig.cs",
+        "Assets/Scripts/Editor/CredentialBuildGuard.cs",
+        "Assets/Scripts/Editor/CredentialPathVerifier.cs",
+        ".gitignore"
+      ]
+    },
+    {
+      "id": "mr_tabletop_config",
+      "menu": "ShotField/Verifiers/Run MR Tabletop Verifier",
+      "method": "ShotField.EditorTools.MrTabletopVerifier.Run",
+      "code": "ShotField.EditorTools.MrTabletopVerifier.Run();",
+      "tag": "MR-TABLETOP-CONFIG",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/MrTabletopBootstrap.cs",
+        "Assets/Scripts/Editor/MrTabletopVerifier.cs",
+        "Assets/Scenes/SC01_Main.unity",
+        "Assets/XR/Settings/OpenXRPackageSettings.asset"
+      ]
+    },
+    {
+      "id": "network_entry",
+      "menu": "ShotField/Verifiers/Run Network Entry Verifier",
+      "method": "ShotField.EditorTools.NetworkEntryVerifier.Run",
+      "tag": "NETWORK-ENTRY-RESULT",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/NetworkSessionController.cs",
+        "Assets/Scripts/RuntimeUI/VrNetworkPanel.cs",
+        "Assets/Scripts/RuntimeUI/P5RuntimeBootstrap.cs",
+        "Assets/Scripts/RuntimeUI/PalmMenu/*",
+        "Assets/Scripts/RuntimeUI/DesktopStudio*.cs",
+        "Assets/Scripts/Editor/NetworkEntryVerifier.cs"
+      ]
+    },
+    {
+      "id": "network_session",
+      "menu": "ShotField/Verifiers/Run Network Session Verifier",
+      "method": "ShotField.EditorTools.NetworkSessionVerifier.Run",
+      "code": "ShotField.EditorTools.NetworkSessionVerifier.Run();",
+      "tag": "NET-VERIFY-RESULT",
+      "watch": [
+        "Assets/Scripts/Core/NetworkSession*.cs",
+        "Assets/Scripts/Core/SetPackets.cs",
+        "Assets/Scripts/Editor/NetworkSessionVerifier.cs",
+        "Assets/Scripts/Editor/NetworkSceneEditVerifier.cs"
+      ]
+    },
+    {
+      "id": "palm_menu_vr",
+      "menu": "ShotField/Verifiers/Run Palm Menu VR Verifier",
+      "method": "ShotField.EditorTools.PalmMenuVrVerifier.Run",
+      "code": "ShotField.EditorTools.PalmMenuVrVerifier.Run();",
+      "tag": "PALM-MENU-VR-RESULT=",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/PalmMenu/*",
+        "Assets/Scripts/Editor/PalmMenuVrVerifier.cs"
+      ]
+    },
+    {
+      "id": "block_layout",
+      "menu": "ShotField/Verifiers/Run Block Layout Verifier",
+      "method": "ShotField.EditorTools.BlockLayoutVerifier.Run",
+      "code": "ShotField.EditorTools.BlockLayoutVerifier.Run();",
+      "tag": "BLOCK-LAYOUT-RESULT=",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/Blocks/*",
+        "Assets/Scripts/Editor/BlockLayoutVerifier.cs"
+      ]
+    },
+    {
+      "id": "tabletop_scale",
+      "menu": "ShotField/Verifiers/Run Tabletop Scale Verifier",
+      "method": "ShotField.EditorTools.TabletopScaleVerifier.Run",
+      "code": "ShotField.EditorTools.TabletopScaleVerifier.Run();",
+      "tag": "TABLETOP-SCALE-RESULT=",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/Tabletop/*",
+        "Assets/Scripts/Editor/TabletopScaleVerifier.cs"
+      ]
+    },
+    {
+      "id": "studio_fade",
+      "menu": "ShotField/Verifiers/Run Studio Fade Verifier",
+      "method": "ShotField.EditorTools.StudioFadeVerifier.Run",
+      "code": "ShotField.EditorTools.StudioFadeVerifier.Run();",
+      "tag": "STUDIO-FADE-RESULT=",
+      "watch": [
+        "Assets/Scripts/RuntimeUI/Transitions/*",
+        "Assets/Scripts/RuntimeUI/Calibration/*",
+        "Assets/Scripts/Editor/StudioFadeVerifier.cs"
+      ]
+    },
+    {
+      "id": "e2e_pipeline",
+      "menu": "ShotField/Verifiers/Run E2E Pipeline Verifier",
+      "method": "ShotField.EditorTools.E2EPipelineVerifier.Run",
+      "code": "ShotField.EditorTools.E2EPipelineVerifier.Run();",
+      "tag": "E2E-PIPELINE-RESULT=",
+      "watch": [
+        "Assets/Scripts/Editor/E2EWorkflowRunner.cs",
+        "Assets/Scripts/Editor/E2EPipelineVerifier.cs"
+      ]
+    }
+  ]
+}

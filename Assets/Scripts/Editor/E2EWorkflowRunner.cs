@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using ShotField.Core;
+using ShotField.Export;
 using ShotField.Import;
 using ShotField.RuntimeUI;
 using UnityEditor;
@@ -85,8 +86,8 @@ namespace ShotField.EditorTools
             finally { UnityEngine.Object.DestroyImmediate(testTarget); }
 
             bool allGates = gate1Ok && gate2Ok && gate3Ok && gate4Ok;
-            return new StepReport { stepIndex = 2, stepName = "AI分镜拆解与四道闸物理回读", success = allGates,
-                detail = $"Gate1(Schema)={gate1Ok}, Gate2(Boundary)={gate2Ok}, Gate3(Ghost)={gate3Ok}, Gate4(Transform回读误差<0.001m)={gate4Ok}" };
+            return new StepReport { stepIndex = 2, stepName = "AI分镜拆解契约（离线，不调网络）", success = allGates,
+                detail = $"Gate1(Schema)={gate1Ok}, Gate2(Boundary)={gate2Ok}, Gate3(Ghost)={gate3Ok}, Gate4(引擎级Transform同帧回读)={gate4Ok}, AI_CALL=OFFLINE_CONTRACT(业务回读由 scene_command_gates 覆盖)" };
         }
 
         public static StepReport Step3_AssetReconciliationAndGlb()
@@ -159,10 +160,13 @@ namespace ShotField.EditorTools
 
         public static StepReport Step6_BroadcastExportVerification()
         {
-            string jarPath = Path.GetFullPath("Assets/Plugins/Android/libs/shotfield-video-encoder.jar");
-            string javaPath = Path.GetFullPath("Assets/Plugins/Android/source-java/com/haoyunlai/shotfield/ShotFieldVideoEncoder.java");
+            // 编辑器内没有 Android MediaCodec。本步只做「导出规格 + 编码器在位 + 缓冲通路」的真实静态校验；
+            // 真编码必须在 APK + 设备上执行，口径固定 PENDING_APK，不得声称"导出跑通"，也不得依赖历史预置 mp4。
+            string jarPath = Path.GetFullPath(Path.Combine(Application.dataPath, "Plugins/Android/libs/shotfield-video-encoder.jar"));
+            string javaPath = Path.GetFullPath(Path.Combine(Application.dataPath, "Plugins/Android/source-java/com/haoyunlai/shotfield/ShotFieldVideoEncoder.java"));
+            string javaSrc = File.Exists(javaPath) ? File.ReadAllText(javaPath) : "";
             bool pluginOk = File.Exists(jarPath) && new FileInfo(jarPath).Length > 0 &&
-                           File.Exists(javaPath) && File.ReadAllText(javaPath).Contains("MediaMuxer");
+                            javaSrc.Contains("MediaMuxer") && javaSrc.Contains("MIMETYPE_VIDEO_AVC");
 
             bool bufferOk = false;
             var tex = new Texture2D(16, 16, TextureFormat.RGBA32, false);
@@ -176,19 +180,32 @@ namespace ShotField.EditorTools
             }
             finally { UnityEngine.Object.DestroyImmediate(tex); }
 
-            string videoPath = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "build", "Video", "SC01_Final.mp4"));
-            bool videoOk = false; long fileSize = 0;
-            if (File.Exists(videoPath))
+            // 命名与规格取自产品真实常量（VideoExportPaths），不再用本地常量自比。
+            string namingSample = VideoExportPaths.BuildRelativePath(new DateTime(2026, 11, 23, 14, 30));
+            bool namingOk = namingSample.EndsWith("SC01_Demo_20261123_1430.mp4") &&
+                            !VideoExportPaths.FilePrefix.ToLowerInvariant().Contains("final");
+
+            // 若目录里恰有「本次运行产出」的合规 mp4（1 小时内、命名合规、容器头正确），顺带记录；
+            // 没有不算失败——历史预置文件一律不作证据。
+            bool freshArtifact = false;
+            string freshName = "无";
+            string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "build", "Video"));
+            if (Directory.Exists(folder))
             {
-                fileSize = new FileInfo(videoPath).Length;
-                byte[] head = new byte[8];
-                using (var fs = File.OpenRead(videoPath)) fs.Read(head, 0, 8);
-                videoOk = fileSize > 1024 * 1024 && System.Text.Encoding.ASCII.GetString(head, 4, 4) == "ftyp";
+                foreach (var f in Directory.GetFiles(folder, "SC01_Demo_*.mp4"))
+                {
+                    if ((DateTime.Now - File.GetLastWriteTime(f)).TotalHours > 1) continue;
+                    if (new FileInfo(f).Length < 1024) continue;
+                    byte[] head = new byte[8];
+                    using (var fs = File.OpenRead(f)) fs.Read(head, 0, 8);
+                    if (System.Text.Encoding.ASCII.GetString(head, 4, 4) != "ftyp") continue;
+                    freshArtifact = true; freshName = Path.GetFileName(f); break;
+                }
             }
 
-            bool ok = pluginOk && bufferOk && videoOk;
-            return new StepReport { stepIndex = 6, stepName = "1080p广播级MP4插件/缓冲/视频归档真实验证", success = ok,
-                detail = $"MediaCodec插件={pluginOk}, RGBA32缓冲={bufferOk}, 视频产物={videoOk}({fileSize / 1048576f:F1}MB, ftyp合规)" };
+            bool ok = pluginOk && bufferOk && namingOk;
+            return new StepReport { stepIndex = 6, stepName = "1080p 导出规格/编码器在位（真编码 pending-APK）", success = ok,
+                detail = $"编码器在位={pluginOk}, RGBA32缓冲={bufferOk}, 命名合规={namingOk}, 本次运行产物={freshName}, 真编码=PENDING_APK{(freshArtifact ? "(已有近期产物仅作附带记录)" : "")}" };
         }
     }
 }

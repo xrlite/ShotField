@@ -19,8 +19,8 @@
 
 | 版本 | Commit | 判据 | 状态 |
 | --- | --- | --- | --- |
-| 0.9.0-lab.20261124 | `06e8342` | 治理假绿与物理闭环：①剔除 E2E Step 6 常量自比，升级为真实 MediaCodec 插件字节码、RGBA32 显存缓冲与 17.8MB 广播级 MP4 `ftyp` 二进制验证；②Gate 4 剔除 dummy 报告，升级为物理空间 Transform 真实写入与回读（误差 <0.001m）；③`RuntimeGltfImporter` 局部 OBB 旋转不变量包围盒与跨线程派发安全；④`PicoPlaneTabletopAligner` 面积加权动态择优与锁解绑；⑤E2E 资产自动回退工程内 gltf，clean clone 永不报红；全量 33 项门禁 33/33 PASS，Console 0 错误 0 警告，代码熵 323 文件严格 ≤200 行 | 编辑器已验证；真机硬件压制 pending-真机 |
-| 0.9.0-lab.20261124 | `c93d758` | 六阶段端到端全链路一镜到底闭环：①`PicoPlaneTabletopAligner` 实体桌面吸附与 0.8m 虚拟创作台优雅回退 + `StudioFadeTransition` FOV 呼吸与尺度插值；②`RuntimeGltfImporter` 局部缩放对齐的运行时 GLB 骨骼与静态道具导入（CapsuleCollider / NavMeshObstacle Carving 动态雕刻自愈回退）；③`E2EWorkflowRunner` 串联剧本导入→AI四道闸（Gate 1-4 完整校验）→资产对账GLB→沙盘推演与1:1进场→斯坦尼康运镜与5轨剪辑→1080p广播级MP4导出；全量 33 项门禁全绿（33/33 PASS），Console 0 错误 0 警告，代码熵 323 文件严格 ≤200 行 | 编辑器已验证；真机 MR 平面识别 pending-真机 |
+| 0.9.0-lab.20261124 | `06e8342` | 治理假绿与物理闭环：①E2E Step 6 删除常量自比与历史预置 mp4 依赖，改为「编码器在位（`MediaMuxer`/AVC）+ RGBA32 显存缓冲 + 导出命名/规格常量」真实校验，**真编码口径固定 PENDING_APK**；②Gate 4 改为引擎级 Transform 同帧回读（业务级回读由 `scene_command_gates` 覆盖），并明确 Step 2 为离线契约；③`RuntimeGltfImporter` 局部 OBB 旋转不变量包围盒与跨线程派发安全；④`PicoPlaneTabletopAligner` 面积加权动态择优与锁解绑；⑤E2E 资产自动回退工程内 gltf；全量 33 项门禁 33/33 PASS，代码熵 323 文件严格 ≤200 行 | 编辑器已验证；**真实 1080p 编码 pending-APK** |
+| 0.9.0-lab.20261124 | `c93d758` | 六阶段端到端全链路一镜到底串联：①`PicoPlaneTabletopAligner` 实体桌面吸附与 0.8m 虚拟创作台优雅回退 + `StudioFadeTransition` FOV 呼吸与尺度插值；②`RuntimeGltfImporter` 局部缩放对齐的运行时 GLB 骨骼与静态道具导入（CapsuleCollider / NavMeshObstacle Carving 动态雕刻自愈回退）；③`E2EWorkflowRunner` 串联剧本导入→AI四道闸（离线契约）→资产对账GLB→沙盘推演与1:1进场→斯坦尼康运镜与5轨剪辑→**导出规格/编码器在位（真编码 pending-APK）**；全量 33 项门禁 33/33 PASS，代码熵 323 文件严格 ≤200 行 | 编辑器已验证；真机 MR 平面识别 pending-真机 |
 | 0.9.0-lab.20261124 | `809f468` | 1~5 层时间轴架构分层（`TimelineTrackLayer`：机位、演员、道具/载具、音频、灯光）与空间探针状态绑定骨架（`SpatialProbeBindingDto` + `BindProbe` / `TryGetProbe`）；`TimelineCardView` 拆分 partial class `TimelineCardView.Tracks.cs` 守住 ≤200 行红线；`THREE-CARD-RESULT=PASS (13/13)`、`TIMELINE-RESULT=PASS (5/5)`，全量 31 项门禁全通，Console 0 错误 0 警告 | 编辑器已验证；真机抓握/寻道 pending-真机 |
 | 0.9.0-lab.20261124 | `c8e14e5` | DeepSeek 四道闸场景命令流水线（Gate 1 JSON/Schema/空/越界防注入、Gate 2 视锥与遮挡空间几何、Gate 3 轴线法则与跳轴预警、Gate 4 执行回退）；自证截图相机角度修正（正对世界空间 Canvas，消除文字镜像反转）；`SCENE-COMMAND-GATE-RESULT=PASS (15/15)` | 编辑器已验证；真机语音/手势指令 pending-真机 |
 | 0.9.0-lab.20261124 | `ea04f3c` | `NetworkSessionController` 成为桌面/VR 唯一会话，PalmMenu 场景栏可呼出 WorldSpace 联机 modal；IPv4/端口校验、Host/Join/断开、心跳与主线程 Tick；`NETWORK-ENTRY-RESULT=PASS (9/9)`，Play Mode 双菜单与控制器同实例，Host 按钮进入 Hosting | 编辑器与 Play Mode 已验证；真机双端同步 pending-设备 |
@@ -94,11 +94,12 @@
 | `tabletop_scale` | `TABLETOP-SCALE-RESULT=PASS (14/14)`：1:20/1:1 换算、演员预算、PicoPlaneTabletopAligner 吸附与回退契约已闭环；真机 MR 平面识别 pending-真机 |
 | `studio_fade` | `STUDIO-FADE-RESULT=PASS (10/10)`：淡入淡出状态机与遮罩参数；人眼观感 pending-真机 |
 | `scene_command_gates` | `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`：DeepSeek 场景命令四道闸（Gate 1 语法/防御/空参数拦截、Gate 2 视锥与遮挡空间几何、Gate 3 轴线法则与跳轴预警、Gate 4 执行失败回退原状态） |
-| `e2e_pipeline` | `E2E-PIPELINE-RESULT=PASS (6/6)`：六阶段端到端全链路一镜到底（①剧本导入→②AI四道闸完整校验→③资产对账与GLB加载→④沙盘双尺度丝滑过渡→⑤斯坦尼康手持运镜与5轨剪辑→⑥1080p广播级MP4导出） |
+| `e2e_pipeline` | `E2E-PIPELINE-RESULT=PASS (6/6)`：六阶段端到端串联（①剧本导入→②AI四道闸**离线契约**→③资产对账与GLB加载→④沙盘双尺度过渡→⑤斯坦尼康5轨剪辑→⑥**导出规格/编码器在位，真编码 PENDING_APK**）。第②⑥步不调网络、不产视频，不得当作 AI 真调用或导出跑通 |
 
 最近一次全量（2026-11-24 22:14:55）：**33 run / 0 failed/no-verdict / 0 no-error（全部通过）**，日志 `verify_all_20261124_221455.log`。其中 `e2e_pipeline` 输出 `E2E-PIPELINE-RESULT=PASS (6/6)`；`tabletop_scale` 输出 `TABLETOP-SCALE-RESULT=PASS (14/14)`；`studio_fade` 输出 `STUDIO-FADE-RESULT=PASS (10/10)`；`tripo_runtime_import` 输出 `TRIPO-RUNTIME-IMPORT=PASS (7/7)`；`scene_command_gates` 输出 `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`；`network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`network_entry` 输出 `NETWORK-ENTRY-RESULT=PASS (9/9)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`credential_path` 输出 `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`b5_dual_track` 输出 `B5-DUAL-TRACK-RESULT=PASS (8/8)`；`asset_reconciliation` 输出 `ASSET-RECONCILIATION-RESULT=PASS (10/10)`；`constraint_pair` 输出 `CONSTRAINT-PAIR-RESULT=PASS (6/6)`；`console_clean` 读数 `Errors=0 Warnings=0`。
 
 > ✅ **Console 长驻留归零（2026-11-23 13:59:58 实跑通过）**：协议为 清 Console → 域重载 → 清重载噪音 → 进 Play → 摆位走位（`PrevisCast_A_Red` MoveTo）+ 时间轴寻道（`SH_04`）→ Play 态驻留 300s，60/120/180/240/300s 五次巡检 Console 全空 → 退出 Play。读数 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，日志 `console_clean_dwell_20261123_135958.log`。
+> ⚠️ **自动化 `console_clean` 只做快照读数，不跑 300s**；且验证器前置 `Clear()` 会把累积日志一并擦除——2026-11-24 曾出现 `entries=0` 的恒真读数，已回退为「不清屏、直接读累积条目」。300s 长驻留仍须按上述人工协议执行并留时序日志。
 >
 > **诚实备注（未加白名单）**：域重载时 `com.unity.xr.management` 在本会话未初始化子系统的情况下会打一条 `Call to StopSubsystems without an initialized manager` 警告；属包生命周期噪音、非我方代码，Play 初始化过子系统后退出不再复现，测量前已清掉。验证器未对该条加任何白名单豁免。
 

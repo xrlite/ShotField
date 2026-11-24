@@ -8,7 +8,7 @@ namespace ShotField.EditorTools
 {
     /// <summary>
     /// 六阶段端到端全链路一镜到底门禁断言验证器。
-    /// 校验 ①剧本解析 -> ②AI四道闸 -> ③GLB加载 -> ④沙盘双尺度 -> ⑤斯坦尼康5轨 -> ⑥1080p导出。
+    /// 校验 ①剧本解析 -> ②AI四道闸(离线契约) -> ③GLB加载 -> ④沙盘双尺度 -> ⑤斯坦尼康5轨 -> ⑥导出规格/编码器在位(真编码 pending-APK)。
     /// </summary>
     public static class E2EPipelineVerifier
     {
