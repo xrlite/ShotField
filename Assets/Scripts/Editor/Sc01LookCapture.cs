@@ -35,7 +35,7 @@ namespace ShotField.EditorTools
         };
 
         [MenuItem("ShotField/SC01/Capture Four Views")]
-        [MenuItem("镜场 ShotField/抓场景观感四图 (Look Capture)")]
+        [MenuItem("ShotField/抓场景观感四图 (Look Capture)")]
         public static void CaptureFourMenu() => CaptureFour();
 
         public static void CaptureFour() => Capture(ScenePath, BuildPoses());

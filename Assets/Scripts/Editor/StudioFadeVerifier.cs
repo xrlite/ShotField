@@ -21,7 +21,7 @@ namespace ShotField.EditorTools
         private const int ExpectedAssertions = 10;
 
         [MenuItem("ShotField/Verifiers/Run Studio Fade Verifier")]
-        [MenuItem("镜场 ShotField/验证/验证片场切换 StudioFade")]
+        [MenuItem("ShotField/验证/验证片场切换 StudioFade")]
         public static void Run()
         {
             int passCount = 0;

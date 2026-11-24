@@ -32,7 +32,7 @@ namespace ShotField.EditorTools
         };
 
         [MenuItem("ShotField/Verifiers/Run SC01 Layout Verifier")]
-        [MenuItem("镜场 ShotField/验证/验证 SC01 布局与重叠")]
+        [MenuItem("ShotField/验证/验证 SC01 布局与重叠")]
         public static void Run()
         {
             int passCount = 0;

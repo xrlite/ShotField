@@ -13,7 +13,7 @@ namespace ShotField.EditorTools
         private const int ExpectedAssertions = 10;
 
         [MenuItem("ShotField/Verifiers/Run Shot Library Runtime Verifier")]
-        [MenuItem("镜场 ShotField/验证/验证 ShotLibrary 运行时撤销与自动保存")]
+        [MenuItem("ShotField/验证/验证 ShotLibrary 运行时撤销与自动保存")]
         public static void Run()
         {
             var go = new GameObject("Test_ShotLibrary_Host");

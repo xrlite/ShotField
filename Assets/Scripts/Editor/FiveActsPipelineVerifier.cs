@@ -12,7 +12,7 @@ namespace ShotField.EditorTools
         private const int ExpectedAssertions = 9;
 
         [MenuItem("ShotField/Verifiers/Run Five Acts Pipeline Verifier")]
-        [MenuItem("镜场 ShotField/验证/验证五幕剧本与 Seedance 管线")]
+        [MenuItem("ShotField/验证/验证五幕剧本与 Seedance 管线")]
         public static void Run()
         {
             int passCount = 0;

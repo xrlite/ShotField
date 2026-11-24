@@ -21,7 +21,7 @@ namespace ShotField.EditorTools
         private int selectedIndex = -1;
 
         [MenuItem("ShotField/Windows/Shot Workbench")]
-        [MenuItem("镜场 ShotField/镜头工作台")]
+        [MenuItem("ShotField/镜头工作台")]
         public static void Open()
         {
             var w = GetWindow<ShotFieldWindow>("镜场 · 镜头工作台");

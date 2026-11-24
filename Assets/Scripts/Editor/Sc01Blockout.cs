@@ -10,7 +10,7 @@ namespace ShotField.EditorTools
     public static class Sc01Blockout
     {
         [MenuItem("ShotField/Blockout/Create SC01 Living Room Blockout")]
-        [MenuItem("镜场 ShotField/创建 SC01 客厅白模")]
+        [MenuItem("ShotField/创建 SC01 客厅白模")]
         private static void Build()
         {
             if (Object.FindAnyObjectByType<ShotLibrary>() != null)
@@ -38,7 +38,7 @@ namespace ShotField.EditorTools
         }
 
         [MenuItem("ShotField/Blockout/Rebuild SC01 Art Scene")]
-        [MenuItem("镜场 ShotField/重建 SC01 美术场景")]
+        [MenuItem("ShotField/重建 SC01 美术场景")]
         public static void BuildAndSaveScene()
         {
             EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);

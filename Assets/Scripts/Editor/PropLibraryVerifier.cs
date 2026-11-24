@@ -17,7 +17,7 @@ namespace ShotField.EditorTools
         private const int ExpectedAssertions = 10;
 
         [MenuItem("ShotField/Verifiers/Run Prop Library Verifier")]
-        [MenuItem("镜场 ShotField/验证/验证道具库 PropLibrary")]
+        [MenuItem("ShotField/验证/验证道具库 PropLibrary")]
         public static void Run()
         {
             int passCount = 0;

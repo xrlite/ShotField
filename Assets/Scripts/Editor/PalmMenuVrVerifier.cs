@@ -20,7 +20,7 @@ namespace ShotField.EditorTools
         private const int ExpectedAssertions = 10;
 
         [MenuItem("ShotField/Verifiers/Run Palm Menu VR Verifier")]
-        [MenuItem("镜场 ShotField/验证/验证掌心菜单 PalmMenuVR")]
+        [MenuItem("ShotField/验证/验证掌心菜单 PalmMenuVR")]
         public static void Run()
         {
             int passCount = 0;

@@ -13,7 +13,7 @@ namespace ShotField.EditorTools
         private const string Root = "Assets/Prefabs/SC01";
 
         [MenuItem("ShotField/Art/Update SC01 Furniture Prefabs")]
-        [MenuItem("镜场 ShotField/更新 SC01 家具预制体")]
+        [MenuItem("ShotField/更新 SC01 家具预制体")]
         public static void Run()
         {
             BuildAll(); AssetDatabase.SaveAssets(); AssetDatabase.Refresh();

@@ -12,7 +12,7 @@ namespace ShotField.EditorTools
         private const int ExpectedAssertions = 9;
 
         [MenuItem("ShotField/Verifiers/Run AI and Video System Verifier")]
-        [MenuItem("镜场 ShotField/验证/验证 AI 系统与生成回片对照")]
+        [MenuItem("ShotField/验证/验证 AI 系统与生成回片对照")]
         public static void Run()
         {
             int passCount = 0;

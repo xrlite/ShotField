@@ -27,7 +27,7 @@ namespace ShotField.EditorTools
         private const float SmallPanelWidth = 0.36f;
 
         [MenuItem("ShotField/Verifiers/Run Block Layout Verifier")]
-        [MenuItem("镜场 ShotField/验证/验证积木平铺 BlockLayout")]
+        [MenuItem("ShotField/验证/验证积木平铺 BlockLayout")]
         public static void Run()
         {
             int passCount = 0;

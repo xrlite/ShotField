@@ -15,7 +15,7 @@ namespace ShotField.EditorTools
         private const int ExpectedAssertions = 11;
 
         [MenuItem("ShotField/Verifiers/Run Camera Preset Verifier")]
-        [MenuItem("镜场 ShotField/验证/验证机位预设 CameraPreset")]
+        [MenuItem("ShotField/验证/验证机位预设 CameraPreset")]
         public static void Run()
         {
             int passCount = 0;

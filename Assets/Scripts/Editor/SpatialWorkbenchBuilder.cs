@@ -22,7 +22,7 @@ namespace ShotField.EditorTools
         private static Color PicoAccent => PrevisPalette.PicoAccent;
 
         [MenuItem("ShotField/Workbench/Build Spatial 3D Floating Monitor and Workbench")]
-        [MenuItem("镜场 ShotField/构建空间 3D 浮动监视器与工作台")]
+        [MenuItem("ShotField/构建空间 3D 浮动监视器与工作台")]
         public static GameObject BuildWorkbench()
         {
             EnsureEventSystem();
