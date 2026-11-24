@@ -55,3 +55,21 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "04_Project/巡检/entropy_c
 - `e2e_pipeline` 的 ② 是**离线契约**（不调网络），⑥ 是**导出规格/编码器在位**（真编码 `PENDING_APK`）。
 - 不得把这两步当作「AI 真调用」或「MP4 导出跑通」的证据。
 - 历史预置 mp4（如 `SC01_Final.mp4`）**不作验收**，文件名亦禁用 `final`。
+
+## 编码与快照规矩（2026-11-24）
+
+**编码契约**：一方维护的文本文件统一按以下口径写入；第三方 `venv/`、`uv-cache/` 不属于维护范围。
+
+| 文件类型 | 编码 | 理由 |
+| --- | --- | --- |
+| `.py` / `.json` / `.md` / `.bat` | UTF-8 无 BOM | Python 3、编辑器与 Git 默认按 UTF-8 解读；BOM 可能破坏 JSON/脚本首行 |
+| `.ps1` | 优先纯 ASCII；必须含中文时用 UTF-8 **带 BOM** | Windows PowerShell 5.1 对无 BOM 的非 ASCII 脚本按 ANSI 解码，会乱码甚至解析失败 |
+
+新增或修改一方维护的文本文件后，必须严格 UTF-8 解码通过、无 NUL、无 U+FFFD；不得用 shell heredoc/重定向写中文，也不得把 GBK 字节混进 UTF-8 文件。历史损坏字符不得猜测补全。
+
+**镜像快照纪律**：`04_Project/巡检/` 是权威源，本目录只供评审查看，**不是第二源码**。
+
+1. 只在权威源修 bug；禁止直接修改本目录的五个镜像文件。
+2. 权威源改动后，同一次提交内逐字节同步 `entropy_check.ps1`、`secret_scan.ps1`、`unity_gate.ps1`、`verifiers.map.json`、`verify_all.ps1`。
+3. 提交前逐个比对源文件与镜像的字节数和 SHA256；五项全部一致才算同步，漂移即失败，不手改镜像掩盖。
+4. 当前基线：五项全部一致；本次扫描证据见 `05_验证记录/2026-11/text_integrity_20261124.json`。
