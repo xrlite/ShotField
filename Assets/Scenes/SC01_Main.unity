@@ -35964,6 +35964,7 @@ GameObject:
   - component: {fileID: 1601099773}
   - component: {fileID: 1601099775}
   - component: {fileID: 1601099776}
+  - component: {fileID: 1601099777}
   m_Layer: 5
   m_Name: Spatial_Workbench_Canvas
   m_TagString: Untagged
@@ -58000,6 +58001,20 @@ MonoBehaviour:
   maxPlaneWidth: 3
   minPlaneHeight: 0.4
   maxPlaneHeight: 1.2
+--- !u!114 &1601099777
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1601099756}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cb1cbfcf18eb334b87d555afe281ee4, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: ShotField.RuntimeUI::ShotField.RuntimeUI.StagePresetSwitcher
+  tabletop: {fileID: 0}
+  grandStageRoot: {fileID: 0}
 --- !u!1 &1602665743
 GameObject:
   m_ObjectHideFlags: 0

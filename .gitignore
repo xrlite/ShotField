@@ -117,3 +117,8 @@ Assets/Scripts/Editor/Sc01ShellMaterialPatch.cs*
 # Unity Gradle 模板自动迁移留的备份（构建产物，不入库）
 *.gradle.backup
 *.gradle.backup.meta
+
+# 天工大殿本地预设（用户授权提取，权属/许可待核，二进制不进公开仓库）
+/Assets/Models/Scenes/TianGong*
+/Assets/Prefabs/Stages/TianGong*
+/Assets/Resources/Stages/TianGong*

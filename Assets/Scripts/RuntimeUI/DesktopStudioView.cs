@@ -72,6 +72,13 @@ namespace ShotField.RuntimeUI
             if (GUILayout.Button("保存场景")) workbench.SavePassport();
             GUILayout.EndHorizontal();
 
+            if (_stageSwitcher != null && GUILayout.Button(_stageSwitcher.GrandStageActive
+                ? "切回白模舞台" : "切换到天工舞台"))
+            {
+                _stageSwitcher.ToggleStage();
+                status = _stageSwitcher.LastStageNote;
+            }
+
             if (GUILayout.Button("回看所选镜头")) Play(selected, false);
             if (selected != null && GUILayout.Button("回看最近存档")) RunSession(() =>
             {

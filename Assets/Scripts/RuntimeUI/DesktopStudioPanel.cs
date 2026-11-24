@@ -24,6 +24,7 @@ namespace ShotField.RuntimeUI
         private bool showTabletop;
         private Transform recordingPose;
         private ConnectionCenterPanel _connection;
+        private StagePresetSwitcher _stageSwitcher;
 
         void Start()
         {
@@ -41,6 +42,7 @@ namespace ShotField.RuntimeUI
             tabletop = GetComponent<TabletopDirector>();
             audience = GetComponent<AudienceLab>();
             actor = GetComponent<ActorTakePlayer>();
+            _stageSwitcher = GetComponent<StagePresetSwitcher>();
             workbench.PassportSaved += PublishPassport;
             session.OnPassportSyncReceived += ReceivePassport;
             session.OnClientJoined += (_, role) => status = role + " joined";
