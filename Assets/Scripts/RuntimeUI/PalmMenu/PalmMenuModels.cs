@@ -8,7 +8,8 @@ namespace ShotField.RuntimeUI
         SaveSnapshot,
         ReloadSnapshot,
         ToggleMode,
-        ToggleCard
+        ToggleCard,
+        ToggleNetwork
     }
 
     /// <summary>菜单内部分栏：演员 / 道具 / 场景（快照与模式切换）。</summary>

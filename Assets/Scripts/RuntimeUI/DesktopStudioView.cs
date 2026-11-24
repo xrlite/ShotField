@@ -33,22 +33,22 @@ namespace ShotField.RuntimeUI
             }
         }
 
-        // 联机会话：核心愿景，当前为离线演示；收进二级入口，首屏不直接暴露 IP 与联机按钮。
+        // 联机会话：与 VR modal 共用 NetworkSessionController，不再维护第二套连接。
         private void DrawOnlineSection()
         {
             showAdvanced = GUILayout.Toggle(showAdvanced, "联机（可选）");
             if (!showAdvanced) return;
 
-            GUILayout.Label(session.State.ToString());
-            address = GUILayout.TextField(address);
+            GUILayout.Label(_network != null ? _network.Status : "联机控制器未绑定");
+            if (_network != null) _network.Address = GUILayout.TextField(_network.Address);
             GUILayout.BeginHorizontal();
-            if (GUILayout.Button("Host")) RunSession(() =>
+            if (GUILayout.Button("Host") && _network != null)
             {
-                session.StartHost(Port);
+                _network.StartHost();
                 if (lastPassport != null) PublishPassport(lastPassport);
-            });
-            if (GUILayout.Button("Join")) RunSession(() => session.Connect(address, Port, ParticipantRole.Producer));
-            if (GUILayout.Button("断开")) session.Disconnect();
+            }
+            if (GUILayout.Button("Join") && _network != null) _network.Join(_network.Address);
+            if (GUILayout.Button("断开") && _network != null) _network.Disconnect();
             GUILayout.EndHorizontal();
         }
 

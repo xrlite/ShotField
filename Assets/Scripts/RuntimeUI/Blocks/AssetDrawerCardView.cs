@@ -61,7 +61,9 @@ namespace ShotField.RuntimeUI
             _tripoPanel = ModePanel(root, "TripoMode", new Color(0.15f, 0.16f, 0.18f, 0.96f), w);
             RuntimeUiFactory.CreateTmpLabel(_tripoPanel.transform, "PathHint", "本地 GLB 路径（同步导入）",
                 13, new Vector2(0f, 78f), new Vector2(w - 24f, 20f));
-            _pathInput = InputField(_tripoPanel.transform, "GlbPath", System.IO.Path.Combine(Application.persistentDataPath, "TripoModels", "door_v01.glb"), w - 24f);
+            _pathInput = RuntimeUiFactory.CreateTmpInputField(_tripoPanel.transform, "GlbPath",
+                System.IO.Path.Combine(Application.persistentDataPath, "TripoModels", "door_v01.glb"),
+                new Vector2(w - 24f, 40f), 1024);
             ((RectTransform)_pathInput.transform).anchoredPosition = new Vector2(0f, 42f);
             RuntimeUiFactory.CreateTmpButton(_tripoPanel.transform, "Import", "导入 Tripo GLB", new Vector2(0f, 10f),
                 new Vector2(220f, 30f), onClick: () => ImportTripo(_pathInput.text));
@@ -73,20 +75,6 @@ namespace ShotField.RuntimeUI
         private static GameObject ModePanel(Transform root, string name, Color color, float width) => RuntimeUiFactory.CreatePanel(root, name, color, new Vector2(0f, 33f), new Vector2(width, 186f));
         private static TMP_Text Label(Transform parent, string name, string text, float y, float width, float height = 24f) =>
             RuntimeUiFactory.CreateTmpLabel(parent, name, text, 11, new Vector2(0f, y), new Vector2(width, height), new Color(0.72f, 0.75f, 0.80f));
-        private static TMP_InputField InputField(Transform parent, string name, string value, float width)
-        {
-            var go = RuntimeUiFactory.CreatePanel(parent, name, new Color(0.08f, 0.09f, 0.11f, 0.98f), Vector2.zero, new Vector2(width, 40f));
-            var field = go.AddComponent<TMP_InputField>();
-            var textGo = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
-            textGo.transform.SetParent(go.transform, false);
-            var text = textGo.GetComponent<TextMeshProUGUI>();
-            text.font = Resources.Load<TMP_FontAsset>("Fonts/ShotFieldSansSC SDF");
-            text.fontSize = 13; text.raycastTarget = false; text.alignment = TextAlignmentOptions.Left;
-            var rt = (RectTransform)textGo.transform;
-            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one; rt.offsetMin = new Vector2(10f, 5f); rt.offsetMax = new Vector2(-10f, -5f);
-            field.textComponent = text; field.lineType = TMP_InputField.LineType.SingleLine; field.characterLimit = 1024; field.text = value;
-            return field;
-        }
         public bool SelectSource(string source)
         {
             string key = (source ?? "").Trim().ToLowerInvariant();

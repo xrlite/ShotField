@@ -8,8 +8,7 @@ namespace ShotField.RuntimeUI
     [RequireComponent(typeof(SpatialWorkbench))]
     public sealed partial class DesktopStudioPanel : MonoBehaviour
     {
-        private const int Port = 7777;
-        private readonly NetworkSession session = new NetworkSession();
+        private NetworkSessionController _network;
         private SpatialWorkbench workbench;
         private CameraMotionRecorder motion;
         private TabletopDirector tabletop;
@@ -17,7 +16,6 @@ namespace ShotField.RuntimeUI
         private AudienceLab audience;
         private ShotData receivedShot, recordingShot;
         private ShotPassportDto lastPassport;
-        private string address = "127.0.0.1";
         private string status = "";
         private string videoSource = "";
         private bool showAdvanced;
@@ -29,6 +27,8 @@ namespace ShotField.RuntimeUI
         void Start()
         {
             Application.runInBackground = true;
+            _network = FindAnyObjectByType<NetworkSessionController>();
+            if (_network == null) _network = gameObject.AddComponent<NetworkSessionController>();
             workbench = GetComponent<SpatialWorkbench>();
             AttachEditViews();
             if (workbench.library == null || workbench.library.ShotCamera == null) return;
@@ -44,15 +44,15 @@ namespace ShotField.RuntimeUI
             actor = GetComponent<ActorTakePlayer>();
             _stageSwitcher = GetComponent<StagePresetSwitcher>();
             workbench.PassportSaved += PublishPassport;
-            session.OnPassportSyncReceived += ReceivePassport;
-            session.OnClientJoined += (_, role) => status = role + " joined";
-            session.OnCommentReceived += comment => status = comment.sender + ": " + comment.text;
+            _network.Session.OnPassportSyncReceived += ReceivePassport;
+            _network.Session.OnClientJoined += OnNetworkClientJoined;
+            _network.Session.OnCommentReceived += OnNetworkComment;
         }
 
         private void PublishPassport(ShotPassportDto passport)
         {
             lastPassport = passport;
-            RunSession(() => session.BroadcastPassport(passport.shot_id, passport.revision, JsonUtility.ToJson(passport)));
+            RunSession(() => _network.Session.BroadcastPassport(passport.shot_id, passport.revision, JsonUtility.ToJson(passport)));
         }
 
         private void ReceivePassport(PassportSyncData data)
@@ -66,7 +66,6 @@ namespace ShotField.RuntimeUI
 
         void Update()
         {
-            session.Tick();
             HandleShortcuts();
             if (motion == null) return;
             if (motion.CurrentState == CameraMotionRecorder.State.Recording && Keyboard.current != null)
@@ -103,8 +102,16 @@ namespace ShotField.RuntimeUI
         void OnDestroy()
         {
             if (workbench != null) workbench.PassportSaved -= PublishPassport;
-            session.Disconnect();
+            if (_network != null)
+            {
+                _network.Session.OnPassportSyncReceived -= ReceivePassport;
+                _network.Session.OnClientJoined -= OnNetworkClientJoined;
+                _network.Session.OnCommentReceived -= OnNetworkComment;
+            }
         }
+
+        private void OnNetworkClientJoined(string id, string role) => status = role + " joined";
+        private void OnNetworkComment(CommentData comment) => status = comment.sender + ": " + comment.text;
 
         // M1 编辑链：右侧编辑面板 + 启动自动恢复组件，挂在同一画布物体上。
         private void AttachEditViews()

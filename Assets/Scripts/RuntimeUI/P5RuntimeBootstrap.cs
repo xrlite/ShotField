@@ -38,10 +38,14 @@ namespace ShotField.RuntimeUI
             Ensure<BlockPanelRegistry>(host);
             Ensure<ViewHeightCalibration>(host);
             Ensure<StudioFadeTransition>(host);
+            var network = Ensure<NetworkSessionController>(host);
+            var networkPanel = Ensure<VrNetworkPanel>(host);
+            networkPanel.Bind(network);
+            if (networkPanel.headAnchor == null && Camera.main != null) networkPanel.headAnchor = Camera.main.transform;
             Ensure<ThreeCardWorkspace>(host);
 
             Debug.Log("[P5RuntimeBootstrap] 已装配：ActorBudget / BlockPanelRegistry / " +
-                      "ViewHeightCalibration / StudioFadeTransition / ThreeCardWorkspace。");
+                      "ViewHeightCalibration / StudioFadeTransition / NetworkSession / VrNetworkPanel / ThreeCardWorkspace。");
         }
 
         /// <summary>没有就挂一个，有就返回现有的；不覆盖任何已填字段。</summary>

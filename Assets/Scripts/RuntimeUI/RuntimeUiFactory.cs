@@ -97,6 +97,25 @@ namespace ShotField.RuntimeUI
             return btn;
         }
 
+        public static TMP_InputField CreateTmpInputField(Transform parent, string name, string value, Vector2 size,
+            int characterLimit = 64)
+        {
+            var go = CreatePanel(parent, name, new Color(0.08f, 0.09f, 0.11f, 0.98f), Vector2.zero, size);
+            var field = go.AddComponent<TMP_InputField>();
+            var textGo = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI));
+            textGo.transform.SetParent(go.transform, false);
+            var text = textGo.GetComponent<TextMeshProUGUI>();
+            var font = GetUiFont();
+            if (font != null) text.font = font;
+            text.fontSize = 13; text.raycastTarget = false; text.alignment = TextAlignmentOptions.Left;
+            var rt = (RectTransform)textGo.transform;
+            rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
+            rt.offsetMin = new Vector2(10f, 5f); rt.offsetMax = new Vector2(-10f, -5f);
+            field.textComponent = text; field.lineType = TMP_InputField.LineType.SingleLine;
+            field.characterLimit = characterLimit; field.text = value;
+            return field;
+        }
+
         public static void SetStatusTmp(TMP_Text target, string message)
         {
             if (target != null) target.text = message;

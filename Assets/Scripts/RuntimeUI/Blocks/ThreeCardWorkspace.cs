@@ -111,9 +111,17 @@ namespace ShotField.RuntimeUI
         private void BindPalmMenus()
         {
             var vr = FindAnyObjectByType<PalmMenuController>();
-            if (vr != null && vr.State != null) vr.State.Cards = this;
+            if (vr != null && vr.State != null)
+            {
+                vr.State.Cards = this;
+                vr.State.Network = FindAnyObjectByType<VrNetworkPanel>();
+            }
             var desktop = FindAnyObjectByType<PalmMenuDesktopFallback>();
-            if (desktop != null && desktop.State != null) desktop.State.Cards = this;
+            if (desktop != null && desktop.State != null)
+            {
+                desktop.State.Cards = this;
+                desktop.State.Network = FindAnyObjectByType<VrNetworkPanel>();
+            }
         }
         private void ApplyProductGates()
         {
