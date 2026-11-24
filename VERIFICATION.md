@@ -19,6 +19,9 @@
 
 | 版本 | Commit | 判据 | 状态 |
 | --- | --- | --- | --- |
+| 0.9.0-lab.20261124 | `04748f2` | M1 六步自动演示 `PASS (6/6)`，演员/道具重载 delta=0；P6 四机位 15 秒编辑器出片，验片 `PASS (11/11)`（1080p30 / 450 帧 / 11.927Mbps / 全帧中位 1.96） | 编辑器已验证；**Android 真编码 pending-APK** |
+| 0.9.0-lab.20261124 | `0ba5ac8` | 中文字体 SDF 从 1x1 占位重建为 2048x2048 真实字形表 | 编辑器已验证 |
+| 0.9.0-lab.20261124 | `cbab098` | P5 元数据补齐、掌心菜单 XR 射线器、非废弃查询 API、变体工具指向唯一主场景 | 编辑器已验证；VR 手感 pending-真机 |
 | 0.9.0-lab.20261123 | `7a931dd` | 六阶段 Core 状态机 + 单主场景入口断言 + Console 长驻留归零；门禁 16/16（16 文件） | 编辑器已验证 |
 | 0.9.0-lab.20261123 | `3d3d626` | 摘 mcp-extensions 与 ai.assistant 传递链；XRI 3.6.1、core-utils 2.6.0 显式钉为直接依赖；guard 补扫描盲区；场景落点（4 文件） | 编辑器已验证 |
 | 0.9.0-lab.20261123 | `476f633` | 关闭凭据扫描盲区，记录每次构建期凭据扫描 | 编辑器已验证 |
@@ -32,13 +35,13 @@
 | 0.9.0-lab | `5c61097` | **P3**：`SCRIPT-PROPOSAL-RESULT=PASS (3/3)` 通用提案契约，三剧本模式各异 | 真实 API 已验证；**可编辑提案 UI 未做** |
 | 0.9.0-lab | `0c1844d` | **P6 前置**：导出规格升至 1920×1080 / 30fps / 15s / ≥8Mbps，命名规则集中 | **PENDING-APK**，真 mp4 未出 |
 
-> 提交链（新→旧）：`7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。两笔新提交均已 push，本地与 `origin/main` 同步。
+> 提交链（新→旧）：`04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 三笔新提交已在本地，**尚未 push**。
 > 后续版本 tag 规划：`v0.9.1-alpha`（Console 归零 + 统一工作流）→ `v0.9.2-alpha`（四格式 + AI 提案）→ `v0.9.3-alpha`（资产 + Tripo）→ `v0.9.4-alpha`（沙盘 1:1 + VR UI）→ `v0.9.5-beta`（时间轴 + MP4）→ `v0.9.6-beta`（模拟器完整旅程）。
 > **tag 只在对应判据真过后打，不提前占位。**
 
 ---
 
-## 门禁（16 项）
+## 门禁（20 项）
 
 运行入口：`ShotField > Verifiers`，或工作区脚本 `04_Project/巡检/verify_all.ps1`（走 live-bridge 直调）。
 
@@ -60,8 +63,12 @@
 | `console_clean` | Console 错误与警告计数均为 0（反射读 `LogEntries.GetCountsByType`，**无白名单豁免**）；长驻留 300s 协议见下 |
 | `workflow_assembly` | `WORKFLOW-ASSEMBLY-RESULT=PASS (6/6)`：反射核对六阶段枚举顺序与数值 0..5、初始阶段 Import、五次前进到 Export、终点原地、Reset、类型归属 `ShotField.Core`，无 RuntimeUI/Editor 泄漏 |
 | `scene_single_entry` | `SCENE-SINGLE-ENTRY-RESULT=PASS (3/3)`：EditorBuildSettings 恰好 1 个启用条目、路径 == `BuildAndroid.ScenePath`、场景资产真实存在 |
+| `palm_menu_vr` | `PALM-MENU-VR-RESULT=PASS (10/10)`：掌心菜单构建、分栏、空引用降级；运行时手感 pending-真机 |
+| `block_layout` | `BLOCK-LAYOUT-RESULT=PASS (10/10)`：弧面布局、距离档、板尺寸与排序 |
+| `tabletop_scale` | `TABLETOP-SCALE-RESULT=PASS (10/10)`：1:20/1:1 换算、演员预算、MR 平面识别 pending-真机 |
+| `studio_fade` | `STUDIO-FADE-RESULT=PASS (10/10)`：淡入淡出状态机与遮罩参数；人眼观感 pending-真机 |
 
-最近一次全量：**`16 run / 0 failed/no-verdict / 0 no-error`**，日志 `verify_all_20261123_140741.log`（2026-11-23 14:07:41）。
+最近一次全量（2026-11-24）：**20 run / 19 PASS / 1 首轮 FAIL**。唯一失败是 `console_clean` 读到冷启动的 52 条 KitWright/PICO 包编译与导入警告；按既有协议清一次性启动噪音、域重载、进 Play、操作演员与时间轴、驻留 300s 后，五次读数全 0，官方 verifier 输出 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`。日志：`verify_all_20261124_092507.log`、`console_clean_dwell_20261124_1000.log`。
 
 > ✅ **Console 长驻留归零（2026-11-23 13:59:58 实跑通过）**：协议为 清 Console → 域重载 → 清重载噪音 → 进 Play → 摆位走位（`PrevisCast_A_Red` MoveTo）+ 时间轴寻道（`SH_04`）→ Play 态驻留 300s，60/120/180/240/300s 五次巡检 Console 全空 → 退出 Play。读数 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，日志 `console_clean_dwell_20261123_135958.log`。
 >
@@ -90,7 +97,9 @@
 | DeepSeek 真实提案 | `deepseek_live_20261122_213814.log`（200 / json_object / 3 镜 / 236 tokens） | 真实 API | 已验证 |
 | DeepSeek Unity 内 E2E | `deepseek_unity_e2e_20261122_220014.log`，末行 `DEEPSEEK-E2E-RESULT=PARTIAL` | 编辑器 Play | **PARTIAL**：接受 7 拒绝 1、落场与时间轴成立；在线返回中文称谓的端到端命中未复验 |
 | Tripo 真实生成 | `tripo_spike_20261122_2305.log`，末行 `TRIPO-SPIKE-RESULT=PASS`；GLB 落盘 2,856,144 字节 | 真实 API | 已验证到**落盘**；运行时导入未实现 |
-| mp4 导出链路 | 编辑器菜单自测 PASS；两条失败分支已验 | 编辑器 | **Android 真编码 pending-APK** |
+| M1 六步连续实录 | `20261124_M1六步操作_v02.mp4`；`M1-SIXSTEP-DEMO=PASS (6/6)`，actorDelta=0.0000 / propDelta=0.0000 | 编辑器 Play + Recorder | 编辑器已验证；模拟器六步 pending-APK |
+| P6 四机位本地出片 | `20261124_P6预演_15s_8Mbps_v06.mp4`；15/45 两档 `VIDEO-EXPORT-RESULT=PASS (11/11)`：1920x1080 / 30fps / 15.00s / 450 帧 / 11.927Mbps / 全帧中位 1.96 / 切镜达标 | 编辑器 Play + Recorder + ffmpeg CBR | 编辑器已验证；Android 真编码 pending-APK |
+| mp4 导出链路 | 编辑器菜单自测 PASS；两条失败分支已验；验片脚本改为全帧运动/切镜扫描，`--pairs` 仅诊断 | 编辑器 | **Android 真编码 pending-APK** |
 | Console 长驻留归零 | `console_clean_dwell_20261123_135958.log`，`CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，300s 五次巡检全空 | 编辑器 Play 驻留 | 模拟器已验证（编辑器层） |
 | 模拟器装机运行 | `20261118_1752_模拟器_D包运行截图.png`、`emu_D_run_20261118_1752.log` | Swan 模拟器 | 已验证：装入成功、进程存活、崩溃缓冲区空、OpenXR 正常加载 |
 
@@ -109,7 +118,9 @@
 ## 未验证 / 已知缺陷（诚实清单）
 
 - **运行时 GLB 导入未实现**：`com.plattar.unitygltf` 实为 **Editor-only 导出器**（`Compiler.asmdef` / `PlattarCompile.asmdef` 均 `includePlatforms:["Editor"]`），**进不了 APK**。已选 GLTFUtility(MIT) 路线，待引入。
-- **世界画布中文豆腐块**：全场景 66 个 legacy `UnityEngine.UI.Text`、0 个 TMP，字体为内置 Arial（无 CJK）。IMGUI 面板中文正常。字体来源涉许可，待裁定。
+- **世界画布中文豆腐块已修**：TMP 迁移 + `ShotFieldSansSC-Regular.otf` + 2048x2048 SDF 字形表（`0ba5ac8`）；M1/P6 实录已见中文 UI。字体许可仍需补进资产来源清单。
+- **P5 运行态接线仍部分**：四验证器 10/10 PASS，但积木抓取、触感重绑定、代理预算/选中联动仍是脚手架，未当真机验收。
+- **P6 Android 真编码未验**：编辑器交付片已 PASS (11/11)，MediaCodec/MediaMuxer 需重打 APK 后在模拟器取证。
 - **掌心菜单 VR 侧未接线**：`PalmMenuController` 的 8 个引用全为 0，`InstantiateButton` 遇空引用返回 null。属未接线，非废案。
 - **Blue 演员 Play 态漂位**：序列化 (-1.00,0,1.40) → Play (-0.636,0.050,1.082)，根因未追。
 - **NavMesh 烘焙面上浮 5cm**（y=0.050）未修。
@@ -120,6 +131,12 @@
 ---
 
 ## 工程依赖口径（2026-11-23 依赖图实测）
+
+### 2026-11-24 编译恢复与 Recorder
+
+- Safe Mode 复现真因：`Library/Bee` 编译状态陈旧，RuntimeUI rsp 未包含 P5 新文件；归档 Bee（零删除）后 Unity 从零重建，`ScriptAssemblies` 恢复，0 error CS。
+- `com.unity.recorder` **5.1.8** 已通过 Package Manager 安装；M1/P6 共用 `ShotFieldRecorder`，输出 1080p30 MP4。
+- KitWright MCP 8765 与官方 MCP 8080 均已连通；官方 server 位于工作区 `04_Project/Tools/venv`，不写用户目录。
 
 ### Safe Mode 事故与处置
 
@@ -147,6 +164,8 @@
 环境变量：`SHOTFIELD_DEEPSEEK_KEY` / `SHOTFIELD_TRIPO_KEY`。未配置时明确提示不可用，**不静默降级伪装成功**。
 
 > **Guard 现状（2026-11-23）**：`CredentialBuildGuard.cs` 现 **151 行**，`IPreprocessBuildWithReport` 覆盖全部构建路径，不改 `BuildAndroid.cs`。原向上遍历会先撞上 `04_Project` 下残留的嵌套 `05_验证记录` 陈旧目录而写错证据目录；现改为先定位含 `04_*` 的工作区根，再取其直属 `05_*`，与 `verify_all.ps1` 口径对齐；找不到退化 `persistentDataPath` + `LogWarning`。扫描根扩到 Assets 全量文本文件，跳 `.meta` 与二进制，正则 dash-aware。
+> **2026-11-24 复扫**：`secret_scan.ps1 -Targets resources` → 19 文件 / 0 命中；`-Targets apks` → 605 文件 / 0 命中。APK 分支已从 Git Bash `tar` 改为 .NET `ZipFile`，避免把 `F:` 误当远程主机。
+>
 > **端到端拒包仍 pending**：真实构建期 `BuildFailedException` 拒包链路尚未打 APK 取证；包冻结闸已解出，待稍后打 APK 时取证。**不计入已验证。**
 
 > **历史事故留痕**：两把活 key 曾放在 `Assets/Resources/ai_config.local.json`，git 侧干净但**会被打进 APK**。现存旧包未带 key 纯属时间差（包构建于配置出现之前）。据此把判据从「仓库里没有 key」改判为「交付产物里没有 key」。
@@ -160,7 +179,7 @@
 | 演员 `baseOffset` | **枢轴挪到脚底后 `baseOffset = 0`** | `+0.748f` 是 2026-11-21 的历史补偿值，**已作废，不得再当规格引用** |
 | 地面基准 | 地板碰撞体顶面 **y = 0** | NavMesh 采样面（烘焙上浮 5cm），不作地面判据 |
 | 导出规格 | 1920×1080 / 30fps 固定 / 15s / ≥8Mbps / ≥3 真实切镜 | 720p / 24fps / 5s 首版参数 |
-| 导出文件名 | `Build/Video/SC01_Demo_yyyyMMdd_HHmm.mp4` | `SC01_Final.mp4` 仅作历史测试产物，**不作验收** |
+| 导出文件名 | 产品内导出 `Build/Video/SC01_Demo_yyyyMMdd_HHmm.mp4`；编辑器验收片 `20261124_P6预演_15s_8Mbps_v06.mp4` | `SC01_Final.mp4` 仅作历史测试产物，**不作验收** |
 
 ---
 
