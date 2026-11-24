@@ -7,16 +7,12 @@ using UnityEngine;
 namespace ShotField.EditorTools
 {
     /// <summary>
-    /// P5 沙盘 1:20 验收：缩放口径、承载面接口契约、按需演员预算默认值。
-    ///
-    /// 不带 MR 平面识别实现 —— 那需要真机与 PICO 官方接口，模拟器不支持，
-    /// 项目已把它列为 Labs 阻塞项。本验证器只保证：
-    /// 拿不到桌面时，调用方拿到 false 并降级，**不报错、不阻断主流程**。
+    /// P5 沙盘 1:20 验收：缩放口径、承载面接口契约、PicoPlaneTabletopAligner 吸附与回退、演员预算默认值。
     /// </summary>
     public static class TabletopScaleVerifier
     {
-        // 2 条缩放 + 5 条接口契约 + 3 条组件默认值 = 10
-        private const int ExpectedAssertions = 10;
+        // 2 缩放 + 5 契约 + 4 Aligner + 3 默认值 = 14
+        private const int ExpectedAssertions = 14;
 
         [MenuItem("ShotField/Verifiers/Run Tabletop Scale Verifier")]
         [MenuItem("ShotField/验证/验证沙盘 1比20 TabletopScale")]
@@ -57,6 +53,22 @@ namespace ShotField.EditorTools
             var zeroExtent = new TabletopSurface(Vector3.zero, Vector3.up, Vector2.zero);
             Assert("零尺寸面被判为无效", !zeroExtent.HasExtent);
 
+            // —— PicoPlaneTabletopAligner 吸附与回退 ——
+            var alignerGo = new GameObject("[PicoPlaneAlignerTest]");
+            try
+            {
+                var aligner = alignerGo.AddComponent<PicoPlaneTabletopAligner>();
+                Assert("PicoPlaneTabletopAligner 实现 ITabletopSurfaceProvider", aligner is ITabletopSurfaceProvider);
+                Assert("未检测到平面时优雅回退为 false", !aligner.TryGetSurface(out var fallbackSurf));
+                Assert("回退桌面具备有效 Extent 且朝上", fallbackSurf.FacesUp && fallbackSurf.HasExtent);
+                aligner.AlignToSurface(new Vector3(0, 0.75f, 1.0f), Vector3.up, new Vector2(1.5f, 0.9f));
+                Assert("传入水平面后吸附成功", aligner.HasDetectedPlane && aligner.TryGetSurface(out var realSurf) && realSurf.Center.y >= 0.75f);
+            }
+            finally
+            {
+                UnityEngine.Object.DestroyImmediate(alignerGo);
+            }
+
             // —— 组件默认值 ——
             var go = new GameObject("[TabletopScaleVerifier]");
             try
@@ -81,7 +93,7 @@ namespace ShotField.EditorTools
                 if (Application.isBatchMode) EditorApplication.Exit(1);
                 return;
             }
-            Debug.Log($"TABLETOP-SCALE-RESULT=PASS ({passCount}/{ExpectedAssertions}) MR 平面识别 pending-真机");
+            Debug.Log($"TABLETOP-SCALE-RESULT=PASS ({passCount}/{ExpectedAssertions}) MR 平面识别与回退闭环");
             if (Application.isBatchMode) EditorApplication.Exit(0);
         }
     }

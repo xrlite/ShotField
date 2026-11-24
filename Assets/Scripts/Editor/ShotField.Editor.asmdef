@@ -5,6 +5,7 @@
     "Unity.AI.Navigation.Editor",
     "ShotField.Core",
     "ShotField.Constraints",
+    "ShotField.Import",
     "ShotField.RuntimeUI",
     "UnityEngine.UI",
     "Unity.TextMeshPro",

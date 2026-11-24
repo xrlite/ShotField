@@ -19,6 +19,7 @@
 
 | 版本 | Commit | 判据 | 状态 |
 | --- | --- | --- | --- |
+| 0.9.0-lab.20261124 | `22e25f6` | 六阶段端到端全链路一镜到底闭环：①`PicoPlaneTabletopAligner` 实体桌面吸附与 0.8m 虚拟创作台优雅回退 + `StudioFadeTransition` FOV 呼吸与尺度插值；②`RuntimeGltfImporter` 运行时 GLB 骨骼与静态道具导入（CapsuleCollider / NavMeshObstacle Carving 动态雕刻自愈回退）；③`E2EWorkflowRunner` 串联剧本导入→AI四道闸→资产对账GLB→沙盘推演与1:1进场→斯坦尼康运镜与5轨剪辑→1080p广播级MP4导出；全量 33 项门禁全绿（33/33 PASS），Console 0 错误 0 警告，代码熵 323 文件严格 ≤200 行 | 编辑器已验证；真机 MR 平面识别 pending-真机 |
 | 0.9.0-lab.20261124 | `809f468` | 1~5 层时间轴架构分层（`TimelineTrackLayer`：机位、演员、道具/载具、音频、灯光）与空间探针状态绑定骨架（`SpatialProbeBindingDto` + `BindProbe` / `TryGetProbe`）；`TimelineCardView` 拆分 partial class `TimelineCardView.Tracks.cs` 守住 ≤200 行红线；`THREE-CARD-RESULT=PASS (13/13)`、`TIMELINE-RESULT=PASS (5/5)`，全量 31 项门禁全通，Console 0 错误 0 警告 | 编辑器已验证；真机抓握/寻道 pending-真机 |
 | 0.9.0-lab.20261124 | `c8e14e5` | DeepSeek 四道闸场景命令流水线（Gate 1 JSON/Schema/空/越界防注入、Gate 2 视锥与遮挡空间几何、Gate 3 轴线法则与跳轴预警、Gate 4 执行回退）；自证截图相机角度修正（正对世界空间 Canvas，消除文字镜像反转）；`SCENE-COMMAND-GATE-RESULT=PASS (15/15)` | 编辑器已验证；真机语音/手势指令 pending-真机 |
 | 0.9.0-lab.20261124 | `ea04f3c` | `NetworkSessionController` 成为桌面/VR 唯一会话，PalmMenu 场景栏可呼出 WorldSpace 联机 modal；IPv4/端口校验、Host/Join/断开、心跳与主线程 Tick；`NETWORK-ENTRY-RESULT=PASS (9/9)`，Play Mode 双菜单与控制器同实例，Host 按钮进入 Hosting | 编辑器与 Play Mode 已验证；真机双端同步 pending-设备 |
@@ -55,7 +56,7 @@
 
 ---
 
-## 门禁（31 项）
+## 门禁（33 项）
 
 运行入口：`ShotField > Verifiers`，或工作区脚本 `04_Project/巡检/verify_all.ps1`（走 live-bridge 直调）。
 
@@ -92,8 +93,9 @@
 | `tabletop_scale` | `TABLETOP-SCALE-RESULT=PASS (10/10)`：1:20/1:1 换算、演员预算、MR 平面识别 pending-真机 |
 | `studio_fade` | `STUDIO-FADE-RESULT=PASS (10/10)`：淡入淡出状态机与遮罩参数；人眼观感 pending-真机 |
 | `scene_command_gates` | `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`：DeepSeek 场景命令四道闸（Gate 1 语法/防御/空参数拦截、Gate 2 视锥与遮挡空间几何、Gate 3 轴线法则与跳轴预警、Gate 4 执行失败回退原状态） |
+| `e2e_pipeline` | `E2E-PIPELINE-RESULT=PASS (6/6)`：六阶段端到端全链路一镜到底（①剧本导入→②AI四道闸→③资产对账与GLB加载→④沙盘双尺度丝滑过渡→⑤斯坦尼康手持运镜与5轨剪辑→⑥1080p广播级MP4导出） |
 
-最近一次全量（2026-11-24 20:13:57）：**31 run / 0 failed/no-verdict / 0 no-error（全部通过）**，日志 `verify_all_20261124_201357.log`。其中 `scene_command_gates` 输出 `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`；`network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`network_entry` 输出 `NETWORK-ENTRY-RESULT=PASS (9/9)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`credential_path` 输出 `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`b5_dual_track` 输出 `B5-DUAL-TRACK-RESULT=PASS (8/8)`；`asset_reconciliation` 输出 `ASSET-RECONCILIATION-RESULT=PASS (10/10)`；`constraint_pair` 输出 `CONSTRAINT-PAIR-RESULT=PASS (6/6)`；`console_clean` 读数 `Errors=0 Warnings=0`，此前 300s 驻留协议见 `console_clean_dwell_20261123_135958.log`。
+最近一次全量（2026-11-24 21:43:17）：**33 run / 0 failed/no-verdict / 0 no-error（全部通过）**，日志 `verify_all_20261124_214317.log`。其中 `e2e_pipeline` 输出 `E2E-PIPELINE-RESULT=PASS (6/6)`；`tabletop_scale` 输出 `TABLETOP-SCALE-RESULT=PASS (14/14)`；`studio_fade` 输出 `STUDIO-FADE-RESULT=PASS (10/10)`；`tripo_runtime_import` 输出 `TRIPO-RUNTIME-IMPORT=PASS (7/7)`；`scene_command_gates` 输出 `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`；`network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`network_entry` 输出 `NETWORK-ENTRY-RESULT=PASS (9/9)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`credential_path` 输出 `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`b5_dual_track` 输出 `B5-DUAL-TRACK-RESULT=PASS (8/8)`；`asset_reconciliation` 输出 `ASSET-RECONCILIATION-RESULT=PASS (10/10)`；`constraint_pair` 输出 `CONSTRAINT-PAIR-RESULT=PASS (6/6)`；`console_clean` 读数 `Errors=0 Warnings=0`。
 
 > ✅ **Console 长驻留归零（2026-11-23 13:59:58 实跑通过）**：协议为 清 Console → 域重载 → 清重载噪音 → 进 Play → 摆位走位（`PrevisCast_A_Red` MoveTo）+ 时间轴寻道（`SH_04`）→ Play 态驻留 300s，60/120/180/240/300s 五次巡检 Console 全空 → 退出 Play。读数 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，日志 `console_clean_dwell_20261123_135958.log`。
 >

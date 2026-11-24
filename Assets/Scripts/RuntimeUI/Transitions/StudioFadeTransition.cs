@@ -5,17 +5,9 @@ using UnityEngine.UI;
 namespace ShotField.RuntimeUI
 {
     /// <summary>
-    /// 沙盘 ⇄ 片场 的模式过渡：先淡出到实色，切换 <see cref="TabletopDirector"/> 模式，
-    /// 再淡入。过渡期间屏幕被完全遮住，所以模式的瞬切（相机位移、代理根显隐）不会被人眼看到。
-    ///
-    /// 「同数据」是什么意思：本类**不重载场景、不重建对象、不复制任何演员或道具**。
-    /// 它只做两件事 —— 调 <see cref="TabletopDirector.SwitchMode"/> 和调
-    /// <see cref="TabletopActorBudget.Apply"/>。因此沙盘里摆的演员、道具、机位在
-    /// 走进片场之后是同一批实例，位姿由 TabletopDirector 的坐标换算保持一致。
-    /// 这是本设计唯一的正确性来源，任何"过渡时重新实例化"的改法都会破坏它。
-    ///
-    /// 遮罩实现：挂在头显相机下的 WorldSpace Canvas + 纯色 Image + CanvasGroup。
-    /// 不用 ScreenSpaceOverlay —— VR 里 overlay 不随头显渲染，会完全看不到遮罩。
+    /// 沙盘 ⇄ 片场 的模式过渡：先淡出到实色，执行 FOV 呼吸与尺度插值，
+    /// 切换 <see cref="TabletopDirector"/> 模式并调演员预算，最后淡入。
+    /// 遵循「同数据」原则，不重建对象、不重载场景。
     /// </summary>
     public sealed class StudioFadeTransition : MonoBehaviour
     {
@@ -27,16 +19,19 @@ namespace ShotField.RuntimeUI
         [Header("过渡")]
         [Tooltip("单程淡入或淡出时长，秒。总时长约为它的两倍。")]
         [Range(0.05f, 2f)] public float fadeDuration = 0.35f;
-
         public Color fadeColor = Color.black;
-
-        [Tooltip("遮罩距眼睛的距离，米。太近会触发近裁剪，太远遮不住边缘。")]
         [Range(0.05f, 0.5f)] public float overlayDistance = 0.12f;
 
+        [Header("平滑呼吸与尺度过渡")]
+        public bool enableFovBreathing = true;
+        [Range(0.5f, 8f)] public float fovBreathingDelta = 3f;
+        public bool enableScaleInterpolation = true;
+
         private CanvasGroup _group;
+        private Camera _headCamera;
+        private float _baseFov = 60f;
         private bool _running;
 
-        /// <summary>过渡是否正在进行。外部据此禁止重复触发。</summary>
         public bool IsRunning => _running;
 
         private void Awake()
@@ -48,22 +43,22 @@ namespace ShotField.RuntimeUI
                 var cam = Camera.main;
                 headAnchor = cam != null ? cam.transform : null;
             }
+            CacheCamera();
             EnsureOverlay();
         }
 
-        /// <summary>绑定工作台引用；若头部锚点改变，只迁移现有遮罩，不重建场景对象。</summary>
         public void Bind(TabletopDirector tabletop, TabletopActorBudget actorBudget, Transform headAnchor)
         {
             this.tabletop = tabletop;
             this.actorBudget = actorBudget;
             this.headAnchor = headAnchor;
+            CacheCamera();
             EnsureOverlay();
             if (_group == null) return;
             var parent = headAnchor != null ? headAnchor : transform;
             if (_group.transform.parent != parent) _group.transform.SetParent(parent, false);
         }
 
-        /// <summary>切换到目标模式并播放过渡。正在过渡时忽略重复调用。</summary>
         public void TransitionTo(TabletopDirector.ScaleMode target)
         {
             if (_running || tabletop == null) return;
@@ -71,7 +66,6 @@ namespace ShotField.RuntimeUI
             StartCoroutine(Run(target));
         }
 
-        /// <summary>沙盘 ⇄ 片场 来回切一次。</summary>
         public void ToggleMode()
         {
             if (tabletop == null) return;
@@ -84,19 +78,26 @@ namespace ShotField.RuntimeUI
         private IEnumerator Run(TabletopDirector.ScaleMode target)
         {
             _running = true;
+            CacheCamera();
 
-            yield return Fade(0f, 1f);
+            yield return Fade(0f, 1f, true);
 
             tabletop.SwitchMode(target);
             if (actorBudget != null)
                 actorBudget.Apply(target == TabletopDirector.ScaleMode.TabletopMini);
 
-            yield return Fade(1f, 0f);
+            if (enableScaleInterpolation && tabletop.tabletopProxyRoot != null)
+            {
+                yield return InterpolateScale(target == TabletopDirector.ScaleMode.TabletopMini);
+            }
 
+            yield return Fade(1f, 0f, false);
+
+            if (_headCamera != null) _headCamera.fieldOfView = _baseFov;
             _running = false;
         }
 
-        private IEnumerator Fade(float from, float to)
+        private IEnumerator Fade(float from, float to, bool breathingIn)
         {
             if (_group == null) yield break;
 
@@ -107,12 +108,45 @@ namespace ShotField.RuntimeUI
             while (elapsed < fadeDuration)
             {
                 elapsed += Time.deltaTime;
-                _group.alpha = Mathf.Lerp(from, to, Mathf.Clamp01(elapsed / fadeDuration));
+                float t = Mathf.Clamp01(elapsed / fadeDuration);
+                _group.alpha = Mathf.Lerp(from, to, t);
+
+                if (enableFovBreathing && _headCamera != null)
+                {
+                    float factor = breathingIn ? t : (1f - t);
+                    _headCamera.fieldOfView = Mathf.Lerp(_baseFov, _baseFov - fovBreathingDelta, factor);
+                }
                 yield return null;
             }
 
             _group.alpha = to;
             _group.blocksRaycasts = to > 0.5f;
+        }
+
+        private IEnumerator InterpolateScale(bool enteringMini)
+        {
+            var proxy = tabletop.tabletopProxyRoot;
+            if (proxy == null) yield break;
+
+            Vector3 startScale = enteringMini ? Vector3.one * 0.001f : Vector3.one;
+            Vector3 endScale = enteringMini ? Vector3.one : Vector3.one * 0.001f;
+            float duration = 0.08f;
+            float elapsed = 0f;
+
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                proxy.localScale = Vector3.Lerp(startScale, endScale, elapsed / duration);
+                yield return null;
+            }
+            proxy.localScale = Vector3.one;
+        }
+
+        private void CacheCamera()
+        {
+            if (headAnchor != null) _headCamera = headAnchor.GetComponent<Camera>();
+            if (_headCamera == null) _headCamera = Camera.main;
+            if (_headCamera != null) _baseFov = _headCamera.fieldOfView;
         }
 
         private void EnsureOverlay()

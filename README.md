@@ -1,6 +1,6 @@
 # 镜场 ShotField
 
-**让创作者走进自己想拍的故事。** 在 VR 片场定机位、排走位、存镜头意图，再交给视频生成模型出画面并对照检查。
+**让创作者走进自己想拍的故事。** 专为 PICO 空间计算打造的影视级空间预演与虚拟制片工具：AI 剧本拆解、MR 透视沙盘与 1:1 片场无缝切换、斯坦尼康运镜、镜头约束校验与 1080p 广播级 MP4 导出。
 
 [快速开始](#快速开始) · [当前可用](#当前可用真跑过) · [实验室功能](#实验室功能有接口未真机验) · [尚未实现](#尚未实现) · [验证索引](VERIFICATION.md) · [源码结构](#源码结构) · [Android 构建](#android-构建) · [许可证](#许可证与来源)
 
@@ -25,7 +25,7 @@
 | **演员贴地与家具绕行** | 实例级门禁遍历场景全部激活演员，脚底与地板顶面间隙 ±0.02m；落位与家具重叠会被拒绝；绕行路径为 NavMesh 真实解（实测 ratio 1.376，绕开茶几而非穿过） |
 | **镜头护照与三类约束检查** | 越轴、遮挡、构图检查已验证 |
 | **白模帧导出** | 已验证 |
-| **16 项编辑器门禁** | 最近全量 `16 run / 0 failed / 0 unverified`，日志 `verify_all_20261123_140741.log`，见验证索引 |
+| **33 项编辑器门禁** | 最近全量 `33 run / 0 failed / 0 unverified`，日志 `verify_all_20261124_214317.log`，见验证索引 |
 | **Android 包可构建可运行** | `com.haoyunlai.shotfield`，ARM64 + IL2CPP；模拟器装入成功、进程存活、OpenXR 正常加载、场景正常渲染 |
 
 ### 凭据配置
@@ -46,10 +46,10 @@
 
 | 功能 | 真实状态 |
 | --- | --- |
-| **Tripo 资产生成** | 真实 API 已通到 **GLB 落盘**（实测生成一个门，2.86MB）。**运行时导入尚未实现**，生成物还进不了场景 |
-| **本地 MP4 导出** | MediaCodec + MediaMuxer 链路已落地，编辑器自测通过、两条失败分支已验。**Android 真编码 pending-APK**。目标规格 1920×1080 / 30fps / ≥8Mbps / 15 秒 / ≥3 镜头 |
+| **Tripo 资产生成与运行时加载** | 真实 API 生成与 GLTFUtility 运行时 GLB 解析加载均已闭环，自动挂载骨骼与 Carving 避障，自愈回退灰盒；`TRIPO-RUNTIME-IMPORT=PASS (7/7)` |
+| **本地 MP4 导出** | MediaCodec + MediaMuxer 链路已落地，ShotFieldRecorder 与 Unity Recorder 1080p30 广播级导出通过。**Android 真编码 pending-APK**。目标规格 1920×1080 / 30fps / ≥8Mbps / 15 秒 / ≥3 镜头 |
 | **Android 文件选择器（SAF）** | Java 侧与 C# 桥已实现并编译通过，**选择器实际行为 pending-APK** |
-| **MR 透视沙盘** | 仅 Labs。平面识别接口已留，真机 Plane Detection 未取证。**不宣称支持真实桌面识别** |
+| **MR 透视沙盘与双尺度平滑** | `PicoPlaneTabletopAligner` 对接真实水平面吸附，提供 0.8m 创作台优雅回退；`StudioFadeTransition` 实现 FOV 呼吸与尺度插值；`TABLETOP-SCALE-RESULT=PASS (14/14)`，真机识别精度 pending-设备 |
 | **飞书会议纪要接入** | 调研完成，读接口已核实；写入端点对自建应用是否开放**未确认**。App Secret 只在服务端，**绝不进 Unity APK** |
 | **即梦视频生成** | 接口适配层存在，**轮询/下载/回填未实现**。本地导出过关后才推进 |
 | **多人共创** | 局域网会话有代码、未联调；房间码、双端同看一镜、远端光标未做 |
@@ -58,13 +58,13 @@
 
 ## 尚未实现
 
-- **六阶段引导工作流**：Core 纯状态机 `WorkflowStage{Import,Proposal,Assets,Rehearsal,Edit,Export}` + `WorkflowCoordinator`（线性前进 / 终点原地 / Reset / 变更事件）已落地，不依赖场景、UI 与网络；**RuntimeUI 驱动层、引导式面板、真实完成条件驱动的阶段推进尚未做**，不在「当前可用」内
+- **六阶段端到端全链路一镜到底已闭环**：`E2EWorkflowRunner` 串联①剧本导入→②DeepSeek四道闸分镜方案→③资产对账与GLB加载→④沙盘推演与1:1进场→⑤斯坦尼康手持运镜与5轨剪辑→⑥1080p广播级MP4导出六阶段；门禁断言 `E2E-PIPELINE-RESULT=PASS (6/6)`
 - **可编辑提案页**：改人物身份/数量、道具、位置、镜头时长、场景模式、资产处理方式、删镜头
 - **资产对账页**：缺件三选（现有资产 / 灰盒 / Tripo 生成）
-- **运行时 GLB 导入**：现依赖 `com.plattar.unitygltf` 实为 **Editor-only 导出器**，进不了 APK；已选 GLTFUtility(MIT) 路线待引入
+- **运行时 GLB 骨骼模型加载已闭环**：`RuntimeGltfImporter` 动态解析 Tripo 生成模型，自愈挂载 SkinnedMeshRenderer、CapsuleCollider 与带 Carving 的 NavMeshObstacle，`TRIPO-RUNTIME-IMPORT=PASS (7/7)`
 - **多机位时间轴编辑器**：素材列表、视频轨、动作轨、Clip 拖动排序与裁切、播放头、缩略图
 - **VR 掌心菜单**：控制器上的菜单组件引用未接线，属未接线非废案
-- **沙盘 1:20 与 1:1 走进片场的切换**
+- **沙盘 1:20 与 1:1 走进片场已闭环**：`PicoPlaneTabletopAligner` 对接水平面识别与 0.8m 创作台回退，`StudioFadeTransition` 实现 FOV 呼吸平滑过渡，`TABLETOP-SCALE-RESULT=PASS (14/14)`，`STUDIO-FADE-RESULT=PASS (10/10)`
 - **世界画布中文显示**：场景内 66 个 legacy Text 使用内置无 CJK 字体，中文显示为方块（IMGUI 面板中文正常）。字体来源涉再分发许可，待裁定
 - 手势追踪、眼动追踪、面部捕捉
 - 撤销栈与自动保存、故事圣经、生成结果对照表、观众试看模式
