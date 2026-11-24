@@ -34,6 +34,8 @@ namespace ShotField.Core
             foreach (var peer in peers) peer.Dispose();
             peers.Clear();
             passports.Clear();
+            latestSceneEdits.Clear();
+            sceneEditRevisions.Clear();
             latestCamera = null;
             State = SessionState.Disconnected;
             LocalClientId = "local";

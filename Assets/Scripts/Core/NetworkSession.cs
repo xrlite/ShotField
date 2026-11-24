@@ -137,22 +137,7 @@ namespace ShotField.Core
         {
             if (hosting)
             {
-                if (!peer.Role.HasValue && packet.type == nameof(PacketType.JoinRequest))
-                {
-                    var request = packet.Unpack<JoinRequestData>();
-                    if (!Enum.TryParse(request.role, out ParticipantRole role) || !Enum.IsDefined(typeof(ParticipantRole), role)
-                        || role == ParticipantRole.Director) { peer.Dispose(); return; }
-                    peer.Role = role;
-                    peer.Send(SetPacket.Create(PacketType.JoinResponse, LocalClientId,
-                        new JoinResponseData
-                        {
-                            clientId = peer.Id, assignedRole = role.ToString(),
-                            currentShotIndex = CurrentShotIndex, sceneId = "SC01"
-                        }));
-                    if (latestCamera != null) peer.Send(latestCamera);
-                    foreach (var passport in passports.Values) peer.Send(passport);
-                    OnClientJoined?.Invoke(peer.Id, role.ToString());
-                }
+                if (!peer.Role.HasValue && packet.type == nameof(PacketType.JoinRequest)) HandleJoin(peer, packet);
                 else if (peer.Role.HasValue && packet.type == nameof(PacketType.Heartbeat))
                 {
                     HandleHeartbeat();
@@ -179,7 +164,26 @@ namespace ShotField.Core
                 case nameof(PacketType.PassportSync): OnPassportSyncReceived?.Invoke(packet.Unpack<PassportSyncData>()); break;
                 case nameof(PacketType.Comment): OnCommentReceived?.Invoke(packet.Unpack<CommentData>()); break;
                 case nameof(PacketType.SceneEdit): DispatchClientSceneEdit(packet); break;
+                case nameof(PacketType.SceneEditResult): OnSceneEditResultReceived?.Invoke(packet.Unpack<SceneEditResult>()); break;
             }
+        }
+
+        private void HandleJoin(SessionPeer peer, SetPacket packet)
+        {
+            var request = packet.Unpack<JoinRequestData>();
+            if (!Enum.TryParse(request.role, out ParticipantRole role) || !Enum.IsDefined(typeof(ParticipantRole), role)
+                || role == ParticipantRole.Director) { peer.Dispose(); return; }
+            peer.Role = role;
+            peer.Send(SetPacket.Create(PacketType.JoinResponse, LocalClientId,
+                new JoinResponseData
+                {
+                    clientId = peer.Id, assignedRole = role.ToString(),
+                    currentShotIndex = CurrentShotIndex, sceneId = "SC01"
+                }));
+            if (latestCamera != null) peer.Send(latestCamera);
+            foreach (var passport in passports.Values) peer.Send(passport);
+            SendSceneEditSnapshot(peer);
+            OnClientJoined?.Invoke(peer.Id, role.ToString());
         }
 
         private void Post(int epoch, Action action) => incoming.Enqueue(() => { if (epoch == generation) action(); });

@@ -1,42 +1,101 @@
 using System;
+using System.Collections.Generic;
 
 namespace ShotField.Core
 {
     /// <summary>
-    /// 演员走位编辑同步：Host 转发给其他已入房间 peer，Client 上行到 Host；两端都在本地回调。
-    /// 复用主文件的 Broadcast / peers / upstream，不另起一套 TCP 代码。
+    /// 演员走位编辑同步：Client 上行后本地只回调一次；Host 按 actorId 校验 revision、显式回执并保存最新快照。
     /// </summary>
     public partial class NetworkSession
     {
-        public event Action<SceneEditData> OnSceneEditReceived;
+        private const string SceneEditAcceptedReason = "accepted";
+        private const string SceneEditStaleReason = "stale-revision";
+        private const string SceneEditDuplicateReason = "duplicate-revision";
+        private const string SceneEditInvalidReason = "invalid-scene-edit";
 
-        /// <summary>广播一条演员走位编辑。Host：发全部已入房间 peer 并本地回调；Client：上行到 upstream。</summary>
+        private readonly Dictionary<string, SetPacket> latestSceneEdits = new Dictionary<string, SetPacket>();
+        private readonly Dictionary<string, int> sceneEditRevisions = new Dictionary<string, int>();
+
+        public event Action<SceneEditData> OnSceneEditReceived;
+        public event Action<SceneEditResult> OnSceneEditResultReceived;
+
+        /// <summary>Host 本地接受后回调；Client 先本地回调，再由 Host 回执确认或拒绝。</summary>
         public void BroadcastSceneEdit(SceneEditData data)
         {
+            if (State != SessionState.Hosting && (State != SessionState.Connected || upstream == null)) return;
+            if (data.clientTimestamp == 0) data.clientTimestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
             var packet = SetPacket.Create(PacketType.SceneEdit, LocalClientId, data);
             if (State == SessionState.Hosting)
             {
-                Broadcast(packet);
-                OnSceneEditReceived?.Invoke(data);
+                DispatchHostSceneEdit(null, packet);
+                return;
             }
-            else if (State == SessionState.Connected && upstream != null)
-            {
-                upstream.Send(packet);
-            }
+            upstream.Send(packet);
+            OnSceneEditReceived?.Invoke(data);
         }
 
-        // Host 收到 peer 的走位编辑：转发给其他 peer（不回给发送者本人），再本地回调。
+        // Host 不回发 SceneEdit 给发送者，因此 Client 的本地回调不会与网络回调重复。
         private void DispatchHostSceneEdit(SessionPeer peer, SetPacket packet)
         {
             var data = packet.Unpack<SceneEditData>();
+            if (!TryAcceptSceneEdit(data, out int currentRevision, out string reason))
+            {
+                SendSceneEditResult(peer, data, false, currentRevision, reason);
+                return;
+            }
+            latestSceneEdits[data.actorId] = packet;
             foreach (var other in peers)
             {
                 if (other != peer && other.Role.HasValue) other.Send(packet);
             }
             OnSceneEditReceived?.Invoke(data);
+            SendSceneEditResult(peer, data, true, data.revision, SceneEditAcceptedReason);
         }
 
-        // Client 收到 Host 转发的走位编辑：触发本地回调。
+        private bool TryAcceptSceneEdit(SceneEditData data, out int currentRevision, out string reason)
+        {
+            currentRevision = 0;
+            if (string.IsNullOrEmpty(data.actorId) || data.revision < 0)
+            {
+                reason = SceneEditInvalidReason;
+                return false;
+            }
+            sceneEditRevisions.TryGetValue(data.actorId, out currentRevision);
+            if (data.revision < currentRevision)
+            {
+                reason = SceneEditStaleReason;
+                return false;
+            }
+            if (data.revision == currentRevision && latestSceneEdits.ContainsKey(data.actorId))
+            {
+                reason = SceneEditDuplicateReason;
+                return false;
+            }
+            sceneEditRevisions[data.actorId] = data.revision;
+            reason = SceneEditAcceptedReason;
+            return true;
+        }
+
+        private void SendSceneEditResult(SessionPeer peer, SceneEditData edit, bool accepted,
+            int currentRevision, string reason)
+        {
+            var result = new SceneEditResult
+            {
+                actorId = edit.actorId,
+                submittedRevision = edit.revision,
+                accepted = accepted,
+                currentRevision = currentRevision,
+                reason = reason
+            };
+            if (peer == null) OnSceneEditResultReceived?.Invoke(result);
+            else peer.Send(SetPacket.Create(PacketType.SceneEditResult, LocalClientId, result));
+        }
+
+        private void SendSceneEditSnapshot(SessionPeer peer)
+        {
+            foreach (var packet in latestSceneEdits.Values) peer.Send(packet);
+        }
+
         private void DispatchClientSceneEdit(SetPacket packet)
         {
             OnSceneEditReceived?.Invoke(packet.Unpack<SceneEditData>());

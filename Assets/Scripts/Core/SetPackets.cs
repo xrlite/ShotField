@@ -5,7 +5,7 @@ namespace ShotField.Core
 {
     public enum ParticipantRole { Director, Producer, Actor, Observer }
 
-    public enum PacketType { JoinRequest, JoinResponse, CameraSync, PassportSync, Comment, Heartbeat, SceneEdit }
+    public enum PacketType { JoinRequest, JoinResponse, CameraSync, PassportSync, Comment, Heartbeat, SceneEdit, SceneEditResult }
 
     [Serializable]
     public class SetPacket
@@ -86,5 +86,17 @@ namespace ShotField.Core
         public string actorId;
         public float px, py, pz;
         public float ry;
+        public int revision;
+        public long clientTimestamp;
+    }
+
+    [Serializable]
+    public class SceneEditResult
+    {
+        public string actorId;
+        public int submittedRevision;
+        public bool accepted;
+        public int currentRevision;
+        public string reason;
     }
 }
