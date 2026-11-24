@@ -7,7 +7,7 @@ namespace ShotField.RuntimeUI
 {
     /// <summary>
     /// 对接 PICO MR 空间水平面识别与沙盘桌面吸附。
-    /// 识别到桌面时将 1:20 沙盘锚点吸附并平滑对齐到实体桌面；
+    /// 支持动态择优最大物理桌面，避免误吸附小杂物；提供手动锁定/重扫机制；
     /// 未检测到或处于非真机环境时，优雅回退至导演正前方 0.8m、高 0.75m 的虚拟创作台。
     /// </summary>
     [DisallowMultipleComponent]
@@ -22,9 +22,10 @@ namespace ShotField.RuntimeUI
         [Range(0.4f, 1.5f)] public float fallbackHeight = 0.75f;
         public Vector2 defaultTableSize = new Vector2(1.2f, 0.8f);
 
-        [Header("平滑吸附")]
+        [Header("平滑吸附与多平面治理")]
         public bool smoothAlignment = true;
         [Range(1f, 20f)] public float alignSpeed = 8f;
+        public bool isLocked = false;
 
         private TabletopSurface _currentSurface;
         private bool _hasDetectedPlane;
@@ -48,7 +49,7 @@ namespace ShotField.RuntimeUI
         private void OnEnable()
         {
             try { PXR_Manager.PlaneDetectionDataUpdated += OnPlanesUpdated; }
-            catch (Exception ex) { Debug.LogWarning("[PicoPlaneAligner] PICO Plane 事件注册跳过: " + ex.Message); }
+            catch (Exception ex) { Debug.LogWarning("[PicoPlaneAligner] PICO Plane 注册跳过: " + ex.Message); }
         }
 
         private void OnDisable()
@@ -72,18 +73,24 @@ namespace ShotField.RuntimeUI
 
         private void OnPlanesUpdated(List<PxrPlaneData> planes)
         {
-            if (planes == null || planes.Count == 0 || _hasDetectedPlane) return;
+            if (planes == null || planes.Count == 0 || isLocked) return;
+            int bestIdx = -1; float maxArea = _hasDetectedPlane ? _currentSurface.Size.x * _currentSurface.Size.y : 0.08f;
             for (int i = 0; i < planes.Count; i++)
             {
                 var p = planes[i];
                 var normal = p.rotation * Vector3.up;
-                float w = p.box2D.extent.width;
-                float h = p.box2D.extent.height;
-                if (Vector3.Dot(normal, Vector3.up) >= 0.7f && w > 0.2f && h > 0.2f)
+                float w = p.box2D.extent.width; float h = p.box2D.extent.height;
+                if (Vector3.Dot(normal, Vector3.up) >= 0.7f && w >= 0.3f && h >= 0.3f)
                 {
-                    AlignToSurface(p.position, normal, new Vector2(w, h));
-                    break;
+                    float area = w * h;
+                    if (area > maxArea * 1.15f || !_hasDetectedPlane) { maxArea = area; bestIdx = i; }
                 }
+            }
+            if (bestIdx >= 0)
+            {
+                var best = planes[bestIdx];
+                AlignToSurface(best.position, best.rotation * Vector3.up,
+                    new Vector2(best.box2D.extent.width, best.box2D.extent.height));
             }
         }
 
@@ -98,7 +105,6 @@ namespace ShotField.RuntimeUI
             }
         }
 
-        /// <summary>实现 ITabletopSurfaceProvider 契约，向沙盘系统提供当前吸附面。</summary>
         public bool TryGetSurface(out TabletopSurface surface)
         {
             if (_hasDetectedPlane && _currentSurface.FacesUp && _currentSurface.HasExtent)
@@ -110,13 +116,21 @@ namespace ShotField.RuntimeUI
             return false;
         }
 
-        /// <summary>将沙盘平滑吸附到外部传入或检测到的真实水平面。</summary>
+        public void LockCurrentSurface(bool locked = true) => isLocked = locked;
+
+        public void Rescan()
+        {
+            isLocked = false;
+            _hasDetectedPlane = false;
+            ApplyFallback();
+        }
+
         public void AlignToSurface(Vector3 center, Vector3 normal, Vector2 size)
         {
             var surface = new TabletopSurface(center, normal, size);
             if (!surface.FacesUp)
             {
-                Debug.LogWarning("[PicoPlaneAligner] 传入表面法线非朝上，忽略吸附并保留回退");
+                Debug.LogWarning("[PicoPlaneAligner] 法线非朝上，忽略吸附");
                 return;
             }
 
@@ -127,13 +141,10 @@ namespace ShotField.RuntimeUI
             AlignmentMode = "PhysicalPlane";
 
             if ((!smoothAlignment || !Application.isPlaying) && tabletop != null && tabletop.TabletopAnchor != null)
-            {
                 tabletop.TabletopAnchor.SetPositionAndRotation(_targetPosition, _targetRotation);
-            }
             Debug.Log($"[PicoPlaneAligner] 吸附到实体桌面: center={center}, size={size}");
         }
 
-        /// <summary>执行虚拟创作台优雅回退（正前方 0.8m，高 0.75m）。</summary>
         public void ApplyFallback()
         {
             _currentSurface = CreateFallbackSurface();
@@ -144,13 +155,12 @@ namespace ShotField.RuntimeUI
 
             if (tabletop != null && tabletop.TabletopAnchor != null)
             {
-                if (smoothAlignment && Application.isPlaying) { /* Update handles lerp */ }
+                if (smoothAlignment && Application.isPlaying) { }
                 else tabletop.TabletopAnchor.SetPositionAndRotation(_targetPosition, _targetRotation);
             }
             Debug.Log($"[PicoPlaneAligner] 回退至虚拟创作台: pos={_targetPosition}");
         }
 
-        /// <summary>构建标准 0.8m 距离、0.75m 高度的回退桌面面片。</summary>
         public TabletopSurface CreateFallbackSurface()
         {
             var forward = headAnchor != null ? headAnchor.forward : Vector3.forward;

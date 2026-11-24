@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using Siccity.GLTFUtility;
 using UnityEngine;
 using UnityEngine.AI;
@@ -7,8 +8,8 @@ using UnityEngine.AI;
 namespace ShotField.RuntimeUI
 {
     /// <summary>
-    /// Tripo 运行时 GLB 导入器：解析网格与骨骼层级，挂载 SkinnedMeshRenderer、
-    /// CapsuleCollider 与带 Carving 的 NavMeshObstacle，对静态道具自愈回退为 Box 碰撞体。
+    /// Tripo 运行时 GLB 导入器：解析网格与骨骼层级，局部空间精确算力包围盒，
+    /// 挂载 SkinnedMeshRenderer/Collider 与 NavMeshObstacle，并确保异步跨线程回调派发至主线程。
     /// </summary>
     public static class RuntimeGltfImporter
     {
@@ -58,54 +59,46 @@ namespace ShotField.RuntimeUI
                 onError?.Invoke(new FileNotFoundException("GLB 不存在", glbPath));
                 return;
             }
+            var mainCtx = SynchronizationContext.Current;
             Importer.LoadFromFileAsync(glbPath, new ImportSettings(), (model, animations) =>
             {
-                if (model == null) { onError?.Invoke(new InvalidDataException("GLB 导入返回空对象")); return; }
-                try
+                void Complete()
                 {
-                    model.name = Path.GetFileNameWithoutExtension(glbPath);
-                    model.transform.SetParent(parent, false);
-                    Normalize(model, position, targetHeight);
-                    EnsurePhysicsAndObstacle(model);
-                    PropBrowserUI.EnsureGrabReady(model, propId);
-                    var record = RuntimeAssetReconciliation.Inspect(model, "tripo", propId, glbPath, "导入成功");
-                    if (!record.measured)
+                    if (model == null) { onError?.Invoke(new InvalidDataException("GLB 导入返回空对象")); return; }
+                    try
+                    {
+                        model.name = Path.GetFileNameWithoutExtension(glbPath);
+                        model.transform.SetParent(parent, false);
+                        Normalize(model, position, targetHeight);
+                        EnsurePhysicsAndObstacle(model);
+                        PropBrowserUI.EnsureGrabReady(model, propId);
+                        var rec = RuntimeAssetReconciliation.Inspect(model, "tripo", propId, glbPath, "导入成功");
+                        if (!rec.measured) throw new InvalidDataException("GLB 几何对账失败: 面数或包围盒无效");
+                        onSuccess?.Invoke(model);
+                    }
+                    catch (Exception ex)
                     {
                         UnityEngine.Object.Destroy(model);
-                        throw new InvalidDataException("GLB 几何对账失败: 面数或包围盒无效");
+                        onError?.Invoke(ex);
                     }
-                    onSuccess?.Invoke(model);
                 }
-                catch (Exception ex)
-                {
-                    UnityEngine.Object.Destroy(model);
-                    onError?.Invoke(ex);
-                }
+                if (mainCtx != null && SynchronizationContext.Current != mainCtx)
+                    mainCtx.Post(_ => Complete(), null);
+                else Complete();
             });
         }
 
-        /// <summary>
-        /// 挂载物理与寻路避障：若包含骨骼网格挂载胶囊体与胶囊避障，否则自愈回退为盒状碰撞体。
-        /// 碰撞体与避障在局部坐标系下严格根据 lossyScale 换算以贴合真实渲染包围盒。
-        /// </summary>
         public static void EnsurePhysicsAndObstacle(GameObject model)
         {
-            var bounds = GetRenderBounds(model);
-            var localCenter = model.transform.InverseTransformPoint(bounds.center);
-            var lossy = model.transform.lossyScale;
-            float sx = Mathf.Abs(lossy.x) > 0.0001f ? Mathf.Abs(lossy.x) : 1f;
-            float sy = Mathf.Abs(lossy.y) > 0.0001f ? Mathf.Abs(lossy.y) : 1f;
-            float sz = Mathf.Abs(lossy.z) > 0.0001f ? Mathf.Abs(lossy.z) : 1f;
-            var localSize = new Vector3(bounds.size.x / sx, bounds.size.y / sy, bounds.size.z / sz);
+            var bounds = GetLocalBounds(model);
             var skinned = model.GetComponentInChildren<SkinnedMeshRenderer>();
-
             if (skinned != null)
             {
                 var capsule = model.GetComponent<CapsuleCollider>();
                 if (capsule == null) capsule = model.AddComponent<CapsuleCollider>();
-                capsule.center = localCenter;
-                capsule.height = Mathf.Max(0.2f, localSize.y);
-                capsule.radius = Mathf.Max(0.1f, Mathf.Max(localSize.x, localSize.z) * 0.4f);
+                capsule.center = bounds.center;
+                capsule.height = Mathf.Max(0.2f, bounds.size.y);
+                capsule.radius = Mathf.Max(0.05f, Mathf.Max(bounds.size.x, bounds.size.z) * 0.4f);
 
                 var obstacle = model.GetComponent<NavMeshObstacle>();
                 if (obstacle == null) obstacle = model.AddComponent<NavMeshObstacle>();
@@ -121,43 +114,55 @@ namespace ShotField.RuntimeUI
                 if (model.GetComponentInChildren<Collider>() == null)
                 {
                     var box = model.AddComponent<BoxCollider>();
-                    box.center = localCenter;
-                    box.size = Vector3.Max(localSize, Vector3.one * 0.1f);
+                    box.center = bounds.center;
+                    box.size = Vector3.Max(bounds.size, Vector3.one * 0.1f);
                 }
-
                 var obstacle = model.GetComponent<NavMeshObstacle>();
                 if (obstacle == null) obstacle = model.AddComponent<NavMeshObstacle>();
                 obstacle.shape = NavMeshObstacleShape.Box;
-                obstacle.center = localCenter;
-                obstacle.size = Vector3.Max(localSize, Vector3.one * 0.1f);
+                obstacle.center = bounds.center;
+                obstacle.size = Vector3.Max(bounds.size, Vector3.one * 0.1f);
                 obstacle.carving = true;
                 obstacle.carveOnlyStationary = false;
             }
         }
 
-        private static Bounds GetRenderBounds(GameObject model)
+        public static Bounds GetLocalBounds(GameObject model)
         {
-            var renderers = model.GetComponentsInChildren<Renderer>();
-            if (renderers.Length == 0) return new Bounds(model.transform.position, Vector3.one * 0.5f);
-            var bounds = renderers[0].bounds;
-            for (int i = 1; i < renderers.Length; i++) bounds.Encapsulate(renderers[i].bounds);
-            return bounds;
+            var filters = model.GetComponentsInChildren<MeshFilter>();
+            var skinned = model.GetComponentsInChildren<SkinnedMeshRenderer>();
+            if (filters.Length == 0 && skinned.Length == 0)
+                return new Bounds(Vector3.zero, Vector3.one * 0.5f);
+
+            Bounds b = new Bounds();
+            bool hasInit = false;
+            void EncapsulateLocal(Bounds src, Transform t)
+            {
+                var min = src.min; var max = src.max;
+                Vector3[] pts = { new Vector3(min.x,min.y,min.z), new Vector3(min.x,min.y,max.z),
+                    new Vector3(min.x,max.y,min.z), new Vector3(min.x,max.y,max.z),
+                    new Vector3(max.x,min.y,min.z), new Vector3(max.x,min.y,max.z),
+                    new Vector3(max.x,max.y,min.z), new Vector3(max.x,max.y,max.z) };
+                for (int i = 0; i < 8; i++)
+                {
+                    var lp = model.transform.InverseTransformPoint(t.TransformPoint(pts[i]));
+                    if (!hasInit) { b = new Bounds(lp, Vector3.zero); hasInit = true; }
+                    else b.Encapsulate(lp);
+                }
+            }
+            foreach (var mf in filters) if (mf.sharedMesh != null) EncapsulateLocal(mf.sharedMesh.bounds, mf.transform);
+            foreach (var smr in skinned) if (smr.sharedMesh != null) EncapsulateLocal(smr.sharedMesh.bounds, smr.transform);
+            return hasInit ? b : new Bounds(Vector3.zero, Vector3.one * 0.5f);
         }
 
         private static void Normalize(GameObject model, Vector3 position, float targetHeight)
         {
-            var bounds = GetRenderBounds(model);
+            var bounds = GetLocalBounds(model);
             if (bounds.size.y <= 0.0001f) throw new InvalidDataException("GLB 高度为 0");
-
             float scale = targetHeight / bounds.size.y;
             model.transform.localScale = new Vector3(scale, scale, scale);
-            model.transform.position = position;
-            Physics.SyncTransforms();
-
-            bounds = GetRenderBounds(model);
-            var offset = new Vector3(position.x - bounds.center.x, position.y - bounds.min.y,
-                position.z - bounds.center.z);
-            model.transform.position += offset;
+            var scaledBounds = GetLocalBounds(model);
+            model.transform.position = position - new Vector3(scaledBounds.center.x, scaledBounds.min.y, scaledBounds.center.z);
             Physics.SyncTransforms();
         }
     }
