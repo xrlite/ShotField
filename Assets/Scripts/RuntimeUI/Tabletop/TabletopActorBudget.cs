@@ -4,18 +4,7 @@ using UnityEngine;
 namespace ShotField.RuntimeUI
 {
     /// <summary>
-    /// 沙盘 1:20 的按需演员预算。1:1 片场要六个人都在（走位、构图、轴线都要人），
-    /// 但缩到 1:20 沙盘时六个微型人挤在桌面上既看不清也没必要 —— 只留当前选中的和
-    /// 最少几个配角即可，信息密度反而更高。
-    ///
-    /// 可逆性约束（比功能本身重要）：
-    /// 本类**只隐藏自己隐藏过的**演员，恢复时也只恢复这一批。
-    /// 场景里本来就被别的逻辑关掉的演员不会被误开，
-    /// 也不会因为反复切模式把人数越切越多。
-    ///
-    /// 已知副作用：被隐藏的演员 activeInHierarchy 为 false，
-    /// <see cref="PalmMenuState.BuildActorEntries"/> 与 <see cref="ActorSelection.All"/>
-    /// 都会过滤掉他们，所以沙盘模式下掌心菜单里看不到被预算掉的演员。这是预期行为。
+    /// 沙盘演员预算：代理按演员匹配；仅恢复本类改动过的 actor/proxy activeSelf。
     /// </summary>
     [DefaultExecutionOrder(-300)]
     public sealed class TabletopActorBudget : MonoBehaviour
@@ -30,15 +19,35 @@ namespace ShotField.RuntimeUI
         [Tooltip("是否把当前选中演员无条件保留在沙盘里。")]
         public bool alwaysKeepSelected = true;
 
-        private readonly List<ActorNavigator> _hiddenByUs = new List<ActorNavigator>();
+        private readonly List<ActorNavigator> _actors = new List<ActorNavigator>();
+        private readonly List<TabletopProxyFollower> _proxies = new List<TabletopProxyFollower>();
         private readonly List<ActorNavigator> _keepList = new List<ActorNavigator>();
+        private readonly Dictionary<GameObject, VisibilityState> _states = new Dictionary<GameObject, VisibilityState>();
+        private ActorNavigator _selected;
         private TabletopDirector.ScaleMode _lastMode;
         private bool _hasApplied;
+        private bool _applying;
 
-        private void Awake()
+        private sealed class VisibilityState
+        {
+            public bool OriginalActive;
+            public bool ChangedByUs;
+        }
+
+        private void OnEnable()
         {
             if (tabletop == null) tabletop = FindAnyObjectByType<TabletopDirector>();
-            if (tabletop != null) _lastMode = tabletop.currentMode;
+            ActorSelection.Changed += OnSelectionChanged;
+            if (tabletop == null) return;
+            _lastMode = tabletop.currentMode;
+            _hasApplied = true;
+            Apply(_lastMode == TabletopDirector.ScaleMode.TabletopMini);
+        }
+
+        private void OnDisable()
+        {
+            ActorSelection.Changed -= OnSelectionChanged;
+            RestoreAll();
         }
 
         private void Update()
@@ -50,6 +59,13 @@ namespace ShotField.RuntimeUI
             Apply(_lastMode == TabletopDirector.ScaleMode.TabletopMini);
         }
 
+        private void OnSelectionChanged(ActorNavigator _)
+        {
+            if (!_applying && isActiveAndEnabled && tabletop != null &&
+                tabletop.currentMode == TabletopDirector.ScaleMode.TabletopMini)
+                ApplyBudget();
+        }
+
         /// <summary>按目标模式调整演员显隐。可重复调用，结果一致。</summary>
         public void Apply(bool tabletopMode)
         {
@@ -59,63 +75,121 @@ namespace ShotField.RuntimeUI
 
         private void ApplyBudget()
         {
-            BuildKeepList();
-            var all = ActorSelection.All;
-
-            for (int i = 0; i < all.Count; i++)
+            if (_applying) return;
+            _applying = true;
+            try
             {
-                var nav = all[i];
-                if (nav == null) continue;
-
-                bool shouldShow = _keepList.Contains(nav);
-                if (shouldShow) Show(nav);
-                else Hide(nav);
+                CollectScene();
+                BuildKeepList();
+                foreach (var nav in _actors) ApplyActor(nav);
+                foreach (var follower in _proxies) ApplyProxy(follower);
+            }
+            finally
+            {
+                _applying = false;
             }
         }
 
-        /// <summary>决定沙盘里留下谁：优先当前选中，不足预算再按名单顺序补。</summary>
+        private void CollectScene()
+        {
+            _actors.Clear();
+            _proxies.Clear();
+            foreach (var nav in ActorSelection.All) AddActor(nav);
+            var followers = FindObjectsByType<TabletopProxyFollower>(FindObjectsInactive.Include);
+            foreach (var follower in followers)
+            {
+                if (follower == null) continue;
+                _proxies.Add(follower);
+                if (follower.actor != null) AddActor(follower.actor.GetComponent<ActorNavigator>());
+            }
+        }
+
+        private void AddActor(ActorNavigator nav)
+        {
+            if (nav != null && !_actors.Contains(nav)) _actors.Add(nav);
+        }
+
         private void BuildKeepList()
         {
             _keepList.Clear();
             int keep = Mathf.Max(1, maxVisibleInTabletop);
+            _selected = alwaysKeepSelected ? ActorSelection.Current : null;
+            if (_selected != null) _keepList.Add(_selected);
 
-            var selected = alwaysKeepSelected ? ActorSelection.Current : null;
-            if (selected != null) _keepList.Add(selected);
-
-            var all = ActorSelection.All;
-            for (int i = 0; i < all.Count && _keepList.Count < keep; i++)
+            foreach (var nav in _actors)
             {
-                var nav = all[i];
-                if (nav == null || _keepList.Contains(nav)) continue;
-                _keepList.Add(nav);
+                if (nav == null || _keepList.Count >= keep || _keepList.Contains(nav)) continue;
+                if (IsEligible(nav.gameObject, GetState(nav.gameObject))) _keepList.Add(nav);
             }
         }
 
-        private void Show(ActorNavigator nav)
+        private void ApplyActor(ActorNavigator nav)
         {
-            if (nav.gameObject.activeSelf) return;
-            nav.gameObject.SetActive(true);
-            _hiddenByUs.Remove(nav);
+            if (nav == null) return;
+            var state = GetState(nav.gameObject);
+            bool keep = _keepList.Contains(nav);
+            bool show = keep && (nav == _selected || IsEligible(nav.gameObject, state));
+            SetActive(nav.gameObject, show, state);
         }
 
-        private void Hide(ActorNavigator nav)
+        private void ApplyProxy(TabletopProxyFollower follower)
         {
-            if (!nav.gameObject.activeSelf) return;
-            nav.gameObject.SetActive(false);
-            if (!_hiddenByUs.Contains(nav)) _hiddenByUs.Add(nav);
+            if (follower == null) return;
+            var state = GetState(follower.gameObject);
+            bool keep = false;
+            bool selected = false;
+            foreach (var nav in _keepList)
+            {
+                if (nav == null || follower.actor != nav.transform) continue;
+                keep = true;
+                selected = nav == _selected;
+                break;
+            }
+            bool show = keep && (selected || IsEligible(follower.gameObject, state));
+            SetActive(follower.gameObject, show, state);
+        }
+
+        private static bool IsEligible(GameObject go, VisibilityState state)
+        {
+            if (!state.OriginalActive || (!state.ChangedByUs && !go.activeSelf)) return false;
+            var parent = go.transform.parent;
+            return parent == null || parent.gameObject.activeInHierarchy;
+        }
+
+        private static void SetActive(GameObject go, bool active, VisibilityState state)
+        {
+            if (go.activeSelf == active) return;
+            if (!active && !state.OriginalActive && !state.ChangedByUs) return;
+            go.SetActive(active);
+            state.ChangedByUs = true;
+        }
+
+        private VisibilityState GetState(GameObject go)
+        {
+            if (_states.TryGetValue(go, out var state)) return state;
+            state = new VisibilityState { OriginalActive = go.activeSelf };
+            _states.Add(go, state);
+            return state;
         }
 
         private void RestoreAll()
         {
-            for (int i = 0; i < _hiddenByUs.Count; i++)
+            if (_applying) return;
+            _applying = true;
+            try
             {
-                var nav = _hiddenByUs[i];
-                if (nav != null && !nav.gameObject.activeSelf)
-                    nav.gameObject.SetActive(true);
+                foreach (var pair in _states)
+                {
+                    if (pair.Key != null && pair.Value.ChangedByUs)
+                        pair.Key.SetActive(pair.Value.OriginalActive);
+                }
+                _states.Clear();
+                _selected = null;
             }
-            _hiddenByUs.Clear();
+            finally
+            {
+                _applying = false;
+            }
         }
-
-        private void OnDisable() => RestoreAll();
     }
 }

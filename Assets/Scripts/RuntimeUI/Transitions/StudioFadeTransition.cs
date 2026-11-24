@@ -51,6 +51,18 @@ namespace ShotField.RuntimeUI
             EnsureOverlay();
         }
 
+        /// <summary>绑定工作台引用；若头部锚点改变，只迁移现有遮罩，不重建场景对象。</summary>
+        public void Bind(TabletopDirector tabletop, TabletopActorBudget actorBudget, Transform headAnchor)
+        {
+            this.tabletop = tabletop;
+            this.actorBudget = actorBudget;
+            this.headAnchor = headAnchor;
+            EnsureOverlay();
+            if (_group == null) return;
+            var parent = headAnchor != null ? headAnchor : transform;
+            if (_group.transform.parent != parent) _group.transform.SetParent(parent, false);
+        }
+
         /// <summary>切换到目标模式并播放过渡。正在过渡时忽略重复调用。</summary>
         public void TransitionTo(TabletopDirector.ScaleMode target)
         {

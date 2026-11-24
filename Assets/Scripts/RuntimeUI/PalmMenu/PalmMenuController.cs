@@ -8,12 +8,7 @@ using UnityEngine.XR.Interaction.Toolkit.Interactors;
 
 namespace ShotField.RuntimeUI
 {
-    /// <summary>
-    /// 掌心菜单 VR 呈现层：世界空间 Canvas 附着左手（手腕/手柄锚点），跟随但朝向锁定头部，
-    /// 不随手腕翻滚；右手射线 + 扳机点选（手柄路径；裸手捏合选择留待真机手追接入，见 README）。
-    /// 逻辑全部在 <see cref="PalmMenuState"/>，本类只做挂载、跟随、建按钮、触感触发。
-    /// 冻结裁定 §2.2：无手部追踪时用手柄菜单键打开同一个界面。编译 pending-集成。
-    /// </summary>
+    /// <summary>掌心菜单呈现层：附着左手并朝向头部；业务由 PalmMenuState 持有。</summary>
     public sealed class PalmMenuController : MonoBehaviour
     {
         [Header("挂载位姿")]
@@ -53,11 +48,17 @@ namespace ShotField.RuntimeUI
                 Tabletop = tabletop != null ? tabletop : FindAnyObjectByType<TabletopDirector>()
             };
             _haptics = new PalmMenuHaptics(leftController, rightController);
-            // 菜单键：menuPressed 为主、primaryButtonPressed 兜底；控制名需真机核验（见 README 存疑）。
             _toggleAction.AddBinding("<XRController>{LeftHand}/menuPressed");
             _toggleAction.AddBinding("<XRController>{LeftHand}/primaryButtonPressed");
             _state.Changed += Refresh;
             if (menuCanvas != null) menuCanvas.enabled = false;
+        }
+
+        public void RebindHaptics(HapticImpulsePlayer left, HapticImpulsePlayer right)
+        {
+            leftController = left;
+            rightController = right;
+            _haptics = new PalmMenuHaptics(left, right);
         }
 
         private void OnEnable() => _toggleAction.Enable();

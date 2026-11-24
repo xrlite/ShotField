@@ -33,6 +33,7 @@ namespace ShotField.RuntimeUI
 
         private int currentShotIndex = 0;
         private ShotConstraint[] rules;
+        private StudioFadeTransition _transition;
         private readonly InputAction captureAction = new InputAction("CaptureView", InputActionType.Button);
 
         void Awake()
@@ -61,20 +62,34 @@ namespace ShotField.RuntimeUI
             var board = GetComponent<TabletopDirector>();
             var actor = GetComponent<ActorTakePlayer>();
             var lab = GetComponent<AudienceLab>();
+            _transition = EnsureBoardTransition(board);
             EnsureAdvancedControls(GetComponent<Canvas>());
             if (motion && playMotion) playMotion.onClick.AddListener(motion.StartPlayback);
             if (actor && playActor) playActor.onClick.AddListener(() => actor.StartPlayback());
             if (board && toggleBoard) toggleBoard.onClick.AddListener(() =>
             {
-                // 沙盘代理由各自 TabletopProxyFollower 在 LateUpdate 跟随，不再把整根代理根当单代理手动同步。
-                board.SwitchMode(board.currentMode == TabletopDirector.ScaleMode.TabletopMini
-                    ? TabletopDirector.ScaleMode.Immersive1to1 : TabletopDirector.ScaleMode.TabletopMini);
+                var target = board.currentMode == TabletopDirector.ScaleMode.TabletopMini
+                    ? TabletopDirector.ScaleMode.Immersive1to1 : TabletopDirector.ScaleMode.TabletopMini;
+                _transition.TransitionTo(target);
             });
             if (lab && screenShot) screenShot.onClick.AddListener(() =>
             {
                 if (lab.isScreeningActive) lab.StopScreeningSession();
                 else { lab.StartScreeningSession(library.ShotCamera); motion.StartPlayback(); }
             });
+        }
+
+        private StudioFadeTransition EnsureBoardTransition(TabletopDirector board)
+        {
+            var transition = GetComponent<StudioFadeTransition>();
+            if (transition == null) transition = gameObject.AddComponent<StudioFadeTransition>();
+            var budget = transition.actorBudget;
+            if (budget == null) budget = GetComponent<TabletopActorBudget>();
+            if (budget == null) budget = FindAnyObjectByType<TabletopActorBudget>();
+            var head = Camera.main;
+            if (head != null) transition.headAnchor = head.transform;
+            transition.Bind(board, budget, transition.headAnchor);
+            return transition;
         }
 
         void LateUpdate()

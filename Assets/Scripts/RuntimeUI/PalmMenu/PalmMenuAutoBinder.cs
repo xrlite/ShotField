@@ -15,10 +15,8 @@ namespace ShotField.RuntimeUI
     /// 2. 构建机不需要开编辑器，纯 .cs 即可生效；
     /// 3. 幂等 —— 引用已有值时一律不覆盖，后续在 Inspector 里手工接的线不会被冲掉。
     ///
-    /// 已知降级（须在验收记录里写明，不得当"已可用"）：
-    /// PalmMenuController 在 Awake 里用当时的 leftController/rightController 建了 PalmMenuHaptics，
-    /// 本类晚于该 Awake 执行，因此**触感不会生效**。菜单的显示、分栏、点选均正常。
-    /// 补齐触感需要给 PalmMenuController 增加重绑定入口，属后续改动，本框架不动现有文件。
+    /// 本类晚于 PalmMenuController.Awake 执行，因此在手柄引用补齐后调用
+    /// PalmMenuController.RebindHaptics，确保触感使用最终绑定的左右手柄。
     /// </summary>
     [DefaultExecutionOrder(-400)]
     public sealed class PalmMenuAutoBinder : MonoBehaviour
@@ -40,21 +38,7 @@ namespace ShotField.RuntimeUI
         public void Bind()
         {
             var controller = FindAnyObjectByType<PalmMenuController>();
-            if (controller == null) return;
-            if (controller.menuCanvas != null && controller.buttonRoot != null && controller.buttonPrefab != null)
-                return;
-
-            var visuals = PalmMenuUiFactory.Build(controller.transform);
-            if (!visuals.IsValid)
-            {
-                Debug.LogWarning("[PalmMenuAutoBinder] 菜单视觉构建失败，菜单不会渲染。");
-                return;
-            }
-
-            controller.menuCanvas = visuals.Canvas;
-            controller.buttonRoot = visuals.ButtonRoot;
-            controller.buttonPrefab = visuals.ButtonPrefab;
-            controller.statusLabel = visuals.StatusLabel;
+            if (controller == null || !BindVisuals(controller)) return;
 
             if (controller.menuAnchor == null)
                 controller.menuAnchor = FindTransform(LeftControllerName);
@@ -66,12 +50,30 @@ namespace ShotField.RuntimeUI
                 controller.leftController = FindHaptics(LeftControllerName);
             if (controller.rightController == null)
                 controller.rightController = FindHaptics(RightControllerName);
+            controller.RebindHaptics(controller.leftController, controller.rightController);
 
             if (controller.menuAnchor == null || controller.headAnchor == null)
             {
                 Debug.LogWarning("[PalmMenuAutoBinder] 未找到左手控制器或头部锚点，" +
                                  "菜单会停在原地不跟随；请确认场景里有 XROrigin 与 XRController_Left。");
             }
+        }
+
+        private static bool BindVisuals(PalmMenuController controller)
+        {
+            if (controller.menuCanvas != null && controller.buttonRoot != null && controller.buttonPrefab != null)
+                return true;
+            var visuals = PalmMenuUiFactory.Build(controller.transform);
+            if (!visuals.IsValid)
+            {
+                Debug.LogWarning("[PalmMenuAutoBinder] 菜单视觉构建失败，菜单不会渲染。");
+                return false;
+            }
+            controller.menuCanvas = visuals.Canvas;
+            controller.buttonRoot = visuals.ButtonRoot;
+            controller.buttonPrefab = visuals.ButtonPrefab;
+            controller.statusLabel = visuals.StatusLabel;
+            return true;
         }
 
         private static Transform FindTransform(string name)
