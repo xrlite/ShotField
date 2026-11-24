@@ -39,7 +39,6 @@ namespace ShotField.RuntimeUI
         void Awake()
         {
             AutoWireReferences();
-            AutoWireExtensions();
         }
         partial void AutoWireExtensions();
 
@@ -59,6 +58,7 @@ namespace ShotField.RuntimeUI
                 var goB = GameObject.Find("SC01_Performer_B");
                 if (goB != null) actorB = goB.GetComponent<ActorNavigator>();
             }
+            AutoWireExtensions();
         }
 
         void Update()

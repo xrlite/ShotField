@@ -31,6 +31,7 @@ namespace ShotField.RuntimeUI
         private float _filteredDRot;
         private bool _initialized;
         private Vector3 _tripodAnchorPos;
+        private CameraStabilizerMode _prevMode = CameraStabilizerMode.Steadicam;
 
         public void ResetFilters(Vector3 pos, Quaternion rot)
         {
@@ -41,6 +42,7 @@ namespace ShotField.RuntimeUI
             _currentVelocity = Vector3.zero;
             _tripodAnchorPos = pos;
             _initialized = true;
+            transform.SetPositionAndRotation(pos, rot);
         }
 
         public Vector3 FilterPosition(Vector3 raw, float dt)
@@ -80,8 +82,17 @@ namespace ShotField.RuntimeUI
         {
             Vector3 forward = rot * Vector3.forward;
             if (forward.sqrMagnitude < 0.0001f) return rot;
-            forward.y = Mathf.Clamp(forward.y, -0.99f, 0.99f);
-            return Quaternion.LookRotation(forward.normalized, Vector3.up);
+            Vector3 horiz = Vector3.ProjectOnPlane(forward, Vector3.up);
+            if (horiz.sqrMagnitude < 1e-4f)
+            {
+                Vector3 camUp = rot * Vector3.up;
+                horiz = Vector3.ProjectOnPlane(camUp, Vector3.up);
+                if (horiz.sqrMagnitude < 1e-4f) horiz = Vector3.forward;
+            }
+            float clampedY = Mathf.Clamp(forward.y, -0.999f, 0.999f);
+            float horizLen = Mathf.Sqrt(Mathf.Max(0.0001f, 1f - clampedY * clampedY));
+            Vector3 safeForward = (horiz.normalized * horizLen + Vector3.up * clampedY).normalized;
+            return Quaternion.LookRotation(safeForward, Vector3.up);
         }
 
         void LateUpdate()
@@ -91,23 +102,31 @@ namespace ShotField.RuntimeUI
             Quaternion rawRot = rawPoseSource.rotation;
             float dt = Mathf.Max(Time.deltaTime, 0.001f);
 
-            if (mode == CameraStabilizerMode.HandheldNatural)
-            {
-                transform.SetPositionAndRotation(rawPos, lockHorizon ? ApplyHorizonLock(rawRot) : rawRot);
-                return;
-            }
-
             if (!_initialized) ResetFilters(rawPos, rawRot);
 
             Vector3 fPos = FilterPosition(rawPos, dt);
             Quaternion fRot = FilterRotation(rawRot, dt);
 
-            Vector3 targetPos = (mode == CameraStabilizerMode.TripodLocked) ? _tripodAnchorPos : fPos;
-            Vector3 finalPos = Vector3.SmoothDamp(transform.position, targetPos, ref _currentVelocity, smoothTime, Mathf.Infinity, dt);
+            Vector3 finalPos;
+            if (mode == CameraStabilizerMode.TripodLocked)
+            {
+                if (_prevMode != CameraStabilizerMode.TripodLocked) _tripodAnchorPos = transform.position;
+                finalPos = _tripodAnchorPos;
+                _currentVelocity = Vector3.zero;
+            }
+            else if (mode == CameraStabilizerMode.HandheldNatural)
+            {
+                finalPos = fPos;
+                _currentVelocity = Vector3.zero;
+            }
+            else // Steadicam
+            {
+                finalPos = Vector3.SmoothDamp(transform.position, fPos, ref _currentVelocity, smoothTime, Mathf.Infinity, dt);
+            }
 
             if (lockHorizon) fRot = ApplyHorizonLock(fRot);
-
             transform.SetPositionAndRotation(finalPos, fRot);
+            _prevMode = mode;
         }
     }
 }

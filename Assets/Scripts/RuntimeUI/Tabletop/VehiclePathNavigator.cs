@@ -41,6 +41,7 @@ namespace ShotField.RuntimeUI.Tabletop
         };
 
         void Awake() => EnsureComponents();
+        void OnValidate() => EnsureComponents();
 
         public void EnsureComponents()
         {
@@ -57,12 +58,16 @@ namespace ShotField.RuntimeUI.Tabletop
                 }
             }
 
-            if (domainMode == VehicleDomainMode.Ground && obstacle == null)
+            if (obstacle == null) obstacle = GetComponent<NavMeshObstacle>();
+            if (obstacle == null && domainMode == VehicleDomainMode.Ground)
             {
-                obstacle = GetComponent<NavMeshObstacle>();
-                if (obstacle == null) obstacle = gameObject.AddComponent<NavMeshObstacle>();
+                obstacle = gameObject.AddComponent<NavMeshObstacle>();
                 obstacle.carving = true;
                 obstacle.size = new Vector3(1.2f, 1.0f, 2.0f);
+            }
+            if (obstacle != null)
+            {
+                obstacle.enabled = (domainMode == VehicleDomainMode.Ground);
             }
         }
 
@@ -107,6 +112,9 @@ namespace ShotField.RuntimeUI.Tabletop
             Vector3 pos = EvaluateSpline(normT, pts);
             Vector3 tangent = EvaluateTangent(normT, pts);
 
+            if (obstacle != null && obstacle.enabled != (domainMode == VehicleDomainMode.Ground))
+                obstacle.enabled = (domainMode == VehicleDomainMode.Ground);
+
             Quaternion rot;
             if (domainMode == VehicleDomainMode.Air)
             {
@@ -115,7 +123,8 @@ namespace ShotField.RuntimeUI.Tabletop
                 Vector3 nextTan = EvaluateTangent(Mathf.Min(1f, normT + 0.03f), pts);
                 float turnAngle = Vector3.SignedAngle(prevTan, nextTan, Vector3.up);
                 float bank = Mathf.Clamp(-turnAngle * bankFactor * 15f, -50f, 50f);
-                rot = Quaternion.LookRotation(tangent, Vector3.up) * Quaternion.Euler(0f, 0f, bank);
+                Vector3 upRef = Mathf.Abs(Vector3.Dot(tangent, Vector3.up)) > 0.95f ? Vector3.forward : Vector3.up;
+                rot = Quaternion.LookRotation(tangent, upRef) * Quaternion.Euler(0f, 0f, bank);
             }
             else
             {

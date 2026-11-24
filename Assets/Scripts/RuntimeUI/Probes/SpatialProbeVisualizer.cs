@@ -33,16 +33,37 @@ namespace ShotField.RuntimeUI.Probes
         private LineRenderer _headlightLine;
         private Material _lineMaterial;
 
-        void Awake() => EnsureLineRenderers();
+        private readonly Vector3[] _frustumPts = new Vector3[11];
+        private readonly Vector3[] _headlightPts = new Vector3[12];
+        private readonly Vector3[] _eyePtsA = new Vector3[2];
+        private readonly Vector3[] _eyePtsB = new Vector3[2];
+
+        void Awake()
+        {
+            EnsureLineRenderers();
+            AutoWireReferences();
+        }
+
         void LateUpdate() => RefreshProbes();
+
+        public void AutoWireReferences()
+        {
+            if (targetCamera == null)
+            {
+                var camRec = FindAnyObjectByType<CameraMotionRecorder>();
+                targetCamera = (camRec != null && camRec.filmCamera != null) ? camRec.filmCamera : Camera.main;
+            }
+            if (actorA == null) actorA = GameObject.Find("SC01_Performer_A")?.GetComponent<ActorNavigator>();
+            if (actorB == null) actorB = GameObject.Find("SC01_Performer_B")?.GetComponent<ActorNavigator>();
+            if (vehicleNavigator == null) vehicleNavigator = FindAnyObjectByType<VehiclePathNavigator>();
+        }
 
         public void EnsureLineRenderers()
         {
             if (_lineMaterial == null)
             {
-                var shader = Shader.Find("Sprites/Default");
-                if (shader == null) shader = Shader.Find("Universal Render Pipeline/Unlit");
-                _lineMaterial = new Material(shader);
+                var shader = Shader.Find("Sprites/Default") ?? Shader.Find("Universal Render Pipeline/Unlit") ?? Shader.Find("Hidden/Internal-Colored");
+                if (shader != null) _lineMaterial = new Material(shader);
             }
             if (_frustumLine == null) _frustumLine = CreateLine("FrustumProbe", PrevisPalette.AmberTrajectory, 0.008f);
             if (_eyeLineA == null) _eyeLineA = CreateLine("EyeLineAProbe", PrevisPalette.SlateBlueGuideline, 0.006f);
@@ -52,12 +73,9 @@ namespace ShotField.RuntimeUI.Probes
 
         private LineRenderer CreateLine(string name, Color color, float width)
         {
-            var go = transform.Find(name)?.gameObject;
-            if (go == null)
-            {
-                go = new GameObject(name);
-                go.transform.SetParent(transform, false);
-            }
+            var child = transform.Find(name);
+            var go = child != null ? child.gameObject : new GameObject(name);
+            if (child == null) go.transform.SetParent(transform, false);
             var lr = go.GetComponent<LineRenderer>();
             if (lr == null) lr = go.AddComponent<LineRenderer>();
             lr.sharedMaterial = _lineMaterial;
@@ -72,8 +90,8 @@ namespace ShotField.RuntimeUI.Probes
         {
             EnsureLineRenderers();
             UpdateFrustumProbe();
-            UpdateEyeLineProbe(actorA, _eyeLineA);
-            UpdateEyeLineProbe(actorB, _eyeLineB);
+            UpdateEyeLineProbe(actorA, _eyeLineA, _eyePtsA);
+            UpdateEyeLineProbe(actorB, _eyeLineB, _eyePtsB);
             UpdateHeadlightProbe();
         }
 
@@ -97,12 +115,16 @@ namespace ShotField.RuntimeUI.Probes
             Vector3 c2 = center - u + r;
             Vector3 c3 = center - u - r;
 
-            Vector3[] pts = new[] { origin, c0, c1, origin, c2, c1, c2, c3, origin, c3, c0 };
-            _frustumLine.positionCount = pts.Length;
-            _frustumLine.SetPositions(pts);
+            _frustumPts[0] = origin; _frustumPts[1] = c0; _frustumPts[2] = c1;
+            _frustumPts[3] = origin; _frustumPts[4] = c2; _frustumPts[5] = c1;
+            _frustumPts[6] = c2;     _frustumPts[7] = c3; _frustumPts[8] = origin;
+            _frustumPts[9] = c3;     _frustumPts[10] = c0;
+
+            if (_frustumLine.positionCount != 11) _frustumLine.positionCount = 11;
+            _frustumLine.SetPositions(_frustumPts);
         }
 
-        private void UpdateEyeLineProbe(ActorNavigator actor, LineRenderer lr)
+        private void UpdateEyeLineProbe(ActorNavigator actor, LineRenderer lr, Vector3[] buffer)
         {
             if (lr == null) return;
             if (!showEyeLines || actor == null) { lr.positionCount = 0; return; }
@@ -110,9 +132,10 @@ namespace ShotField.RuntimeUI.Probes
             Vector3 eyeOrigin = actor.transform.position + Vector3.up * eyeHeight;
             Vector3 eyeEnd = eyeOrigin + actor.transform.forward * eyeLineDistance;
 
-            lr.positionCount = 2;
-            lr.SetPosition(0, eyeOrigin);
-            lr.SetPosition(1, eyeEnd);
+            buffer[0] = eyeOrigin;
+            buffer[1] = eyeEnd;
+            if (lr.positionCount != 2) lr.positionCount = 2;
+            lr.SetPositions(buffer);
         }
 
         private void UpdateHeadlightProbe()
@@ -133,19 +156,25 @@ namespace ShotField.RuntimeUI.Probes
             Vector3 u = mount.up * radius;
             Vector3 r = mount.right * radius;
 
-            Vector3 p0 = center + u;
-            Vector3 p1 = center + r;
-            Vector3 p2 = center - u;
-            Vector3 p3 = center - r;
+            Vector3 p0 = center + u; Vector3 p1 = center + r;
+            Vector3 p2 = center - u; Vector3 p3 = center - r;
 
-            Vector3[] pts = new[] { origin, p0, p1, origin, p2, p3, origin, p0, p1, p2, p3, p0 };
-            _headlightLine.positionCount = pts.Length;
-            _headlightLine.SetPositions(pts);
+            _headlightPts[0] = origin; _headlightPts[1] = p0;  _headlightPts[2] = p1;
+            _headlightPts[3] = origin; _headlightPts[4] = p2;  _headlightPts[5] = p3;
+            _headlightPts[6] = origin; _headlightPts[7] = p0;  _headlightPts[8] = p1;
+            _headlightPts[9] = p2;     _headlightPts[10] = p3; _headlightPts[11] = p0;
+
+            if (_headlightLine.positionCount != 12) _headlightLine.positionCount = 12;
+            _headlightLine.SetPositions(_headlightPts);
         }
 
         void OnDestroy()
         {
-            if (_lineMaterial != null) DestroyImmediate(_lineMaterial);
+            if (_lineMaterial != null)
+            {
+                if (Application.isPlaying) Destroy(_lineMaterial);
+                else DestroyImmediate(_lineMaterial);
+            }
         }
     }
 }

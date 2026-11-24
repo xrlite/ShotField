@@ -61,6 +61,7 @@ namespace ShotField.RuntimeUI
 
         public void DispatchL3VehicleTrack()
         {
+            if (vehicleNavigator == null) vehicleNavigator = FindAnyObjectByType<VehiclePathNavigator>();
             if (vehicleNavigator != null)
             {
                 vehicleNavigator.EvaluateTrajectory(NormalizedTime);
@@ -80,6 +81,7 @@ namespace ShotField.RuntimeUI
 
         public void DispatchL5ProbeTrack()
         {
+            if (probeVisualizer == null) probeVisualizer = FindAnyObjectByType<SpatialProbeVisualizer>();
             if (probeVisualizer != null)
             {
                 probeVisualizer.RefreshProbes();
