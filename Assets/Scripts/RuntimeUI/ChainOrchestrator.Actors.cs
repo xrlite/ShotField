@@ -11,23 +11,8 @@ namespace ShotField.RuntimeUI
     /// </summary>
     public partial class ChainOrchestrator
     {
-        private void ApplyActor(ProposalItemDto item, ChainApplyReport report)
-        {
-            var actor = ResolveActor(item.actorId);
-            if (actor == null)
-            {
-                report.placementFailures.Add($"演员 {item.actorId}：场景内无已登记演员");
-                return;
-            }
-            Vector3 pos = item.position.ToUnityVector3();
-            if (actor.TryPlace(pos, SampleRadius, out Vector3 snapped))
-                report.placedActorIds.Add(actor.name);
-            else
-                report.placementFailures.Add($"演员 {actor.name}：落点不可行走，未落位");
-        }
-
         // 解析器角色名（ActorA / Director / 中文称谓）与场景 GameObject 名（PrevisCast_*）不一致，
-        // 在此做别名映射；未命中再按名字包含匹配，最后回退 Current。键名忽略大小写与首尾空白。
+        // 只允许显式别名或精确场景名；不再子串模糊匹配，也不回退 Current。
         private static readonly Dictionary<string, string> ActorAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             ["ActorA"] = "PrevisCast_A_Red",
@@ -62,33 +47,38 @@ namespace ShotField.RuntimeUI
             ["品红"] = "PrevisCast_F_Magenta"
         };
 
-        private ActorNavigator ResolveActor(string actorId)
+        internal bool TryResolveActorStrict(string actorId, out ActorNavigator actor)
         {
+            actor = null;
+            string raw = (actorId ?? "").Trim();
+            if (raw.Length == 0) return false;
+            string sceneName = ActorAliases.TryGetValue(raw, out var mapped) ? mapped : raw;
             var all = ActorSelection.All;
             if (all != null)
-            {
-                string raw = (actorId ?? "").Trim();
-                string sceneName = ActorAliases.TryGetValue(raw, out var mapped) ? mapped : raw;
                 foreach (var nav in all)
                 {
                     if (nav == null) continue;
-                    if (nav.name == sceneName) return nav;
+                    var marker = nav.GetComponent<SemanticMarker>();
+                    if (nav.name == sceneName || (marker != null && marker.markerId == raw))
+                    { actor = nav; return true; }
                 }
-                foreach (var nav in all)
-                {
-                    if (nav != null && !string.IsNullOrEmpty(raw) && nav.name.Contains(raw)) return nav;
-                }
+            foreach (var nav in UnityEngine.Object.FindObjectsByType<ActorNavigator>(FindObjectsInactive.Include))
+            {
+                if (nav == null) continue;
+                var marker = nav.GetComponent<SemanticMarker>();
+                if (nav.name == sceneName || (marker != null && marker.markerId == raw))
+                { actor = nav; return true; }
             }
-            return ActorSelection.Current;
+            return false;
         }
 
-        private Vector3 ResolveAnchor(ActorNavigator fallbackActor)
+        internal bool TryResolveAnchor(ActorNavigator fallbackActor, out Vector3 anchor)
         {
-            if (anchorTransform != null) return anchorTransform.position;
+            if (anchorTransform != null) { anchor = anchorTransform.position; return true; }
             var marker = SemanticMarker.Find("envelope");
-            if (marker != null) return marker.transform.position;
-            if (fallbackActor != null) return fallbackActor.transform.position;
-            return new Vector3(0.8f, 1.25f, 1.25f);
+            if (marker != null) { anchor = marker.transform.position; return true; }
+            if (fallbackActor != null) { anchor = fallbackActor.transform.position; return true; }
+            anchor = Vector3.zero; return false;
         }
     }
 }

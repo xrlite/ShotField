@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.Rendering;
+using ShotField.Core;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
 
 namespace ShotField.RuntimeUI
@@ -72,10 +73,12 @@ namespace ShotField.RuntimeUI
         public static void StripInteraction(GameObject go)
         {
             if (go == null) return;
+            if (go.GetComponent<GhostPreviewMarker>() == null) go.AddComponent<GhostPreviewMarker>();
             foreach (var c in go.GetComponentsInChildren<Collider>(true)) c.enabled = false;
             foreach (var b in go.GetComponentsInChildren<Rigidbody>(true)) { b.isKinematic = true; b.detectCollisions = false; }
             foreach (var x in go.GetComponentsInChildren<XRGrabInteractable>(true)) x.enabled = false;
             foreach (var s in go.GetComponentsInChildren<ScenePropGrab>(true)) s.enabled = false;
+            foreach (var m in go.GetComponentsInChildren<SemanticMarker>(true)) m.enabled = false;
         }
     }
 }

@@ -15,5 +15,11 @@ namespace ShotField.RuntimeUI
         public bool cameraApplied;
         public List<string> missingAssets = new List<string>();
         public List<string> placementFailures = new List<string>();
+        public int gate1RejectedCount;
+        public int gate2RejectedCount;
+        public int cancelledCount;
+        public int readbackFailedCount;
+        public int executedCount;
+        public string initialContextJson = "";
     }
 }

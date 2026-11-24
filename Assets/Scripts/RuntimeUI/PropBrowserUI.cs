@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using ShotField.Core;
 using UnityEngine;
 using UnityEngine.UI;
@@ -21,7 +20,7 @@ namespace ShotField.RuntimeUI
     /// 资产库可视化拾取面板（Task A1）：
     /// 展示 SC01 真实绑定 Prefab，点击即在片场锚点生成可抓取道具。
     /// </summary>
-    public class PropBrowserUI : MonoBehaviour
+    public partial class PropBrowserUI : MonoBehaviour
     {
         public List<PropPrefabBinding> bindings = new List<PropPrefabBinding>();
         public Transform spawnAnchor;
@@ -45,6 +44,39 @@ namespace ShotField.RuntimeUI
 
         public GameObject SpawnProp(string propId, Vector3 worldPos)
         {
+            var instance = CreateProp(propId, worldPos);
+            if (instance != null) OnPropSpawned?.Invoke(instance);
+            return instance;
+        }
+
+        /// <summary>事务式生成：即使外部回调抛异常，也把已创建实例交回调用方处理。</summary>
+        public bool TrySpawnProp(string propId, Vector3 worldPos, out GameObject instance, out string error)
+        {
+            instance = null; error = "";
+            GameObject created = null;
+            try
+            {
+                created = CreateProp(propId, worldPos, value => created = value);
+                instance = created;
+                if (instance == null) { error = "未绑定资产: " + propId; return false; }
+            }
+            catch (Exception ex)
+            {
+                if (created != null)
+                {
+                    RemoveSpawnedProp(created);
+                    if (Application.isPlaying) Destroy(created); else DestroyImmediate(created);
+                    instance = null;
+                }
+                error = ex.Message; return false;
+            }
+            try { OnPropSpawned?.Invoke(instance); }
+            catch (Exception ex) { error = ex.Message; }
+            return true;
+        }
+
+        private GameObject CreateProp(string propId, Vector3 worldPos, Action<GameObject> onCreated = null)
+        {
             var binding = FindBinding(propId);
             if (binding == null || binding.prefab == null)
             {
@@ -54,6 +86,7 @@ namespace ShotField.RuntimeUI
 
             Transform parent = sceneRoot != null ? sceneRoot : null;
             var instance = Instantiate(binding.prefab, worldPos, Quaternion.identity, parent);
+            onCreated?.Invoke(instance);
             instance.name = $"{binding.propId}_{spawnedProps.Count + 1}";
 
             EnsureGrabReady(instance, binding.propId);
@@ -62,71 +95,15 @@ namespace ShotField.RuntimeUI
             var entry = PropLibrary.Find(binding.propId);
             string label = entry != null ? entry.displayName : binding.displayName;
             RuntimeUiFactory.SetStatusTmp(statusText, $"已放置: {label}");
-            OnPropSpawned?.Invoke(instance);
             return instance;
         }
+
+        public bool RemoveSpawnedProp(GameObject instance) => instance != null && spawnedProps.Remove(instance);
 
         public void BindButton(Button btn, string propId)
         {
             if (btn == null) return;
             btn.onClick.AddListener(() => SpawnProp(propId));
-        }
-
-        // 六色演员条目：点击把场景内待激活的 PrevisCast 实例放行入场。
-        // 注册走 ActorNavigator.Registry partial 的 OnEnable，不依赖面板手动 Bind。
-        private static readonly string[] ActorIds =
-        {
-            "actorRed", "actorBlue", "actorYellow",
-            "actorGreen", "actorViolet", "actorMagenta"
-        };
-
-        private static readonly Dictionary<string, string> ActorSceneName = new Dictionary<string, string>
-        {
-            ["actorRed"] = "PrevisCast_A_Red",
-            ["actorBlue"] = "PrevisCast_B_Blue",
-            ["actorYellow"] = "PrevisCast_C_Yellow",
-            ["actorGreen"] = "PrevisCast_D_Green",
-            ["actorViolet"] = "PrevisCast_E_Violet",
-            ["actorMagenta"] = "PrevisCast_F_Magenta"
-        };
-
-        private bool actorButtonsBuilt;
-
-        private void Start() => BuildActorButtons();
-
-        private void BuildActorButtons()
-        {
-            if (actorButtonsBuilt) return;
-            actorButtonsBuilt = true;
-            var panel = statusText != null ? statusText.transform.parent : transform;
-            for (var i = 0; i < ActorIds.Length; i++)
-            {
-                var entry = PropLibrary.Find(ActorIds[i]);
-                var label = entry != null ? entry.displayName : ActorIds[i];
-                var x = i % 2 == 0 ? -48f : 48f;
-                var y = -45f - (i / 2) * 58f;
-                var btn = RuntimeUiFactory.CreateTmpButton(panel, $"Spawn_{ActorIds[i]}", label,
-                    new Vector2(x, y), new Vector2(88f, 44f));
-                var id = ActorIds[i];
-                btn.onClick.AddListener(() => ActivateActor(id));
-            }
-        }
-
-        /// <summary>放行场景内待激活的指定演员；已在场则直接返回。返回是否成功。</summary>
-        public bool ActivateActor(string actorId)
-        {
-            if (!ActorSceneName.TryGetValue(actorId, out var sceneName)) return false;
-            var nav = UnityEngine.Object.FindObjectsByType<ActorNavigator>(FindObjectsInactive.Include)
-                .FirstOrDefault(n => n.name == sceneName);
-            if (nav == null)
-            {
-                RuntimeUiFactory.SetStatusTmp(statusText, $"未找到演员: {sceneName}");
-                return false;
-            }
-            if (!nav.gameObject.activeSelf) nav.gameObject.SetActive(true);
-            RuntimeUiFactory.SetStatusTmp(statusText, $"已加入: {nav.name}");
-            OnPropSpawned?.Invoke(nav.gameObject);
-            return true;
         }
 
         /// <summary>
