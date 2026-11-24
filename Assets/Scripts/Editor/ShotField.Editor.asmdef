@@ -6,6 +6,7 @@
     "ShotField.Core",
     "ShotField.Constraints",
     "ShotField.Import",
+    "ShotField.Export",
     "ShotField.RuntimeUI",
     "UnityEngine.UI",
     "Unity.TextMeshPro",
