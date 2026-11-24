@@ -19,6 +19,7 @@
 
 | 版本 | Commit | 判据 | 状态 |
 | --- | --- | --- | --- |
+| 0.9.0-lab.20261124 | `ea04f3c` | `NetworkSessionController` 成为桌面/VR 唯一会话，PalmMenu 场景栏可呼出 WorldSpace 联机 modal；IPv4/端口校验、Host/Join/断开、心跳与主线程 Tick；`NETWORK-ENTRY-RESULT=PASS (9/9)`，Play Mode 双菜单与控制器同实例，Host 按钮进入 Hosting | 编辑器与 Play Mode 已验证；真机双端同步 pending-设备 |
 | 0.9.0-lab.20261124 | `401bc71` | 同一真实机位先判 Violation（信封正面 5/5 采样点可见），加挡板后 Pass，撤挡板恢复 Violation；`CONSTRAINT-PAIR-RESULT=PASS (6/6)`，成对 FAIL/PASS 图与两份日志已落盘 | 编辑器已验证；真机交互未纳入本判据 |
 | 0.9.0-lab.20261124 | `1f85736` | 资产抽屉显示 Tripo/现有资产/灰盒的来源、路径、导入状态、实测面数与包围盒；GLB 几何无效即失败并销毁临时模型，失败保留灰盒；`ASSET-RECONCILIATION-RESULT=PASS (10/10)`，真实门样本 4,163 tris / 0.34497×1.50×0.99418m | 编辑器 UI 与导入已验证；Android IL2CPP/模拟器 pending-APK |
 | 0.9.0-lab.20261124 | `30cb0de` | CameraMotionRecorder 支持注入时间采样；12s/30Hz 真实 raw/smoothed 双轨、12→6s 重定时、50% 寻址；`B5-DUAL-TRACK-RESULT=PASS (8/8)`，360 帧 mp4 `VIDEO-EXPORT-RESULT=PASS (11/11)`（连续镜头口径） | 编辑器已验证；真机录制手感 pending |
@@ -46,13 +47,13 @@
 | 0.9.0-lab | `5c61097` | **P3**：`SCRIPT-PROPOSAL-RESULT=PASS (3/3)` 通用提案契约，三剧本模式各异 | 真实 API 已验证；**可编辑提案 UI 未做** |
 | 0.9.0-lab | `0c1844d` | **P6 前置**：导出规格升至 1920×1080 / 30fps / 15s / ≥8Mbps，命名规则集中 | **PENDING-APK**，真 mp4 未出 |
 
-> 提交链（新→旧）：`401bc71` ← `1f85736` ← `30cb0de` ← `1856a95` ← `720c4cb` ← `03a36ad` ← `53934fe` ← `c27a3c2` ← `d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 新提交均在本地，**尚未 push**。
+> 提交链（新→旧）：`ea04f3c` ← `401bc71` ← `1f85736` ← `30cb0de` ← `1856a95` ← `720c4cb` ← `03a36ad` ← `53934fe` ← `c27a3c2` ← `d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 新提交均在本地，**尚未 push**。
 > 后续版本 tag 规划：`v0.9.1-alpha`（Console 归零 + 统一工作流）→ `v0.9.2-alpha`（四格式 + AI 提案）→ `v0.9.3-alpha`（资产 + Tripo）→ `v0.9.4-alpha`（沙盘 1:1 + VR UI）→ `v0.9.5-beta`（时间轴 + MP4）→ `v0.9.6-beta`（模拟器完整旅程）。
 > **tag 只在对应判据真过后打，不提前占位。**
 
 ---
 
-## 门禁（29 项）
+## 门禁（30 项）
 
 运行入口：`ShotField > Verifiers`，或工作区脚本 `04_Project/巡检/verify_all.ps1`（走 live-bridge 直调）。
 
@@ -83,12 +84,13 @@
 | `credential_path` | `CREDENTIAL-PATH-RESULT=PASS (9/9)`：新/旧文件名、路径分离、迁移条件、环境变量优先、Tripo 单入口、只写新路径、构建闸/扫描器/gitignore 硬拒 |
 | `mr_tabletop_config` | `MR-TABLETOP-CONFIG=PASS (3/3)`：Passthrough、Spatial Mesh、虚拟台回退；真实桌面识别 pending-设备 |
 | `network_session` | `NET-VERIFY-RESULT=PASS (13/13)`，含 `NET-SCENE-EDIT-RESULT=PASS (6/6)`：双向同步、本地单次回调、revision 拒绝、重连快照、旧 JSON 兼容 |
+| `network_entry` | `NETWORK-ENTRY-RESULT=PASS (9/9)`：IPv4/端口校验、真实回环握手、WorldSpace modal、Host/Join/断开/关闭、PalmMenu 呼出、断开归零；真机双端 pending |
 | `palm_menu_vr` | `PALM-MENU-VR-RESULT=PASS (10/10)`：掌心菜单构建、分栏、空引用降级；运行时手感 pending-真机 |
 | `block_layout` | `BLOCK-LAYOUT-RESULT=PASS (10/10)`：弧面布局、距离档、板尺寸与排序 |
 | `tabletop_scale` | `TABLETOP-SCALE-RESULT=PASS (10/10)`：1:20/1:1 换算、演员预算、MR 平面识别 pending-真机 |
 | `studio_fade` | `STUDIO-FADE-RESULT=PASS (10/10)`：淡入淡出状态机与遮罩参数；人眼观感 pending-真机 |
 
-最近一次全量（2026-11-24 16:48:29）：**29 run / 0 failed/no-verdict / 0 no-error**，日志 `verify_all_20261124_164829.log`。其中 `network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`credential_path` 输出 `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`b5_dual_track` 输出 `B5-DUAL-TRACK-RESULT=PASS (8/8)`；`asset_reconciliation` 输出 `ASSET-RECONCILIATION-RESULT=PASS (10/10)`；`constraint_pair` 输出 `CONSTRAINT-PAIR-RESULT=PASS (6/6)`；`console_clean` 读数 `Errors=0 Warnings=0`，此前 300s 驻留协议见 `console_clean_dwell_20261123_135958.log`。
+最近一次全量（2026-11-24 17:33:55）：**30 run / 0 failed/no-verdict / 0 no-error**，日志 `verify_all_20261124_173355.log`。其中 `network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`network_entry` 输出 `NETWORK-ENTRY-RESULT=PASS (9/9)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`credential_path` 输出 `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`b5_dual_track` 输出 `B5-DUAL-TRACK-RESULT=PASS (8/8)`；`asset_reconciliation` 输出 `ASSET-RECONCILIATION-RESULT=PASS (10/10)`；`constraint_pair` 输出 `CONSTRAINT-PAIR-RESULT=PASS (6/6)`；`console_clean` 读数 `Errors=0 Warnings=0`，此前 300s 驻留协议见 `console_clean_dwell_20261123_135958.log`。
 
 > ✅ **Console 长驻留归零（2026-11-23 13:59:58 实跑通过）**：协议为 清 Console → 域重载 → 清重载噪音 → 进 Play → 摆位走位（`PrevisCast_A_Red` MoveTo）+ 时间轴寻道（`SH_04`）→ Play 态驻留 300s，60/120/180/240/300s 五次巡检 Console 全空 → 退出 Play。读数 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，日志 `console_clean_dwell_20261123_135958.log`。
 >
@@ -115,6 +117,7 @@
 | 六人脚底贴地（Play 态） | `20261123_0005_SceneView_修复后_红蓝演员贴地与茶几.png` + 门禁 `actor_grounding` | 编辑器 Scene + Play | 模拟器已验证（编辑器层） |
 | 家具真实绕行 | `20261123_0042_GameView_运行时绕行虚线_东侧绕开茶几.png`；起 (0.8,0,0.6)→终 (0.8,0,3.2)，4 拐点，路径 3.576m / 直线 2.600m，ratio 1.376 | 编辑器 Play | 已验证 |
 | 约束 FAIL→PASS→FAIL 可逆对照 | `constraint_evidence_20261124_1647/20261124_1647_约束_FAIL.png`、`..._约束_PASS.png`、两份同名 `.log` 与 `constraint_evidence.json`；同一机位 (0.95,1.453,2.25)，Violation→Pass→Violation | 编辑器真实场景 + 现有 VisibilityConstraint | 编辑器已验证；非真机交互验收 |
+| VR 联机入口 | `network_entry_20261124_1732/vr_network_modal.png`、`network_entry_evidence.json`；`NETWORK-ENTRY-RESULT=PASS (9/9)`；Play Mode 控制器/模态/PalmMenu 双呈现层同实例，Host 按钮进入 Hosting | 编辑器 UI 层隔离渲染 + Play Mode 接线 | 编辑器已验证；真机双端同步 pending-设备 |
 | DeepSeek 真实提案 | `deepseek_live_20261122_213814.log`（200 / json_object / 3 镜 / 236 tokens） | 真实 API | 已验证 |
 | DeepSeek Unity 内 E2E | `deepseek_unity_e2e_20261122_220014.log`，末行 `DEEPSEEK-E2E-RESULT=PARTIAL` | 编辑器 Play | **PARTIAL**：接受 7 拒绝 1、落场与时间轴成立；在线返回中文称谓的端到端命中未复验 |
 | Tripo 真实生成 | `tripo_spike_20261122_2305.log`，末行 `TRIPO-SPIKE-RESULT=PASS`；GLB 落盘 2,856,144 字节 | 真实 API | 已验证到**落盘**；运行时导入见下一行 |
@@ -147,6 +150,7 @@
 - **运行时 GLB 导入与资产对账已实现，Android 侧未验**：`com.plattar.unitygltf` 是 Editor-only 导出器，已改用 pin 的 GLTFUtility(MIT)；真实 `door_v01.glb` 在编辑器导入/缩放/Collider/抓取补齐 `PASS (5/5)`，资产抽屉对账 `PASS (10/10)`。IL2CPP 裁剪、URP shader 与端上加载仍 pending-APK。
 - **世界画布中文豆腐块已修**：TMP 迁移 + `ShotFieldSansSC-Regular.otf` + 2048x2048 SDF 字形表（`0ba5ac8`）；M1/P6 实录已见中文 UI。字体许可仍需补进资产来源清单。
 - **P5 运行态接线已补**：演员/代理预算、选中联动、可逆恢复、淡入淡出、触感重绑定已完成（`11ff013`）；三块空间卡片及 PalmMenu 呼出已完成（`720c4cb`），真机抓握、射线与触感手感仍 pending。
+- **M2 VR 联机入口已在编辑器/Play Mode 打通**：桌面与 VR 共用 `NetworkSessionController`，PalmMenu 可呼出联机 modal，真实回环握手与 Host 按钮已验；两台 PICO 真机同步、设备键盘输入与手柄射线点击仍 pending-设备。
 - **MR 只有配置与 Editor 回退证据**：`MrTabletopBootstrap` 已接 Passthrough + Spatial Mesh，无 subsystem 时回退虚拟创作台；模拟器/真机真实桌面识别与贴合精度 pending-设备。
 - **天工预设仅 1:1 舞台切换**：已合并为单网格灰模并提供桌面一键切换；沙盘迷你模式、演员/相机自动重排、权属/许可与 Android 包内加载未验。
 - **P6 Android 真编码未验**：编辑器交付片已 PASS (11/11)，MediaCodec/MediaMuxer 需重打 APK 后在模拟器取证。
