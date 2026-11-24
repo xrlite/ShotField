@@ -15,7 +15,8 @@
     "Unity.XR.CoreUtils",
     "Compiler",
     "GUID:847b179520b009e4c8d15c296b1cbf35",
-    "GUID:4847341ff46394e83bb78fbd0652937e"
+    "GUID:4847341ff46394e83bb78fbd0652937e",
+    "GUID:774f0e7b520e24644b448f5ac7fa5d94"
   ],
   "includePlatforms": [
     "Editor"

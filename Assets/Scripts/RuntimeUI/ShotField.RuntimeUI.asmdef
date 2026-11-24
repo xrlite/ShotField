@@ -11,6 +11,7 @@
     "Unity.XR.Interaction.Toolkit",
     "Unity.XR.CoreUtils",
     "ByteDance.PICO.Platform",
-    "ByteDance.PICO.XR"
+    "ByteDance.PICO.XR",
+    "GUID:774f0e7b520e24644b448f5ac7fa5d94"
   ]
 }
