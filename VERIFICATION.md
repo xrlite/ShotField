@@ -19,6 +19,7 @@
 
 | 版本 | Commit | 判据 | 状态 |
 | --- | --- | --- | --- |
+| 0.9.0-lab.20261124 | `30cb0de` | CameraMotionRecorder 支持注入时间采样；12s/30Hz 真实 raw/smoothed 双轨、12→6s 重定时、50% 寻址；`B5-DUAL-TRACK-RESULT=PASS (8/8)`，360 帧 mp4 `VIDEO-EXPORT-RESULT=PASS (11/11)`（连续镜头口径） | 编辑器已验证；真机录制手感 pending |
 | 0.9.0-lab.20261124 | `1856a95` | DeepSeek/Tripo 凭据读取统一到 `LocalAiConfig`；只写 `persistentDataPath/ai_credentials.json`，旧 `ai_config.local.json` 在目标不存在时迁移；Assets 内同名文件由构建闸与扫描器硬拒；`CREDENTIAL-PATH-RESULT=PASS (9/9)` | 编辑器已验证；APK 端迁移 pending-APK |
 | 0.9.0-lab.20261124 | `720c4cb` | 三块独立空间卡：监看板/多轨时间轴/剧本资产抽屉；抓取、0.5–3m 缩放、吸附、Clip 调序/裁切、Tripo 失败回退灰盒、PalmMenu 呼出；`THREE-CARD-RESULT=PASS (13/13)`、Play Mode `THREE-CARD-PLAY=PASS` | 编辑器已验证；真机抓握/射线手感 pending |
 | 0.9.0-lab.20261124 | `03a36ad` | 天工 FBX 合并为 1 renderer / 68,569 三角形；Resources 运行时加载、白模/天工往返切换、桌面一键按钮；`STAGE-PRESET-RESULT=PASS (7/7)`、Play Mode `STAGE-PRESET-PLAY=PASS` | 编辑器已验证；APK/真机 pending；天工权属/许可待核 |
@@ -43,13 +44,13 @@
 | 0.9.0-lab | `5c61097` | **P3**：`SCRIPT-PROPOSAL-RESULT=PASS (3/3)` 通用提案契约，三剧本模式各异 | 真实 API 已验证；**可编辑提案 UI 未做** |
 | 0.9.0-lab | `0c1844d` | **P6 前置**：导出规格升至 1920×1080 / 30fps / 15s / ≥8Mbps，命名规则集中 | **PENDING-APK**，真 mp4 未出 |
 
-> 提交链（新→旧）：`1856a95` ← `720c4cb` ← `03a36ad` ← `53934fe` ← `c27a3c2` ← `d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 新提交均在本地，**尚未 push**。
+> 提交链（新→旧）：`30cb0de` ← `1856a95` ← `720c4cb` ← `03a36ad` ← `53934fe` ← `c27a3c2` ← `d8a1a55` ← `11ff013` ← `35e8d57` ← `04748f2` ← `0ba5ac8` ← `cbab098` ← `670470a` ← `b3a6ef6` ← `7f06dfb` ← `7a931dd` ← `3d3d626` ← `476f633` ← `1eedaf2` ← `387949e` ← `0c1844d` ← `5c61097` ← `dfb7172` ← `35510bc`。2026-11-24 新提交均在本地，**尚未 push**。
 > 后续版本 tag 规划：`v0.9.1-alpha`（Console 归零 + 统一工作流）→ `v0.9.2-alpha`（四格式 + AI 提案）→ `v0.9.3-alpha`（资产 + Tripo）→ `v0.9.4-alpha`（沙盘 1:1 + VR UI）→ `v0.9.5-beta`（时间轴 + MP4）→ `v0.9.6-beta`（模拟器完整旅程）。
 > **tag 只在对应判据真过后打，不提前占位。**
 
 ---
 
-## 门禁（26 项）
+## 门禁（27 项）
 
 运行入口：`ShotField > Verifiers`，或工作区脚本 `04_Project/巡检/verify_all.ps1`（走 live-bridge 直调）。
 
@@ -61,6 +62,7 @@
 | `navmesh` | NavMesh 烘焙与可达性 |
 | `m3_assembly` | M3 装配完整性 |
 | `timeline` | 时间轴片段与时长 |
+| `b5_dual_track` | `B5-DUAL-TRACK-RESULT=PASS (8/8)`：12s/30Hz 真实录制、raw/smoothed 等采样、起终点保持、高频分量下降、12→6s 重定时不改轨迹、50% 精确落在 6s |
 | `layout` | 场景布局与家具落位 |
 | `camera_preset` | 机位预设约束 |
 | `props` | 道具语义标记 |
@@ -82,7 +84,7 @@
 | `tabletop_scale` | `TABLETOP-SCALE-RESULT=PASS (10/10)`：1:20/1:1 换算、演员预算、MR 平面识别 pending-真机 |
 | `studio_fade` | `STUDIO-FADE-RESULT=PASS (10/10)`：淡入淡出状态机与遮罩参数；人眼观感 pending-真机 |
 
-最近一次全量（2026-11-24 14:26）：**26 run / 0 failed/no-verdict / 0 no-error**，日志 `verify_all_20261124_142655.log`。其中 `network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`credential_path` 输出 `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`console_clean` 读数 `Errors=0 Warnings=0`，此前 300s 驻留协议见 `console_clean_dwell_20261123_135958.log`。
+最近一次全量（2026-11-24 15:41）：**27 run / 0 failed/no-verdict / 0 no-error**，日志 `verify_all_20261124_154107.log`。其中 `network_session` 输出 `NET-VERIFY-RESULT=PASS (13/13)` 与 `NET-SCENE-EDIT-RESULT=PASS (6/6)`；`stage_preset` 输出 `STAGE-PRESET-RESULT=PASS (7/7)`；`three_card_workspace` 输出 `THREE-CARD-RESULT=PASS (13/13)`；`credential_path` 输出 `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`b5_dual_track` 输出 `B5-DUAL-TRACK-RESULT=PASS (8/8)`；`console_clean` 读数 `Errors=0 Warnings=0`，此前 300s 驻留协议见 `console_clean_dwell_20261123_135958.log`。
 
 > ✅ **Console 长驻留归零（2026-11-23 13:59:58 实跑通过）**：协议为 清 Console → 域重载 → 清重载噪音 → 进 Play → 摆位走位（`PrevisCast_A_Red` MoveTo）+ 时间轴寻道（`SH_04`）→ Play 态驻留 300s，60/120/180/240/300s 五次巡检 Console 全空 → 退出 Play。读数 `CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，日志 `console_clean_dwell_20261123_135958.log`。
 >
@@ -115,6 +117,7 @@
 | 天工宏大叙事预设 | 源 FBX SHA256 `b49a0702...ec1ee89`；`TIANGONG-PRESET=PASS renderers=1 triangles=68569`；`STAGE-PRESET-RESULT=PASS (7/7)` | 编辑器 + 本地 Resources | 编辑器已验证；权属/许可待核；APK/真机 pending |
 | 三块空间卡与掌心呼出 | `20261124_1335_监看板_v05.png`、`20261124_1335_时间轴_v05.png`、`20261124_1335_剧本资产抽屉_v05.png`、`20261124_1357_掌心菜单卡片栏_v09.png`；`THREE-CARD-RESULT=PASS (13/13)`、`THREE-CARD-PLAY=PASS` | 编辑器 Play | 编辑器已验证；真机抓握/射线手感 pending |
 | 凭据单路径与迁移 | `CREDENTIAL-PATH-RESULT=PASS (9/9)`；`secret_scan_resources_20261124_142635.log` 24 文件 / 0 命中 | 编辑器 + 工作区扫描 | 编辑器已验证；APK 端旧文件迁移 pending-APK |
+| B5 双轨运镜实录 | `B5_frames_20261124_1534/B5_dual_track_12s_960x540.mp4`、`raw_smoothed_t06.png`、`smoothed_t06.png`、`B5_evidence_20261124_1534.json`；12.00s / 360 帧 / 30fps / 1.986Mbps / 全帧中位差 3.56，`VIDEO-EXPORT-RESULT=PASS (11/11)`（连续镜头 min-shots=0） | 编辑器录制状态机 + ffmpeg | 编辑器已验证；真机录制手感 pending |
 | M1 六步连续实录 | `20261124_M1六步操作_v02.mp4`；`M1-SIXSTEP-DEMO=PASS (6/6)`，actorDelta=0.0000 / propDelta=0.0000 | 编辑器 Play + Recorder | 编辑器已验证；模拟器六步 pending-APK |
 | P6 四机位本地出片 | `20261124_P6预演_15s_8Mbps_v06.mp4`；15/45 两档 `VIDEO-EXPORT-RESULT=PASS (11/11)`：1920x1080 / 30fps / 15.00s / 450 帧 / 11.927Mbps / 全帧中位 1.96 / 切镜达标 | 编辑器 Play + Recorder + ffmpeg CBR | 编辑器已验证；Android 真编码 pending-APK |
 | mp4 导出链路 | 编辑器菜单自测 PASS；两条失败分支已验；验片脚本改为全帧运动/切镜扫描，`--pairs` 仅诊断 | 编辑器 | **Android 真编码 pending-APK** |
