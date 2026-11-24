@@ -88,8 +88,13 @@ function Assert-WithinTolerance {
 
 function Get-E2EGateEndpoint {
     param(
-        [string]$PicoRoot = "F:\pico"
+        [string]$PicoRoot = ""
     )
+    if ([string]::IsNullOrWhiteSpace($PicoRoot)) {
+        $repo = Split-Path -Parent $PSScriptRoot
+        $project = Split-Path -Parent $repo
+        $PicoRoot = Split-Path -Parent $project
+    }
     if ($env:SHOTFIELD_UNITY_MCP) {
         return $env:SHOTFIELD_UNITY_MCP
     }

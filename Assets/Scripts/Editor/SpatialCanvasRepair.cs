@@ -16,7 +16,7 @@ namespace ShotField.EditorTools
     ///
     /// 用法：任何一次 Overlay 抓帧之后都必须再跑一次本工具。
     /// batchmode：
-    ///   Unity.exe -batchmode -quit -projectPath F:\pico\04_Project\ShotField \
+    ///   Unity.exe -batchmode -quit -projectPath &lt;projectPath&gt; \
     ///     -executeMethod ShotField.EditorTools.SpatialCanvasRepair.Run -logFile &lt;log&gt;
     /// 判据只认日志里的 CANVAS-REPAIR-RESULT 行，不认进程退出码。
     /// </summary>

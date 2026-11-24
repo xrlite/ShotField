@@ -9,14 +9,20 @@ param(
 
     [string]$Filter = "",
 
-    [string]$RepoRoot = "F:\pico\04_Project\ShotField",
+    [string]$RepoRoot = "",
 
-    [string]$PicoRoot = "F:\pico",
+    [string]$PicoRoot = "",
 
     [switch]$JsonReport
 )
 
 $ErrorActionPreference = "Stop"
+if ([string]::IsNullOrWhiteSpace($RepoRoot)) {
+    $RepoRoot = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
+}
+if ([string]::IsNullOrWhiteSpace($PicoRoot)) {
+    $PicoRoot = (Resolve-Path (Join-Path $RepoRoot "..\..")).Path
+}
 
 # Parameter validation
 if (-not (Test-Path -LiteralPath $RepoRoot)) {
