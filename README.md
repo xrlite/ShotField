@@ -4,7 +4,7 @@
 
 [快速开始](#快速开始) · [核心能力与证据](#核心能力与证据) · [六阶段端到端流程](#六阶段端到端全链路) · [实验室功能](#实验室功能有接口未真机验) · [尚未实现](#尚未实现) · [验证索引](VERIFICATION.md) · [源码结构](#源码结构) · [Android 构建](#android-构建) · [许可证](#许可证与来源)
 
-![License](https://img.shields.io/badge/license-MIT-green) ![Unity](https://img.shields.io/badge/Unity-6000.6.5f1-blue) ![Platform](https://img.shields.io/badge/target-PICO%20Android%20ARM64-orange) ![Status](https://img.shields.io/badge/status-lab-orange) ![Gates](https://img.shields.io/badge/gates-current%20baseline%20pending-lightgrey)
+![License](https://img.shields.io/badge/license-Apache%202.0-blue) ![Unity](https://img.shields.io/badge/Unity-6000.6.5f1-blue) ![Platform](https://img.shields.io/badge/target-PICO%20Android%20ARM64-orange) ![Status](https://img.shields.io/badge/status-lab-orange) ![Gates](https://img.shields.io/badge/gates-current%20baseline%20pending-lightgrey)
 
 > **当前是工程验证期的测试版（`0.9.0-lab`），代码托管于 GitHub；本地验证进度与远端同步状态以 git 记录为准。**
 > 本项目严守工程纪律，严格区分「真跑过」「有接口未验」「还没做」。**代码存在不等于功能可用。**
@@ -155,6 +155,12 @@ New-Item -ItemType Directory -Path (Join-Path $repo 'Build') -Force | Out-Null
 
 ## 许可证与来源
 
-ShotField 团队原创代码与文档遵循 [MIT](LICENSE) 许可协议。
+ShotField 团队原创**源代码**遵循 [Apache-2.0](LICENSE) 许可协议，版权归 © 2026 ShotField Team 所有。
+Apache-2.0 允许他人使用、修改、分发与商用，同时明确授予专利许可、且**不授予商标许可**。
+
+**品牌与创作资产不随代码许可开放。** 项目名称「镜场 ShotField」、中英文商标、分层启动器图标、宣传海报与视频、片场场景包、动作与运镜模板包、定制字体，均为团队保留所有权利（All Rights Reserved）。
+
+欢迎基于源代码学习与二次开发。请保留项目名称与团队署名；不得将上述品牌与创作资产用于换皮改名后转售或商业发布。商业合作与授权请先联系团队。
+
 依赖的第三方组件（Unity Starter Assets、PICO SDK、Siccity GLTFUtility、Poly Haven CC0 资源）均按各自开源协议获得合法使用与归属授权。
 严格遵守安全红线：无任何私有 SDK 样例源码与商业闭源二进制非法提交。
