@@ -34,6 +34,7 @@ namespace ShotField.RuntimeUI
         private bool _hasActorStart;
         private TabletopDirector _tabletop;
         private ActorPossessionController _possession;
+        private ShotLibrary _shotLib;
         private int _initialShotCount;
         private float _completeTimer = -1f;
 
@@ -72,7 +73,8 @@ namespace ShotField.RuntimeUI
                     17, new Vector2(0f, 22f - i * 42f), new Vector2(510f, 34f), DimColor);
             }
 
-            _initialShotCount = ShotLibrary.All != null ? ShotLibrary.All.Count : 0;
+            _shotLib = FindAnyObjectByType<ShotLibrary>();
+            _initialShotCount = _shotLib != null ? _shotLib.Count : 0;
             PlaceAboveTabletop();
         }
 
@@ -130,7 +132,8 @@ namespace ShotField.RuntimeUI
         {
             if (_done[2]) return;
             if (_possession == null) _possession = FindAnyObjectByType<ActorPossessionController>();
-            int curShots = ShotLibrary.All != null ? ShotLibrary.All.Count : 0;
+            if (_shotLib == null) _shotLib = FindAnyObjectByType<ShotLibrary>();
+            int curShots = _shotLib != null ? _shotLib.Count : 0;
             if ((_possession != null && _possession.IsRecording) || curShots > _initialShotCount)
                 MarkDone(2);
         }
