@@ -5,7 +5,7 @@ namespace ShotField.Core
 {
     public enum ParticipantRole { Director, Producer, Actor, Observer }
 
-    public enum PacketType { JoinRequest, JoinResponse, CameraSync, PassportSync, Comment, Heartbeat, SceneEdit, SceneEditResult }
+    public enum PacketType { JoinRequest, JoinResponse, CameraSync, PassportSync, Comment, Heartbeat, SceneEdit, SceneEditResult, ActorPose }
 
     [Serializable]
     public class SetPacket
@@ -86,8 +86,29 @@ namespace ShotField.Core
         public string actorId;
         public float px, py, pz;
         public float ry;
+        public float rx, rz, rw;
+        public bool fullRotation;
+        public string actionTag;
         public int revision;
         public long clientTimestamp;
+
+        /// <summary>远端应用：fullRotation 为假时退化为仅偏航，兼容旧包。</summary>
+        public Quaternion Rotation => fullRotation
+            ? new Quaternion(rx, ry, rz, rw)
+            : Quaternion.Euler(0f, ry, 0f);
+    }
+
+    [Serializable]
+    public class ActorPoseData
+    {
+        public string actorId;
+        public float px, py, pz;
+        public float rx, ry, rz, rw;
+        public string actionTag;
+        public int sequence;
+
+        public Vector3 Position => new Vector3(px, py, pz);
+        public Quaternion Rotation => new Quaternion(rx, ry, rz, rw);
     }
 
     [Serializable]

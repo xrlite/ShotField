@@ -5,7 +5,7 @@ using UnityEngine;
 
 namespace ShotField.RuntimeUI
 {
-    /// <summary>运行时唯一联机会话：桌面与 VR 共用，负责主线程 Tick、心跳与输入校验。</summary>
+    /// <summary>运行时唯一联机会话：桌面与 VR 共用，负责主线程 Tick、心跳、位姿广播与远端落地。</summary>
     public sealed class NetworkSessionController : MonoBehaviour
     {
         public NetworkSession Session { get; } = new NetworkSession();
@@ -14,7 +14,16 @@ namespace ShotField.RuntimeUI
         public string Status { get; private set; } = "未连接";
         public event Action Changed;
 
+        [Header("演员位姿同步")]
+        [Tooltip("本机操控的演员；为空则不自动广播位姿。")]
+        public ActorNavigator LocalActor;
+        [Range(2f, 30f)] public float PoseSendHz = 12f;
+        public int LastApplyCount { get; private set; }
+        public string LastApplyReason { get; private set; } = "";
+
         private float _nextHeartbeat;
+        private float _nextPose;
+        private int _poseSequence;
         private string _lastState;
 
         private void Awake()
@@ -22,18 +31,36 @@ namespace ShotField.RuntimeUI
             Application.runInBackground = true;
             Session.OnClientJoined += OnClientJoined;
             Session.OnCommentReceived += OnCommentReceived;
+            Session.OnSceneEditReceived += OnSceneEditReceived;
+            Session.OnActorPoseReceived += OnActorPoseReceived;
         }
 
         private void Update()
         {
             TickNow();
-            if (Session.State != NetworkSession.SessionState.Hosting &&
-                Session.State != NetworkSession.SessionState.Connected) return;
-            if (Time.unscaledTime < _nextHeartbeat) return;
-            _nextHeartbeat = Time.unscaledTime + 2f;
-            try { Session.SendHeartbeat(); }
-            catch (Exception ex) { SetStatus("心跳失败: " + ex.Message); }
+            if (!IsLive) return;
+
+            if (Time.unscaledTime >= _nextHeartbeat)
+            {
+                _nextHeartbeat = Time.unscaledTime + 2f;
+                try { Session.SendHeartbeat(); }
+                catch (Exception ex) { SetStatus("心跳失败: " + ex.Message); }
+            }
+
+            if (LocalActor != null && PoseSendHz > 0f)
+            {
+                float interval = 1f / PoseSendHz;
+                if (Time.unscaledTime >= _nextPose)
+                {
+                    _nextPose = Time.unscaledTime + interval;
+                    BroadcastLocalActorNow();
+                }
+            }
         }
+
+        private bool IsLive =>
+            Session.State == NetworkSession.SessionState.Hosting ||
+            Session.State == NetworkSession.SessionState.Connected;
 
         public void TickNow()
         {
@@ -80,6 +107,43 @@ namespace ShotField.RuntimeUI
             SetStatus("未连接");
         }
 
+        /// <summary>立即推一次本机演员位姿；摆位/走位确认后调用，不等下一个采样点。</summary>
+        public bool BroadcastLocalActorNow(string actionTag = "")
+        {
+            if (!IsLive || LocalActor == null) return false;
+            try
+            {
+                Session.BroadcastActorPose(RemoteActorSync.CapturePose(LocalActor, ++_poseSequence, actionTag));
+                return true;
+            }
+            catch (Exception ex) { SetStatus("位姿广播失败: " + ex.Message); return false; }
+        }
+
+        /// <summary>提交一次走位编辑（带 revision 与回执），用于需要强一致的挪人操作。</summary>
+        public bool SubmitLocalSceneEdit(int revision, string actionTag = "")
+        {
+            if (!IsLive || LocalActor == null) return false;
+            try
+            {
+                Session.BroadcastSceneEdit(RemoteActorSync.CaptureSceneEdit(LocalActor, revision, actionTag));
+                return true;
+            }
+            catch (Exception ex) { SetStatus("走位提交失败: " + ex.Message); return false; }
+        }
+
+        private void OnSceneEditReceived(SceneEditData data)
+        {
+            LastApplyCount = RemoteActorSync.ApplySceneEdit(data, out string reason) ? 1 : 0;
+            LastApplyReason = data.actorId + ":" + reason;
+            if (LastApplyCount == 0) SetStatus("远端走位未落地: " + LastApplyReason);
+        }
+
+        private void OnActorPoseReceived(ActorPoseData data)
+        {
+            LastApplyCount = RemoteActorSync.ApplyPose(data, out string reason) ? 1 : 0;
+            LastApplyReason = data.actorId + ":" + reason;
+        }
+
         private bool ValidatePort()
         {
             if (Port >= 1 && Port <= 65535) return true;
@@ -97,6 +161,8 @@ namespace ShotField.RuntimeUI
         {
             Session.OnClientJoined -= OnClientJoined;
             Session.OnCommentReceived -= OnCommentReceived;
+            Session.OnSceneEditReceived -= OnSceneEditReceived;
+            Session.OnActorPoseReceived -= OnActorPoseReceived;
             Session.Disconnect();
         }
 

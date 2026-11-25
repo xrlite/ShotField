@@ -376,6 +376,21 @@
       ]
     },
     {
+      "id": "network_runtime_binding",
+      "menu": "ShotField/Verifiers/Run Network Runtime Binding Verifier",
+      "method": "ShotField.EditorTools.NetworkRuntimeBindingVerifier.Run",
+      "code": "ShotField.EditorTools.NetworkRuntimeBindingVerifier.Run();",
+      "tag": "NET-RUNTIME-BINDING-RESULT",
+      "watch": [
+        "Assets/Scripts/Core/NetworkSession*.cs",
+        "Assets/Scripts/Core/SetPackets.cs",
+        "Assets/Scripts/RuntimeUI/RemoteActorSync.cs",
+        "Assets/Scripts/RuntimeUI/NetworkSessionController.cs",
+        "Assets/Scripts/RuntimeUI/ActorNavigator.cs",
+        "Assets/Scripts/Editor/NetworkRuntimeBindingVerifier.cs"
+      ]
+    },
+    {
       "id": "palm_menu_vr",
       "menu": "ShotField/Verifiers/Run Palm Menu VR Verifier",
       "method": "ShotField.EditorTools.PalmMenuVrVerifier.Run",

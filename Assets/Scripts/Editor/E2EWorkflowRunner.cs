@@ -35,19 +35,14 @@ namespace ShotField.EditorTools
         {
             var reports = ExecuteAllStages();
             bool allOk = reports.All(r => r.success);
-            foreach (var r in reports)
-                Debug.Log($"[E2E-STEP {r.stepIndex}/6] {r.stepName}: {(r.success ? "PASS" : "FAIL")} ({r.detail})");
+            foreach (var r in reports) Debug.Log($"[E2E-STEP {r.stepIndex}/6] {r.stepName}: {(r.success ? "PASS" : "FAIL")} ({r.detail})");
             Debug.Log($"[E2E-RUNNER] 全流程执行完成，总体状态: {(allOk ? "SUCCESS" : "FAILED")}");
         }
 
         public static List<StepReport> ExecuteAllStages() => new List<StepReport>
         {
-            Step1_ImportScript(),
-            Step2_AiProposalAndFourGates(),
-            Step3_AssetReconciliationAndGlb(),
-            Step4_TabletopAndImmersiveTransition(),
-            Step5_SteadicamAndFiveTrackTimeline(),
-            Step6_BroadcastExportVerification()
+            Step1_ImportScript(), Step2_AiProposalAndFourGates(), Step3_AssetReconciliationAndGlb(),
+            Step4_TabletopAndImmersiveTransition(), Step5_SteadicamAndFiveTrackTimeline(), Step6_BroadcastExportVerification()
         };
 
         public static StepReport Step1_ImportScript()
@@ -72,21 +67,18 @@ namespace ShotField.EditorTools
             UnityEngine.Object.DestroyImmediate(ghostGo);
 
             var testTarget = new GameObject("[E2E_Gate4_RealTarget]");
-            bool gate4Ok = false;
+            bool gate4Ok;
             try
             {
                 var targetPos = new Vector3(0.6f, 0f, 1.2f);
-                testTarget.transform.position = targetPos;
-                testTarget.transform.rotation = Quaternion.Euler(0, 30f, 0);
+                testTarget.transform.SetPositionAndRotation(targetPos, Quaternion.Euler(0, 30f, 0));
                 Physics.SyncTransforms();
-                float dist = Vector3.Distance(testTarget.transform.position, targetPos);
-                float angle = Quaternion.Angle(testTarget.transform.rotation, Quaternion.Euler(0, 30f, 0));
-                gate4Ok = dist < 0.001f && angle < 0.1f;
+                gate4Ok = Vector3.Distance(testTarget.transform.position, targetPos) < 0.001f
+                          && Quaternion.Angle(testTarget.transform.rotation, Quaternion.Euler(0, 30f, 0)) < 0.1f;
             }
             finally { UnityEngine.Object.DestroyImmediate(testTarget); }
 
-            bool allGates = gate1Ok && gate2Ok && gate3Ok && gate4Ok;
-            return new StepReport { stepIndex = 2, stepName = "AI分镜拆解契约（离线，不调网络）", success = allGates,
+            return new StepReport { stepIndex = 2, stepName = "AI分镜拆解契约（离线，不调网络）", success = gate1Ok && gate2Ok && gate3Ok && gate4Ok,
                 detail = $"Gate1(Schema)={gate1Ok}, Gate2(Boundary)={gate2Ok}, Gate3(Ghost)={gate3Ok}, Gate4(引擎级Transform同帧回读)={gate4Ok}, AI_CALL=OFFLINE_CONTRACT(业务回读由 scene_command_gates 覆盖)" };
         }
 
@@ -119,8 +111,7 @@ namespace ShotField.EditorTools
             {
                 var director = host.AddComponent<TabletopDirector>();
                 var aligner = host.AddComponent<PicoPlaneTabletopAligner>();
-                aligner.tabletop = director;
-                aligner.ApplyFallback();
+                aligner.tabletop = director; aligner.ApplyFallback();
 
                 bool alignerOk = aligner.CurrentSurface.FacesUp && aligner.CurrentSurface.HasExtent;
                 director.SwitchMode(TabletopDirector.ScaleMode.TabletopMini);
@@ -139,8 +130,7 @@ namespace ShotField.EditorTools
             try
             {
                 var stab = camGo.AddComponent<VirtualCameraStabilizer>();
-                stab.mode = CameraStabilizerMode.Steadicam;
-                bool steadicamOk = stab.mode == CameraStabilizerMode.Steadicam;
+                bool steadicamOk = (stab.mode = CameraStabilizerMode.Steadicam) == CameraStabilizerMode.Steadicam;
 
                 var timeline = new TimelineChainModel();
                 var clipA = new TimelineClipDto { clipId = "clip_01", durationSeconds = 7.5f };
@@ -172,8 +162,7 @@ namespace ShotField.EditorTools
             var tex = new Texture2D(16, 16, TextureFormat.RGBA32, false);
             try
             {
-                var px = new Color[256];
-                for (int i = 0; i < 256; i++) px[i] = new Color(i / 255f, 1f - i / 255f, 0.5f, 1f);
+                var px = Enumerable.Range(0, 256).Select(i => new Color(i / 255f, 1f - i / 255f, 0.5f, 1f)).ToArray();
                 tex.SetPixels(px); tex.Apply(false);
                 var raw = tex.GetRawTextureData<byte>().ToArray();
                 bufferOk = raw.Length == 16 * 16 * 4 && raw.Distinct().Count() > 1;
@@ -181,14 +170,12 @@ namespace ShotField.EditorTools
             finally { UnityEngine.Object.DestroyImmediate(tex); }
 
             // 命名与规格取自产品真实常量（VideoExportPaths），不再用本地常量自比。
-            string namingSample = VideoExportPaths.BuildRelativePath(new DateTime(2026, 11, 23, 14, 30));
+            string namingSample = VideoExportPaths.BuildRelativePath(new DateTime(2026, 11, 23, 14, 30, 0));
             bool namingOk = namingSample.EndsWith("SC01_Demo_20261123_1430.mp4") &&
                             !VideoExportPaths.FilePrefix.ToLowerInvariant().Contains("final");
 
-            // 若目录里恰有「本次运行产出」的合规 mp4（1 小时内、命名合规、容器头正确），顺带记录；
-            // 没有不算失败——历史预置文件一律不作证据。
-            bool freshArtifact = false;
-            string freshName = "无";
+            // 若目录里恰有「本次运行产出」的合规 mp4（1 小时内、命名合规、容器头正确）则顺带记录；历史预置文件一律不作证据。
+            bool freshArtifact = false; string freshName = "无";
             string folder = Path.GetFullPath(Path.Combine(Application.dataPath, "..", "build", "Video"));
             if (Directory.Exists(folder))
             {
@@ -203,8 +190,7 @@ namespace ShotField.EditorTools
                 }
             }
 
-            bool ok = pluginOk && bufferOk && namingOk;
-            return new StepReport { stepIndex = 6, stepName = "1080p 导出规格/编码器在位（真编码 pending-APK）", success = ok,
+            return new StepReport { stepIndex = 6, stepName = "1080p 导出规格/编码器在位（真编码 pending-APK）", success = pluginOk && bufferOk && namingOk,
                 detail = $"编码器在位={pluginOk}, RGBA32缓冲={bufferOk}, 命名合规={namingOk}, 本次运行产物={freshName}, 真编码=PENDING_APK{(freshArtifact ? "(已有近期产物仅作附带记录)" : "")}" };
         }
     }
