@@ -4,7 +4,7 @@
 
 [快速开始](#快速开始) · [核心能力与实测门禁](#核心能力与实测门禁) · [二次开发与扩展指南](#二次开发与扩展指南) · [六阶段端到端流程](#六阶段端到端全链路) · [Android 构建](#android-构建) · [许可证](#许可证与来源)
 
-![License](https://img.shields.io/badge/license-Apache%202.0-blue) ![Unity](https://img.shields.io/badge/Unity-6000.6.5f1-blue) ![Platform](https://img.shields.io/badge/target-PICO%20Android%20ARM64-orange) ![OpenSource](https://img.shields.io/badge/PICO%20Space%20Program-2026%20Open%20Source-brightgreen) ![Entropy](https://img.shields.io/badge/entropy-345%20scripts%20%7C%200%20oversize-brightgreen)
+![License](https://img.shields.io/badge/license-AGPL--3.0-blue) ![Unity](https://img.shields.io/badge/Unity-6000.6.5f1-blue) ![Platform](https://img.shields.io/badge/target-PICO%20Android%20ARM64-orange) ![OpenSource](https://img.shields.io/badge/PICO%20Space%20Program-2026%20Open%20Source-brightgreen) ![Entropy](https://img.shields.io/badge/entropy-345%20scripts%20%7C%200%20oversize-brightgreen)
 
 > **工程透明承诺**：本项目严格区分「编辑器无头实测通过」「有接口待真机」「尚未实现」。代码存在不等于功能可用；所有测试结论均附可复现门禁脚本与日志，详见 **[VERIFICATION.md](VERIFICATION.md)**。
 
@@ -106,5 +106,5 @@ New-Item -ItemType Directory -Path (Join-Path $repo 'Build') -Force | Out-Null
 
 ## 许可证与来源
 
-ShotField 团队原创**源代码**遵循 [Apache-2.0](LICENSE) 许可协议，版权归 © 2026 ShotField Team 所有。
+ShotField 团队原创**源代码**遵循 [GNU AGPL-3.0](LICENSE) 许可协议，版权归 © 2026 ShotField Team 所有（任何修改或网络服务部署均需按 AGPL-3.0 开源回馈）。
 **品牌与创作资产不随代码许可开放**：「镜场 ShotField」名称、商标、图标、宣传物料与内置场景/动作模板包保留所有权利（All Rights Reserved）。第三方依赖（PICO XR SDK、Unity Starter Assets、Siccity GLTFUtility、Poly Haven CC0 资源）均按各自协议合法使用。
