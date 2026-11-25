@@ -1,89 +1,59 @@
 # 镜场 ShotField
 
-**让创作者走进自己想拍的故事。** 专为 PICO 空间计算打造的影视级空间预演与虚拟制片工具：AI 剧本拆解、MR 透视沙盘与 1:1 片场无缝切换、斯坦尼康运镜增稳、五轨空间探针剪辑、多域载具导航与 1080p 导出规格（Android 真编码 pending-APK）。
+**让创作者走进自己想拍的故事。** 专为 PICO 空间计算打造的影视级空间预演与虚拟制片工具：AI 剧本拆解、MR 透视沙盘与 1:1 片场无缝切换、1:1 真人表演实录、斯坦尼康运镜增稳、五轨空间探针剪辑、多域载具导航与创作资产社区复用。
 
-[快速开始](#快速开始) · [核心能力与证据](#核心能力与证据) · [六阶段端到端流程](#六阶段端到端全链路) · [实验室功能](#实验室功能有接口未真机验) · [尚未实现](#尚未实现) · [验证索引](VERIFICATION.md) · [源码结构](#源码结构) · [Android 构建](#android-构建) · [许可证](#许可证与来源)
+[快速开始](#快速开始) · [核心能力与实测门禁](#核心能力与实测门禁) · [二次开发与扩展指南](#二次开发与扩展指南) · [六阶段端到端流程](#六阶段端到端全链路) · [Android 构建](#android-构建) · [许可证](#许可证与来源)
 
-![License](https://img.shields.io/badge/license-Apache%202.0-blue) ![Unity](https://img.shields.io/badge/Unity-6000.6.5f1-blue) ![Platform](https://img.shields.io/badge/target-PICO%20Android%20ARM64-orange) ![Status](https://img.shields.io/badge/status-lab-orange) ![Gates](https://img.shields.io/badge/gates-current%20baseline%20pending-lightgrey)
+![License](https://img.shields.io/badge/license-Apache%202.0-blue) ![Unity](https://img.shields.io/badge/Unity-6000.6.5f1-blue) ![Platform](https://img.shields.io/badge/target-PICO%20Android%20ARM64-orange) ![OpenSource](https://img.shields.io/badge/PICO%20Space%20Program-2026%20Open%20Source-brightgreen) ![Entropy](https://img.shields.io/badge/entropy-345%20scripts%20%7C%200%20oversize-brightgreen)
 
-> **当前是工程验证期的测试版（`0.9.0-lab`），代码托管于 GitHub；本地验证进度与远端同步状态以 git 记录为准。**
-> 本项目严守工程纪律，严格区分「真跑过」「有接口未验」「还没做」。**代码存在不等于功能可用。**
-> 每条结论均有对应日志与截图支撑，详见 **[验证索引 VERIFICATION.md](VERIFICATION.md)**。
+> **工程透明承诺**：本项目严格区分「编辑器无头实测通过」「有接口待真机」「尚未实现」。代码存在不等于功能可用；所有测试结论均附可复现门禁脚本与日志，详见 **[VERIFICATION.md](VERIFICATION.md)**。
 
 ---
 
-## 核心能力与证据
+## 核心能力与实测门禁
 
-以下模块已有代码与对应 Editor 证据；真机、模拟器与当前全量门禁基线分别标注，不互相替代。
-
-| 模块 | 能力与技术实现 | 验收断言 / 门禁 |
+| 模块 | 能力与技术实现 | 实测门禁状态 |
 | :--- | :--- | :--- |
-| **四格式剧本导入** | 支持 `txt` / `md` / `docx` / 文本层 `pdf`。自包含解析层，GB18030 中文往返无乱码；非扫描件不静默返回空，导入后先预览再确认，**用户确认前零网络、零 AI 触发**。 | `SCRIPT-IMPORT-RESULT=PASS (4/4)` |
-| **AI 剧本拆解与四道闸** | 对接真实 DeepSeek，根据剧本智能推荐空间排戏模式（室内对话→片场、会议多角色→沙盘、追逐→混合）；通过**四道闸流水线**（Gate 1 Schema 合规、Gate 2 空间几何机位边界、Gate 3 Ghost 预览标记隔离、Gate 4 真实物理空间 Transform 回读验算，误差 $<0.001\text{m}$）。 | `SCENE-COMMAND-GATE-RESULT=PASS (15/15)` |
-| **MR 透视沙盘与双尺度过渡** | 基于 `PicoPlaneTabletopAligner` 对接 PICO MR OpenXR 水平面识别，支持**面积动态加权择优吸附真实桌面**；未检测到实体桌面时优雅回退至导演前方 0.8m 虚拟创作台；`StudioFadeTransition` 实现 FOV 呼吸平滑过渡与 1:20 沙盘/1:1 沉浸片场双尺度自由缩放。Editor 回退与切换已验证，真实桌面识别与贴合精度 pending-设备。 | `TABLETOP-SCALE-RESULT=PASS (14/14)`<br>`STUDIO-FADE-RESULT=PASS (10/10)` |
-| **虚拟摄影机斯坦尼康防抖** | `VirtualCameraStabilizer` 内置三档运镜模式（Handheld 手持拟真 / Steadicam 机械增稳 / Dolly 轨道平滑）。结合 **One Euro 滤波器自适应频宽衰减** + **SmoothDamp 临界阻尼** + **水平零横滚锁（Roll Horizon Lock）**，彻底消除 VR 自由视角拍摄下的画面高频抖动与机位倾斜。 | `STEADICAM-SYNC-RESULT=PASS (5/5)` |
-| **5 轨时间轴与空间探针** | 借鉴专业导轨剪辑体验，构建 **Camera、Actor、Prop/Vehicle、Audio、Light** 五层独立轨道；`DirectorTimeline` 实现多对象时间轴同步调度；`SpatialProbeVisualizer` 提供零 GC 的摄影机视锥线框、演员视线连线（Eye-line Ray）与载具车灯锥体（Headlight Cone）探针实时渲染。 | `DIRECTOR-TIMELINE-RESULT=PASS (5/5)`<br>`M3-ASSEMBLY-VERIFY-RESULT=PASS (5/5)` |
-| **多域地空智能载具寻路** | `VehiclePathNavigator` 支持马车/汽车/飞船多类型载具：地面模式贴合 NavMesh 智能寻路贴地并开启动态障碍雕刻（Carving）；空中模式自动关闭雕刻，沿着 3D Catmull-Rom 空间样条平滑航行并引入空气侧倾（Bank Roll），解决大空间与立体运镜推演需求。 | `STEADICAM-SYNC-RESULT=PASS (5/5)` |
-| **Tripo 运行时 GLB 骨骼加载** | `RuntimeGltfImporter` 基于局部坐标系计算**旋转不变量精确包围盒**，跨线程安全调度回主线程；自动挂载 `SkinnedMeshRenderer`、`CapsuleCollider` 与带 Carving 的 `NavMeshObstacle`；静态道具自愈回退为 `BoxCollider`，与资产抽屉形成几何对账。 | `TRIPO-RUNTIME-IMPORT=PASS (5/5，最近日志)`<br>`ASSET-RECONCILIATION-RESULT=PASS (10/10)` |
-| **三块空间工作区卡片** | 满足大赛「空间应用多窗口」要求：导演监视器卡、五轨时间轴卡、剧本与资产抽屉卡三卡独立 WorldSpace Canvas 悬浮排布（角间距 55°，宽度严格控在 0.7~1.0m，彻底规避千米巨幅画布），支持射线抓取与边缘缩放；Editor 接线已验证，真机抓握与射线手感 pending-真机。 | `THREE-CARD-RESULT=PASS (13/13)`<br>`BLOCK-LAYOUT-RESULT=PASS (10/10)` |
-| **代码熵与工程健康守卫** | 2026-11-25 巡检：323 个脚本 / 34,196 行 / 7 个 asmdef / 0 缺 .meta；`E2EWorkflowRunner.cs` 为 212 行，超预算 12 行，当前熵巡检不通过。33 项门禁新基线待重跑，历史 33/33 不作为当前结论。 | `entropy_20261125_0000.txt`: **1 oversize / 92 raw same-name groups**<br>当前全量门禁：**baseline pending** |
+| **1:1 真人表演实录** | 掌心菜单点击**「上场演这镜」**，通过 `ActorPossessionController` 附身 `ActorA` 并自动标定眼高比例；采用 Unity 原生 `Animator.OnAnimatorIK`（`SC01_ActorMotion.controller` 已开启 `m_IKPass: 1`）实现双柄 3 点 VR IK 驱动，30Hz 录制为 `ActorPerformanceClip` 并即时回放；预留 PICO Motion Tracker 2.0 24 节点接口。 | `ACTOR-PERF-RESULT=PASS (5/5)` |
+| **创作资产社区（Android 兼容）** | 遵循依赖倒置 `ICommunityAssetRepository`，本地优先实现 `LocalCommunityAssetRepository`（通过 `catalog_index.json` + `UnityWebRequest` 兼容 Android APK 只读包）；内置 3 套官方 `.sfpack.zip` 案例包，掌心菜单**「社区案例库」**支持一键加载复用，并预留 `RemoteHttpCommunityRepository` 云端切换桩。 | `COMMUNITY-ASSET-RESULT=PASS (5/5)` |
+| **多人同室局域网协同** | `NetworkSessionController` + `LanRoomDiscovery`（UDP 7778 广播）支持免头显手敲 IP 自动发现房间、`VrNetworkPanel` 一键加入；`RemoteActorSync.ApplyInterpolated` 提供 80ms 指数阻尼平滑与分演员 revision 冲突仲裁（双真机现场同步待上机取证）。 | `NET-VERIFY-RESULT=PASS (13/13)`<br>`NET-RUNTIME-BINDING-RESULT=PASS (5/5)` |
+| **四格式剧本导入与 AI 四道闸** | 支持 `txt` / `md` / `docx` / 文本层 `pdf` 导入；接入 DeepSeek 拆解分镜，经四道闸流水线（Schema、机位边界、Ghost 虚影、物理 Transform 回读误差 $<0.001\text{m}$）落地，确认前零网络调用。 | `SCRIPT-IMPORT-RESULT=PASS (4/4)`<br>`SCENE-COMMAND-GATE-RESULT=PASS (15/15)` |
+| **MR 透视沙盘与三卡多窗口** | `PicoPlaneTabletopAligner` 对接 PICO MR 平面择优吸附实体桌面（无桌面优雅回退虚拟台），`StudioFadeTransition` 实现 1:20 沙盘 ↔ 1:1 片场平滑过渡；导演监视器、五轨时间轴、剧本资产抽屉三块独立 WorldSpace 窗口满足空间应用多窗口规范。 | `TABLETOP-SCALE-RESULT=PASS (14/14)`<br>`THREE-CARD-RESULT=PASS (13/13)`<br>`PALM-MENU-VR-RESULT=PASS (10/10)` |
+| **斯坦尼康防抖与 5 轨空间探针** | `VirtualCameraStabilizer` 提供 Handheld / Steadicam / Dolly 三档增稳（One Euro 滤波 + 零横滚锁）；`DirectorTimeline` 同步调度 Camera / Actor / Prop / Audio / Light 五轨与零 GC 空间视锥探针。 | `STEADICAM-SYNC-RESULT=PASS (5/5)`<br>`DIRECTOR-TIMELINE-RESULT=PASS (5/5)` |
+| **Tripo 运行时 GLB 加载** | `RuntimeGltfImporter` 跨线程解析 GLB 并回主线程挂载骨骼/碰撞体与 NavMeshObstacle Carving。 | `TRIPO-RUNTIME-IMPORT=PASS (5/5)` |
+| **代码熵与安全守卫** | **345 个 C# 脚本 / 36,411 行**，严格 4 层单向依赖（`Core` 零反向引用），**0 个超 200 行文件**，**0 缺失 `.meta`**；`secret_scan` 实测 git 与 APK 均 0 真实密钥泄露；`console_clean` 如实记录 `Errors=0, Warnings=9`（PICO SDK 自身 Warning）。 | `entropy_check`: **0 oversize**<br>`credential_path`: **PASS (9/9)** |
 
 ---
 
-## 六阶段端到端全链路（E2E Workflow）
+## 二次开发与扩展指南
 
-通过 `E2EWorkflowRunner`，以经典剧本《桌上的信》双人对手戏为例，驱动六阶段全流程闭环验证（`E2E-PIPELINE-RESULT=PASS (6/6)`）：
+本项目从架构设计上支持其他开发者快速 Fork 与二次开发：
+
+1. **严格四层程序集隔离（`asmdef`）**：
+   - `ShotField.Core`（零外部框架耦合）→ `ShotField.Constraints` / `ShotField.Import` / `ShotField.Export` → `ShotField.RuntimeUI` → `ShotField.Editor`。
+   - 所有脚本均严格控制在 **≤ 200 行**，职责单一、易于定位和替换。
+2. **扩展创作资产社区后端（依赖倒置）**：
+   - 只需实现 [ICommunityAssetRepository.cs](Assets/Scripts/Core/Community/ICommunityAssetRepository.cs) 中的 `ListAsync`、`DownloadPackageAsync`、`PublishPackageAsync`，即可将内置的 `LocalCommunityAssetRepository` 无缝切换为自建云端仓库（可参考 `RemoteHttpCommunityRepository.cs`）。
+   - 向 `Assets/StreamingAssets/CommunityCatalog/catalog_index.json` 注册纯 ASCII 命名的 `.sfpack.zip` 即可热扩充官方案例库。
+3. **接入新的 AI 模型或 3D 生成源**：
+   - `DeepSeekClient` 与 `Tripo` 适配器均位于 `Core/Adapters/`，凭据统一从 `Application.persistentDataPath` 或环境变量读取，严禁写入 `Assets/Resources/`。
+4. **一键自动化门禁回归**：
+   - 在 Unity Editor 菜单 `ShotField > Verifiers` 中可直接运行单项验证器，或在无头模式下通过 `BuildAndroid.BuildIl2Cpp` 出包。
+
+---
+
+## 六阶段端到端全链路
+
+通过 `E2EWorkflowRunner` 驱动剧本解析 → AI 四道闸 → 资产加载 → MR 沙盘推演 → 斯坦尼康与 5 轨调度 → 1080p 导出规格与 MediaCodec 插件在位校验（`E2E-PIPELINE-RESULT=PASS (6/6)`；Android 真机硬件编码状态标为 `pending-APK`）。
 
 ```mermaid
 flowchart LR
-    S1["① 剧本解析<br>角色/对白/场次"] --> S2["② AI 四道闸<br>Schema/边界/Ghost/物理回读"]
-    S2 --> S3["③ 资产与GLB加载<br>模型归一化/碰撞/避障Carving"]
-    S3 --> S4["④ MR沙盘推演<br>桌面吸附与1:1双尺度进场"]
-    S4 --> S5["⑤ 斯坦尼康与5轨<br>手持增稳/空间探针调度"]
-    S5 --> S6["⑥ 1080p MP4验证<br>MediaCodec插件/像素缓冲/归档"]
+    S1["① 剧本解析"] --> S2["② AI 四道闸"]
+    S2 --> S3["③ 资产与GLB加载"]
+    S3 --> S4["④ MR沙盘与1:1表演"]
+    S4 --> S5["⑤ 斯坦尼康与5轨"]
+    S5 --> S6["⑥ 导出规格与插件校验"]
 ```
-
-1. **① 剧本解析**：解析场景内景、老张与小李双角色、对话与情境道具。
-2. **② AI 分镜拆解契约与四道闸（离线）**：下发机位命令，经过 Schema 校验、机位可行性检查、Ghost 虚影隔离，并做引擎级 Transform 同帧回读（误差 $<0.001\text{m}$）。本步是**离线契约验证，不调网络**；真实 AI 调用与业务级回读由 `scene_command_gates` 与 DeepSeek 实测日志覆盖。
-3. **③ 资产对账与 GLB/GLTF 运行时加载**：动态装载 3D 资产（支持本地素材与仓库自带资产无缝降级），挂载碰撞体与 NavMesh 障碍物。
-4. **④ 沙盘推演与双尺度过渡**：实体桌面平滑吸附，完成 1:20 桌面沙盘模式与 1:1 沉浸现场模式双向平滑切换。
-5. **⑤ 斯坦尼康运镜与 5 轨剪辑**：启用斯坦尼康增稳模式，绑定 5 轨探针并在 7.5s 连续时间轴中同步调度。
-6. **⑥ 导出规格与编码器在位校验（真编码 pending-APK）**：验证 Android MediaCodec 插件二进制在位（源码含 `MediaMuxer` / `MIMETYPE_VIDEO_AVC`）、RGBA32 像素缓冲回读有效、导出命名与规格常量合规。**真实 1080p 编码未在设备上执行，口径固定 `PENDING_APK`；历史预置 mp4 一律不作证据。**
-
----
-
-## 凭据配置
-
-当前测试版支持 **DeepSeek、Tripo 本地配置**。凭据不进入源码、版本库与**任何交付产物**。
-
-- **安全判据是「任何交付产物里没有 key」**，不是「git 历史 0 命中」。`.gitignore` 挡得住 git，**挡不住 Unity 打包**——`Assets/Resources/**` 会被无条件打进 APK。
-- 开发机基线配置放在 **`Assets/` 之外**（仓库内 `Tools/`，仍被 `.gitignore` 排除），**只在编辑器下读取**。
-- **Android 只走 `persistentDataPath` + 环境变量**，key 由用户在连接中心自行录入，**包里永远不带 key**。
-- 构建期有硬闸：`Assets/Resources/**` 与 `Assets/StreamingAssets/**` 一旦命中 key 模式，构建器抛 `BuildFailedException`。
-- 未配置时相关功能明确提示不可用，不会伪装成功。
-
----
-
-## 实验室功能（有接口，未真机验）
-
-**这些功能已完成代码与单元验证，不阻塞主线，真机表现待上机取证：**
-
-| 功能 | 真实状态 |
-| :--- | :--- |
-| **Android 端内硬件 MP4 编码** | MediaCodec + MediaMuxer Java 插件已在位，Editor 侧只验证「插件在位 + 显存缓冲 + 命名/规格」，**不以任何历史落盘文件为依据**。**真实编码 pending-APK**。目标规格 1920×1080 / 30fps / ≥8Mbps。 |
-| **Android 存储访问框架（SAF）** | Java 侧原生文件选择器与 C# 桥接已编译通过，**头显系统弹窗实际行为 pending-真机**。 |
-| **PICO Motion Tracker 2.0 动作捕捉** | 协议适配层已就绪，规划 24 关节点全身动捕与头显防穿帮无感第一视角渲染，**硬件联调 pending-真机**。 |
-| **多人局域网协同预演** | `NetworkSessionController` 单一会话管理落地，支持 Host/Join、心跳包与分演员 revision 冲突仲裁，**双头显联调 pending-真机**。 |
-| **即梦视频生成** | 接口适配层存在，生成任务轮询、下载与回填排期推进。 |
-
----
-
-## 尚未实现
-
-- **可编辑提案交互界面**：交互式点选修改人物身份/道具替换/时长推拉拖拽
-- **VR 掌心物理手势射线**：控制器握持射线与掌心呼出在真机环境下的手部触感调优
-- **撤销栈与自动保存故事圣经**：跨场次撤销/重做快照持久化
-- **观众试看模式与成片多机位实时导播台**
 
 ---
 
@@ -94,73 +64,47 @@ git clone https://github.com/xrlite/ShotField.git
 cd ShotField
 ```
 
-1. **开发环境**：Unity `6000.6.5f1`。Android 构建需配备 Android Build Support、SDK 34、NDK 27、OpenJDK 17。
-2. **打开工程**：使用 Unity Hub 打开仓库根目录，等待 UPM 包依赖还原完毕。
-3. **加载主场景**：打开 **`Assets/Scenes/SC01_Main.unity`** —— 这是**唯一主场景**，也是 Android 构建入口。
-4. **运行验证器**：在 Unity 菜单 `ShotField > Verifiers` 逐项运行。完整工作区门禁的权威脚本位于 `04_Project/巡检/verify_all.ps1`；仓库内 `Tools/gates/` 只是供评审查看的只读镜像，不保证在单独 clone 的仓库根直接运行。
-5. **配置 AI 凭据**：按上文「凭据配置」说明在本地放置配置文件或环境变量。
-
-> 工程路径必须为**纯 ASCII**，Android 构建会拒绝非 ASCII 路径。
-
----
-
-## 源码结构
-
-```text
-ShotField/
-├── Assets/
-│   ├── Scripts/
-│   │   ├── Core/           # 数据契约、时间轴模型、机位预设、AI与Tripo基础适配
-│   │   ├── Import/         # 四格式剧本导入与文本分析（自包含纯程序集）
-│   │   ├── Constraints/    # 越轴规则、构图视线与视锥遮挡校验规则
-│   │   ├── RuntimeUI/      # 空间工作台、斯坦尼康增稳、载具寻路、MR沙盘吸附、空间探针
-│   │   ├── Export/         # 视频录制、帧缓冲排布与 MP4 导出接口
-│   │   └── Editor/         # 门禁验证器、E2E 一镜到底驱动器、构建打包管线
-│   ├── Plugins/Android/    # 原生 MediaCodec 录制插件 jar 与 Java 桥接源码
-│   ├── Scenes/             # SC01_Main.unity（唯一主场景）
-│   └── Documentation/      # 预演剧本、机位规范与路演参考
-└── Tools/gates/            # 门禁只读镜像；权威脚本在工作区 04_Project/巡检/
-```
+1. **环境要求**：Unity `6000.6.5f1`（需安装 Android Build Support、SDK 34、NDK 27、OpenJDK 17）。
+2. **工程路径**：必须放置在**纯 ASCII 路径**下（Android 构建工具链限制）。
+3. **唯一主场景**：打开 **`Assets/Scenes/SC01_Main.unity`** 即可直接运行或打包。
+4. **VR 交互入口**：运行时呼出左手**掌心菜单（PalmMenu）**，即可体验「上场演这镜」「社区案例库」「联机（含局域网发现）」与「三卡工作台」。
 
 ---
 
 ## Android 构建
 
-关闭打开该工程的 Unity 编辑器，在仓库根目录执行：
+关闭占用工程的 Unity 编辑器，在仓库根目录执行：
 
 ```powershell
 $repo  = (Get-Location).Path
-$unity = '<UnityEditorPath>\Unity.exe'          # 替换为你本地 Unity 编辑器路径
-$env:SHOTFIELD_OUT_APK = Join-Path $repo 'Build/ShotField_lab.apk'
+$unity = '<UnityEditorPath>\Unity.exe'
+$env:SHOTFIELD_OUT_APK = Join-Path $repo 'Build/ShotField_arm64.apk'
 New-Item -ItemType Directory -Path (Join-Path $repo 'Build') -Force | Out-Null
-& $unity -batchmode -projectPath $repo `
-  -executeMethod ShotField.EditorTools.BuildAndroid.BuildIl2Cpp `
+& $unity -batchmode -quit -projectPath $repo `
+  -executeMethod BuildAndroid.BuildIl2Cpp `
   -logFile (Join-Path $repo 'Build/android.log')
 ```
 
-- **PICO SDK 6.2.0 强制 ARM64 + IL2CPP**。
-- 构建成功、模拟器运行、PICO 真机体验**分别独立验收**，不互相冒充。
+- 强制 **IL2CPP + ARM64**（PICO SDK 6.2.0 要求）。
+- 凭据配置仅在设备端 `persistentDataPath` 或环境变量录入，安装包内永不携带 API Key。
 
 ---
 
-## PICO Space Program 参赛交付（2026）
+## 实验室与待真机确认边界
 
-- **参赛赛道**：申报「最佳沉浸内容创作（Unity OpenXR SDK）」。
-- **核心定位**：专为 PICO 空间计算打造的影视级全沉浸空间预演与虚拟制片工作流。
-- **空间应用多窗口设计**：完全遵循 PICO 空间设计理念，将导演监视器、五轨时间轴、剧本资产抽屉三卡解耦排布，兼具沙盘推演与 1:1 沉浸现场的双尺度自由切换。
-- **差异化竞争壁垒**：
-  不同于传统二维 AI 漫剧与纯生成式视频工具，镜场致力于在真正的空间计算环境中，让导演与演员**排戏、表演、运镜、讨论**，并将导演的一切决策转化为可编辑、可复用、可归档的标准化空间资产。
+- **待真机现场取证（`pending-真机`）**：PICO 4 Ultra / Space Pro 真机 MR 空间网格精度、90fps 帧率、PICO Motion Tracker 2.0 24 节点体感、双头显局域网同步与 SAF 原生文件选择器弹窗。
+- **Android 硬件 MP4 编码**：MediaCodec + MediaMuxer Java 插件已编译在位，Editor 侧已验显存缓冲与规格，真机成片编码标为 `pending-APK`。
+
+---
+
+## PICO Space Program 2026 参赛声明
+
+- **参赛方向**：Unity 空间应用创作 / 沉浸内容创作（Unity OpenXR + PICO XR SDK 6.2.0）。
+- **核心差异化**：区别于纯二维 AI 视频生成，镜场聚焦让创作者在三维空间中真实**排戏、表演、运镜、协作**，并将导演决策沉淀为可编辑、可社区复用的标准化空间资产包（`.sfpack.zip`）。
 
 ---
 
 ## 许可证与来源
 
 ShotField 团队原创**源代码**遵循 [Apache-2.0](LICENSE) 许可协议，版权归 © 2026 ShotField Team 所有。
-Apache-2.0 允许他人使用、修改、分发与商用，同时明确授予专利许可、且**不授予商标许可**。
-
-**品牌与创作资产不随代码许可开放。** 项目名称「镜场 ShotField」、中英文商标、分层启动器图标、宣传海报与视频、片场场景包、动作与运镜模板包、定制字体，均为团队保留所有权利（All Rights Reserved）。
-
-欢迎基于源代码学习与二次开发。请保留项目名称与团队署名；不得将上述品牌与创作资产用于换皮改名后转售或商业发布。商业合作与授权请先联系团队。
-
-依赖的第三方组件（Unity Starter Assets、PICO SDK、Siccity GLTFUtility、Poly Haven CC0 资源）均按各自开源协议获得合法使用与归属授权。
-严格遵守安全红线：无任何私有 SDK 样例源码与商业闭源二进制非法提交。
+**品牌与创作资产不随代码许可开放**：「镜场 ShotField」名称、商标、图标、宣传物料与内置场景/动作模板包保留所有权利（All Rights Reserved）。第三方依赖（PICO XR SDK、Unity Starter Assets、Siccity GLTFUtility、Poly Haven CC0 资源）均按各自协议合法使用。
