@@ -18,6 +18,8 @@ namespace ShotField.Core
         public float duration;
         public int fps;
         public int frameCount;
+        public string characterTurnaroundPath;
+        public string sceneConceptPath;
         public List<string> files = new List<string>();
     }
 

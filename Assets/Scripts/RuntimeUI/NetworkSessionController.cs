@@ -6,7 +6,7 @@ using UnityEngine;
 namespace ShotField.RuntimeUI
 {
     /// <summary>运行时唯一联机会话：桌面与 VR 共用，负责主线程 Tick、心跳、位姿广播与远端落地。</summary>
-    public sealed class NetworkSessionController : MonoBehaviour
+    public sealed partial class NetworkSessionController : MonoBehaviour
     {
         public NetworkSession Session { get; } = new NetworkSession();
         public string Address = "127.0.0.1";
@@ -38,6 +38,7 @@ namespace ShotField.RuntimeUI
         private void Update()
         {
             TickNow();
+            TickLanDiscovery();
             if (!IsLive) return;
 
             if (Time.unscaledTime >= _nextHeartbeat)
@@ -163,6 +164,7 @@ namespace ShotField.RuntimeUI
             Session.OnCommentReceived -= OnCommentReceived;
             Session.OnSceneEditReceived -= OnSceneEditReceived;
             Session.OnActorPoseReceived -= OnActorPoseReceived;
+            DisposeLanDiscovery();
             Session.Disconnect();
         }
 

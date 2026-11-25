@@ -41,7 +41,8 @@ namespace ShotField.RuntimeUI
             leftHandAnchor = leftHand;
             rightHandAnchor = rightHand;
 
-            _ikDriver = actor.GetComponent<HumanoidThreePointIkDriver>() ?? actor.AddComponent<HumanoidThreePointIkDriver>();
+            _ikDriver = actor.GetComponent<HumanoidThreePointIkDriver>();
+            if (_ikDriver == null) _ikDriver = actor.AddComponent<HumanoidThreePointIkDriver>();
 
             float actorEyeH = 1.6f;
             var anim = actor.GetComponent<Animator>();

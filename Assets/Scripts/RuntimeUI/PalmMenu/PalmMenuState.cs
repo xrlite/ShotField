@@ -17,6 +17,8 @@ namespace ShotField.RuntimeUI
         public TabletopDirector Tabletop;
         public ThreeCardWorkspace Cards;
         public VrNetworkPanel Network;
+        public VrCommunityPanel Community;
+        public ActorPossessionController Possession;
 
         private readonly List<KeyValuePair<string, GameObject>> _placedProps =
             new List<KeyValuePair<string, GameObject>>();
@@ -76,6 +78,8 @@ namespace ShotField.RuntimeUI
                 case PalmMenuActionKind.ToggleMode: ToggleMode(); return false;
                 case PalmMenuActionKind.ToggleCard: ToggleCard(entry.CardId); return false;
                 case PalmMenuActionKind.ToggleNetwork: ToggleNetwork(); return false;
+                case PalmMenuActionKind.PerformActorTake: ToggleActorPerform(); return false;
+                case PalmMenuActionKind.OpenCommunityCatalog: ToggleCommunity(); return false;
                 default: return false;
             }
         }
@@ -150,6 +154,18 @@ namespace ShotField.RuntimeUI
                 Kind = PalmMenuActionKind.ToggleNetwork,
                 Label = Network != null && Network.Visible ? "关闭联机" : "联机",
                 Active = Network != null && Network.Visible
+            });
+            entries.Add(new PalmMenuEntry
+            {
+                Kind = PalmMenuActionKind.PerformActorTake,
+                Label = Possession != null && Possession.IsRecording ? "结束并回放表演" : "上场演这镜",
+                Active = Possession != null && Possession.IsRecording
+            });
+            entries.Add(new PalmMenuEntry
+            {
+                Kind = PalmMenuActionKind.OpenCommunityCatalog,
+                Label = Community != null && Community.Visible ? "关闭社区案例库" : "社区案例库",
+                Active = Community != null && Community.Visible
             });
         }
         private void ToggleMode()

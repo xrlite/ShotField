@@ -27,6 +27,8 @@ namespace ShotField.Core.Community
         public string sha256;
         public string createdAt;
         public bool isOfficial;
+        public string characterTurnaroundPath;
+        public string sceneConceptPath;
     }
 
     public class CommunityQuery

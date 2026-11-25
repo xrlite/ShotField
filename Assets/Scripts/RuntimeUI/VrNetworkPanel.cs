@@ -66,11 +66,30 @@ namespace ShotField.RuntimeUI
                 new Vector2(130f, 42f), onClick: () => controller?.Join(_addressInput.text));
             RuntimeUiFactory.CreateTmpButton(rt, "Disconnect", "断开", new Vector2(145f, -18f),
                 new Vector2(130f, 42f), onClick: () => controller?.Disconnect());
-            RuntimeUiFactory.CreateTmpButton(rt, "Close", "关闭", new Vector2(0f, -82f),
-                new Vector2(130f, 36f), onClick: () => SetVisible(false));
+            RuntimeUiFactory.CreateTmpButton(rt, "ScanLan", "局域网发现", new Vector2(-105f, -76f),
+                new Vector2(160f, 38f), onClick: ScanAndFillRoom);
+            RuntimeUiFactory.CreateTmpButton(rt, "QuickJoin", "一键加入", new Vector2(65f, -76f),
+                new Vector2(120f, 38f), onClick: ScanAndJoinRoom);
+            RuntimeUiFactory.CreateTmpButton(rt, "Close", "关闭", new Vector2(175f, -76f),
+                new Vector2(80f, 38f), onClick: () => SetVisible(false));
             RuntimeUiFactory.CreateTmpLabel(rt, "Boundary", "真机双端同步仍需设备取证", 12,
                 new Vector2(0f, -128f), new Vector2(420f, 26f), new Color(0.72f, 0.75f, 0.80f));
             _root.SetActive(false);
+        }
+
+        private void ScanAndFillRoom()
+        {
+            var rooms = controller?.ScanLanRooms();
+            if (rooms == null || rooms.Count == 0) { if (_status != null) _status.text = "未发现局域网房间"; return; }
+            _addressInput.text = rooms[0].hostIp;
+            if (_status != null) _status.text = $"发现房间 {rooms[0].roomCode}: {rooms[0].hostIp}";
+        }
+
+        private void ScanAndJoinRoom()
+        {
+            ScanAndFillRoom();
+            if (_addressInput != null && !string.IsNullOrEmpty(_addressInput.text))
+                controller?.Join(_addressInput.text);
         }
 
         private void ResolveDependencies()
