@@ -26,6 +26,10 @@
 ```
 
 ```powershell
+# 本机 Unity 装在 D:\unity（不在 Program Files）时必须显式指定，否则脚本回退到 PATH 里的 "Unity.exe"，
+# 可能命中同名的第三方 CLI，报「未知选项 -batchmode」。
+$env:UNITY_EXE = "D:\unity\6000.6.5f1\Editor\Unity.exe"
+
 # 全套（编辑器开着时走 live bridge 8765，否则 headless batchmode）
 powershell -NoProfile -ExecutionPolicy Bypass -File "04_Project/巡检/verify_all.ps1"
 
@@ -44,11 +48,18 @@ powershell -NoProfile -ExecutionPolicy Bypass -File "04_Project/巡检/entropy_c
 - `NO-VERDICT`：验证器拒绝运行或没有输出 tag → 按失败处理。
 - `FAIL`：出现 `<tag>=FAIL`，或运行期 Console 出现任何 error。
 
-## 已知第三方污染（2026-11-24）
+## 已知第三方污染
 
-`console_clean` 当前可能读到 1 条 error：`[KitWright MCP Server] Failed to start HTTP transport`。
-根因是开发期 MCP 工具与 gate bridge 争用 8765 端口，**不是产品运行时错误**，且该包不进 APK。
-处置需项目负责人决定是否在交付工程中移除此开发期 MCP 包；在此之前，`console_clean` 如实报 FAIL，不做白名单豁免。
+1. `[KitWright MCP Server] Failed to start HTTP transport`（2026-11-24 记录，当时 `Errors=1`）。开发期 MCP 工具与 gate bridge 争用 8765 端口，**不是产品运行时错误**，且该包不进 APK。2026-11-25 复跑时该条已不再出现（`Errors=0`）；是否在交付工程中移除该开发期包仍待项目负责人决定。
+2. `PXRLog [Build Check]RegisterBuildPlayerHandler ...`（2026-11-25 记录，`Warnings=9`）。属 PICO Unity SDK 自身的 build-check 日志，与产品代码无关。`console_clean` 的判据是 `errors == 0 && warnings == 0`，因此该项在当前基线里**如实 FAIL**，不做白名单豁免。
+
+以上两条都不进 APK。门禁宁可真红，不改成假绿：`console_clean` 不得加 `Clear()` 前置（清屏后读 `entries=0` 属恒真自证，2026-11-24 已回退）。
+
+## 基线（2026-11-25）
+
+`34 run / 33 PASS / 1 FAIL`，唯一红项是 `console_clean`（上述 PXRLog 警告）。证据日志 `05_验证记录/2026-11/gate_logs/verify_all_20261125_084727.log`。
+
+`locomotion`、`stage_preset`、`mr_tabletop_config` 三项在 **headless batchmode** 下曾因主场景未加载而假红（脚本不主动开场景）；2026-11-25 已让后两者在 batchmode 下先 `OpenScene(SC01_Main)`，`locomotion` 本来就会自己开场景。判据未放宽。
 
 ## 口径红线
 
