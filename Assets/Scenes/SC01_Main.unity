@@ -6786,8 +6786,8 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 347616676}
   serializedVersion: 2
-  m_LocalRotation: {x: 0.030538054, y: -0.96820515, z: 0.14870717, w: 0.19882764}
-  m_LocalPosition: {x: 2.3414245, y: 1.840173, z: 5.4327025}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.6, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
@@ -36070,6 +36070,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 934a17fda1305cb459318b050b731889, type: 3}
   m_Name: 
   m_EditorClassIdentifier: ShotField.RuntimeUI::ShotField.RuntimeUI.DirectorTimeline
+  vehicleNavigator: {fileID: 0}
+  probeVisualizer: {fileID: 0}
   duration: 60
   currentTime: 60
   isPlaying: 0
@@ -58201,6 +58203,7 @@ MonoBehaviour:
   turnSpeed: 10
   walkingBool: Walking
   runningBool: Running
+  actorId: 
 --- !u!195 &1606277929
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -78014,6 +78017,7 @@ MonoBehaviour:
   turnSpeed: 10
   walkingBool: Walking
   runningBool: Running
+  actorId: 
 --- !u!195 &5866666019890916997
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -78079,6 +78083,7 @@ MonoBehaviour:
   turnSpeed: 10
   walkingBool: Walking
   runningBool: Running
+  actorId: 
 --- !u!195 &5866666020103418804
 NavMeshAgent:
   m_ObjectHideFlags: 0
@@ -80090,6 +80095,7 @@ MonoBehaviour:
   turnSpeed: 10
   walkingBool: Walking
   runningBool: Running
+  actorId: 
 --- !u!195 &7995491806470182324
 NavMeshAgent:
   m_ObjectHideFlags: 0

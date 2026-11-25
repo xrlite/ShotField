@@ -1,5 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.XR.Interaction.Toolkit.Interactables;
+using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace ShotField.RuntimeUI
 {
@@ -36,7 +38,7 @@ namespace ShotField.RuntimeUI
             }
 
             var go = new GameObject("FirstRunOperationCard",
-                typeof(RectTransform), typeof(Canvas), typeof(GraphicRaycaster));
+                typeof(RectTransform), typeof(Canvas), typeof(TrackedDeviceGraphicRaycaster));
             go.transform.position = camera.transform.position;
             go.AddComponent<FirstRunOperationCard>().Build(camera);
         }
@@ -61,9 +63,11 @@ namespace ShotField.RuntimeUI
             float scale = Mathf.Min(0.001f, maxW / cardSize.x, maxH / cardSize.y);
 
             root.localScale = Vector3.one * scale;
-            transform.SetParent(head, false);
-            root.localPosition = new Vector3(0f, 0f, dist);
-            root.localRotation = Quaternion.identity;
+            Vector3 fwd = new Vector3(head.forward.x, 0f, head.forward.z);
+            if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
+            fwd.Normalize();
+            transform.position = head.position + fwd * dist;
+            transform.rotation = Quaternion.LookRotation(fwd, Vector3.up);
 
             BuildContent(root, cardSize, compact);
             Debug.Log("[FirstRunOperationCard] fov=" + cam.fieldOfView.ToString("F0") +
@@ -117,7 +121,11 @@ namespace ShotField.RuntimeUI
             var button = go.AddComponent<Button>();
             RuntimeUiFactory.CreateTmpLabel(go.transform, "Label", "知道了", 16,
                 Vector2.zero, size, Ink, FontStyle.Bold);
-            button.onClick.AddListener(() => Confirm(go));
+            button.onClick.AddListener(() => Confirm(root.gameObject));
+            var col = go.AddComponent<BoxCollider>();
+            col.size = new Vector3(size.x, size.y, 12f);
+            var xri = go.AddComponent<XRSimpleInteractable>();
+            xri.selectEntered.AddListener(_ => Confirm(root.gameObject));
             go.AddComponent<UguiHoverEffect>();
         }
 
