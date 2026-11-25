@@ -1,3 +1,5 @@
+using ShotField.Core;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.XR.Interaction.Toolkit.Interactables;
@@ -6,41 +8,45 @@ using UnityEngine.XR.Interaction.Toolkit.UI;
 namespace ShotField.RuntimeUI
 {
     /// <summary>
-    /// 首屏操作卡：首次进入给一张三步卡，明确"看沙盘 → 定机位 → 存镜头护照"。
-    /// 运行时装配、零场景写入；TMP 走 RuntimeUiFactory 的中文 SDF；按确认后不再出现。
-    /// P1 修订：水平 FOV 修正、贴脸切紧凑版、按钮深字 16px、提示与按钮留白 13px、
-    /// 底部留白 ≥17px，按钮接进统一 hover 曲线。
+    /// 3 步真实交互轻引导：悬浮在沙盘上方 1.15m（+12° 舒适视区，不挡中心沙盘），
+    /// 跟随实际动作自动打钩推进，右上角常驻「跳过引导」，完成后自动收起。
     /// </summary>
     public sealed class FirstRunOperationCard : MonoBehaviour
     {
         private const string SeenKey = "ShotField.FirstRunCardSeen.v1";
-        private const float Distance = 0.75f;
-        private const float MinComfortDistance = 0.55f;
-        private const float FillRatio = 0.82f;
-        private const float ButtonHeight = 46f;
-        private static readonly Vector2 FullSize = new Vector2(620f, 460f);
-        private static readonly Vector2 CompactSize = new Vector2(440f, 280f);
         private static readonly Color Glass = new Color(0.11f, 0.12f, 0.15f, 0.94f);
         private static readonly Color Gold = new Color(0.79f, 0.66f, 0.38f, 1f);
-        private static readonly Color Ink = new Color(0.10f, 0.11f, 0.14f, 1f);
+        private static readonly Color DoneColor = new Color(0.38f, 0.85f, 0.52f, 1f);
+        private static readonly Color DimColor = new Color(0.88f, 0.89f, 0.92f, 1f);
+
+        private readonly TMP_Text[] _stepLabels = new TMP_Text[3];
+        private readonly bool[] _done = new bool[3];
+        private readonly string[] _stepTexts =
+        {
+            "1. 沙盘排走位：拖动 ActorA 调整站位",
+            "2. 一键进片场：点下方「进入 1:1 片场」",
+            "3. 演一镜/拍一镜：左手掌心点「上场演这镜」"
+        };
+
+        private Transform _head;
+        private Transform _actorA;
+        private Vector3 _actorStartPos;
+        private bool _hasActorStart;
+        private TabletopDirector _tabletop;
+        private ActorPossessionController _possession;
+        private int _initialShotCount;
+        private float _completeTimer = -1f;
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
             if (PlayerPrefs.GetInt(SeenKey, 0) == 1) return;
-            if (Object.FindAnyObjectByType<FirstRunOperationCard>(FindObjectsInactive.Include) != null) return;
-
-            var camera = Camera.main;
-            if (camera == null)
-            {
-                Debug.LogWarning("[FirstRunOperationCard] 没有 Camera.main，首屏卡未生成。");
-                return;
-            }
+            if (FindAnyObjectByType<FirstRunOperationCard>(FindObjectsInactive.Include) != null) return;
+            if (Camera.main == null) return;
 
             var go = new GameObject("FirstRunOperationCard",
                 typeof(RectTransform), typeof(Canvas), typeof(TrackedDeviceGraphicRaycaster));
-            go.transform.position = camera.transform.position;
-            go.AddComponent<FirstRunOperationCard>().Build(camera);
+            go.AddComponent<FirstRunOperationCard>().Build(Camera.main);
         }
 
         private void Build(Camera cam)
@@ -48,92 +54,113 @@ namespace ShotField.RuntimeUI
             var canvas = GetComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
             canvas.worldCamera = cam;
+            _head = cam.transform;
 
-            var head = cam.transform;
-            var root = (RectTransform)transform;
-            float dist = ResolveDistance(head);
-            bool compact = dist < MinComfortDistance;
-            Vector2 cardSize = compact ? CompactSize : FullSize;
-            root.sizeDelta = cardSize;
+            var rt = (RectTransform)transform;
+            rt.sizeDelta = new Vector2(560f, 220f);
+            rt.localScale = Vector3.one * 0.001f;
 
-            float vFov = cam.fieldOfView * Mathf.Deg2Rad;
-            float hFov = 2f * Mathf.Atan(Mathf.Tan(vFov * 0.5f) * Mathf.Max(0.1f, cam.aspect));
-            float maxW = 2f * dist * Mathf.Tan(hFov * 0.5f) * FillRatio;
-            float maxH = 2f * dist * Mathf.Tan(vFov * 0.5f) * FillRatio;
-            float scale = Mathf.Min(0.001f, maxW / cardSize.x, maxH / cardSize.y);
+            RuntimeUiFactory.CreatePanel(rt, "Glass", Glass, Vector2.zero, rt.sizeDelta);
+            RuntimeUiFactory.CreateTmpLabel(rt, "Title", "镜场 · 快速上手（3 步）", 22,
+                new Vector2(-60f, 76f), new Vector2(380f, 34f), Gold, FontStyle.Bold);
 
-            root.localScale = Vector3.one * scale;
-            Vector3 fwd = new Vector3(head.forward.x, 0f, head.forward.z);
-            if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
-            fwd.Normalize();
-            transform.position = head.position + fwd * dist;
-            transform.rotation = Quaternion.LookRotation(fwd, Vector3.up);
+            CreateSkipButton(rt, new Vector2(205f, 76f), new Vector2(110f, 32f));
 
-            BuildContent(root, cardSize, compact);
-            Debug.Log("[FirstRunOperationCard] fov=" + cam.fieldOfView.ToString("F0") +
-                      " aspect=" + cam.aspect.ToString("F2") + " dist=" + dist.ToString("F2") +
-                      " compact=" + compact + " scale=" + scale.ToString("F5"));
+            for (int i = 0; i < 3; i++)
+            {
+                _stepLabels[i] = RuntimeUiFactory.CreateTmpLabel(rt, "Step_" + i, "○ " + _stepTexts[i],
+                    17, new Vector2(0f, 22f - i * 42f), new Vector2(510f, 34f), DimColor);
+            }
+
+            _initialShotCount = ShotLibrary.All != null ? ShotLibrary.All.Count : 0;
+            PlaceAboveTabletop();
         }
 
-        private static float ResolveDistance(Transform head)
+        private void CreateSkipButton(RectTransform root, Vector2 pos, Vector2 size)
         {
-            float dist = Distance;
-            if (Physics.Raycast(head.position, head.forward, out var hit, Distance + 0.2f,
-                    ~0, QueryTriggerInteraction.Ignore))
-                dist = Mathf.Clamp(hit.distance - 0.08f, 0.28f, Distance);
-            return dist;
-        }
-
-        private void BuildContent(RectTransform root, Vector2 cardSize, bool compact)
-        {
-            RuntimeUiFactory.CreatePanel(root, "Glass", Glass, Vector2.zero, cardSize);
-            RuntimeUiFactory.CreateTmpLabel(root, "Title", "镜场 - 先走这三步",
-                compact ? 26 : 29, new Vector2(0f, compact ? 96f : 172f),
-                new Vector2(cardSize.x - 60f, 48f), Gold, FontStyle.Bold);
-
-            string[] rows = compact
-                ? new[] { "1 看沙盘", "2 定机位", "3 存护照" }
-                : new[]
-                {
-                    "1. 看沙盘：双手捏合缩放，拖动演员排走位",
-                    "2. 定机位：用身体找角度，扳机记录运镜",
-                    "3. 存护照：把镜头意图交给 Seedance 生成"
-                };
-            float[] ys = compact ? new[] { 44f, 2f, -40f } : new[] { 90f, 26f, -38f };
-            for (int i = 0; i < rows.Length; i++)
-                RuntimeUiFactory.CreateTmpLabel(root, "Step" + (i + 1), rows[i],
-                    compact ? 24 : 23, new Vector2(0f, ys[i]),
-                    new Vector2(cardSize.x - 64f, 46f), new Color(0.93f, 0.93f, 0.94f, 1f));
-
-            if (!compact)
-                RuntimeUiFactory.CreateTmpLabel(root, "Hint", "射线指向按钮，扣扳机确认", 16,
-                    new Vector2(0f, -120f), new Vector2(500f, 28f),
-                    new Color(0.72f, 0.74f, 0.78f, 1f));
-
-            CreateConfirmButton(root, compact ? -100f : -174f, compact ? 160f : 190f);
-        }
-
-        private static void CreateConfirmButton(RectTransform root, float y, float width)
-        {
-            var size = new Vector2(width, ButtonHeight);
-            var go = RuntimeUiFactory.CreatePanel(root, "ConfirmButton", Gold,
-                new Vector2(0f, y), size);
-            var button = go.AddComponent<Button>();
-            RuntimeUiFactory.CreateTmpLabel(go.transform, "Label", "知道了", 16,
-                Vector2.zero, size, Ink, FontStyle.Bold);
-            button.onClick.AddListener(() => Confirm(root.gameObject));
+            var go = RuntimeUiFactory.CreatePanel(root, "SkipButton", new Color(0.24f, 0.27f, 0.32f, 1f), pos, size);
+            var btn = go.AddComponent<Button>();
+            RuntimeUiFactory.CreateTmpLabel(go.transform, "Label", "跳过引导", 14, Vector2.zero, size, Color.white);
+            btn.onClick.AddListener(CompleteAndClose);
             var col = go.AddComponent<BoxCollider>();
             col.size = new Vector3(size.x, size.y, 12f);
             var xri = go.AddComponent<XRSimpleInteractable>();
-            xri.selectEntered.AddListener(_ => Confirm(root.gameObject));
+            xri.selectEntered.AddListener(_ => CompleteAndClose());
             go.AddComponent<UguiHoverEffect>();
         }
 
-        private static void Confirm(GameObject go)
+        private void Update()
+        {
+            if (_completeTimer >= 0f)
+            {
+                _completeTimer += Time.deltaTime;
+                if (_completeTimer >= 1.5f) CompleteAndClose();
+                return;
+            }
+
+            CheckStep1ActorMoved();
+            CheckStep2Entered1to1();
+            CheckStep3Action();
+
+            if (_done[0] && _done[1] && _done[2]) _completeTimer = 0f;
+            PlaceAboveTabletop();
+        }
+
+        private void CheckStep1ActorMoved()
+        {
+            if (_done[0]) return;
+            if (_actorA == null)
+            {
+                var go = GameObject.Find("ActorA");
+                if (go != null) { _actorA = go.transform; _actorStartPos = _actorA.position; _hasActorStart = true; }
+            }
+            if (_hasActorStart && _actorA != null && Vector3.Distance(_actorA.position, _actorStartPos) > 0.08f)
+                MarkDone(0);
+        }
+
+        private void CheckStep2Entered1to1()
+        {
+            if (_done[1]) return;
+            if (_tabletop == null) _tabletop = FindAnyObjectByType<TabletopDirector>();
+            if (_tabletop != null && _tabletop.currentMode == TabletopDirector.ScaleMode.Immersive1to1 && _done[0])
+                MarkDone(1);
+        }
+
+        private void CheckStep3Action()
+        {
+            if (_done[2]) return;
+            if (_possession == null) _possession = FindAnyObjectByType<ActorPossessionController>();
+            int curShots = ShotLibrary.All != null ? ShotLibrary.All.Count : 0;
+            if ((_possession != null && _possession.IsRecording) || curShots > _initialShotCount)
+                MarkDone(2);
+        }
+
+        private void MarkDone(int index)
+        {
+            _done[index] = true;
+            if (_stepLabels[index] != null)
+            {
+                _stepLabels[index].text = "✓ " + _stepTexts[index];
+                _stepLabels[index].color = DoneColor;
+            }
+        }
+
+        private void PlaceAboveTabletop()
+        {
+            if (_head == null) return;
+            Vector3 fwd = new Vector3(_head.forward.x, 0f, _head.forward.z);
+            if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
+            Vector3 target = _head.position + fwd.normalized * 1.15f + Vector3.up * 0.28f;
+            transform.position = Vector3.Lerp(transform.position, target, Time.deltaTime * 6f);
+            Vector3 look = transform.position - _head.position;
+            if (look.sqrMagnitude > 0.001f) transform.rotation = Quaternion.LookRotation(look.normalized, Vector3.up);
+        }
+
+        private void CompleteAndClose()
         {
             PlayerPrefs.SetInt(SeenKey, 1);
             PlayerPrefs.Save();
-            Destroy(go);
+            Destroy(gameObject);
         }
     }
 }

@@ -28,9 +28,11 @@ namespace ShotField.RuntimeUI
         public bool enableScaleInterpolation = true;
 
         private CanvasGroup _group;
+        private ArchTunnelOverlay _archTunnel;
         private Camera _headCamera;
         private float _baseFov = 60f;
         private bool _running;
+        private bool _entering1to1;
 
         public bool IsRunning => _running;
 
@@ -78,6 +80,7 @@ namespace ShotField.RuntimeUI
         private IEnumerator Run(TabletopDirector.ScaleMode target)
         {
             _running = true;
+            _entering1to1 = target == TabletopDirector.ScaleMode.Immersive1to1;
             CacheCamera();
 
             yield return Fade(0f, 1f, true);
@@ -110,6 +113,11 @@ namespace ShotField.RuntimeUI
                 elapsed += Time.deltaTime;
                 float t = Mathf.Clamp01(elapsed / fadeDuration);
                 _group.alpha = Mathf.Lerp(from, to, t);
+                if (_archTunnel != null)
+                {
+                    float tunnelT = breathingIn ? t * 0.5f : 0.5f + t * 0.5f;
+                    _archTunnel.SetProgress(tunnelT, _entering1to1);
+                }
 
                 if (enableFovBreathing && _headCamera != null)
                 {
@@ -176,6 +184,13 @@ namespace ShotField.RuntimeUI
             _group.alpha = 0f;
             _group.blocksRaycasts = false;
             _group.interactable = false;
+
+            if (_archTunnel == null)
+            {
+                var archGo = new GameObject("ArchTunnelOverlay");
+                _archTunnel = archGo.AddComponent<ArchTunnelOverlay>();
+                _archTunnel.Initialize(parent, overlayDistance + 0.04f);
+            }
         }
     }
 }

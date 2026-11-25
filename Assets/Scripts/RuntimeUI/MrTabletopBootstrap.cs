@@ -54,6 +54,22 @@ namespace ShotField.RuntimeUI
         {
             _startedAt = Time.time;
             _nextScan = Time.time;
+            if (tabletop != null)
+            {
+                PlaceAnchorInFrontOfHead();
+                tabletop.SwitchMode(TabletopDirector.ScaleMode.TabletopMini);
+            }
+        }
+
+        private void PlaceAnchorInFrontOfHead()
+        {
+            var forward = headAnchor != null ? headAnchor.forward : Vector3.forward;
+            forward.y = 0f;
+            if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
+            Vector3 basePos = headAnchor != null ? headAnchor.position : Vector3.zero;
+            tabletop.TabletopAnchor.position = basePos + forward.normalized * virtualDistance;
+            tabletop.TabletopAnchor.position = new Vector3(tabletop.TabletopAnchor.position.x,
+                virtualHeight, tabletop.TabletopAnchor.position.z);
         }
 
         private void Update()

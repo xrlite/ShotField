@@ -154,6 +154,13 @@ namespace ShotField.RuntimeUI
         {
             if (tabletopProxyRoot != null)
                 tabletopProxyRoot.gameObject.SetActive(active);
+            if (sceneRoot1to1 == null)
+            {
+                var blockout = GameObject.Find("SC01_Blockout");
+                if (blockout != null) sceneRoot1to1 = blockout.transform;
+            }
+            if (sceneRoot1to1 != null)
+                sceneRoot1to1.gameObject.SetActive(!active);
         }
     }
 }
