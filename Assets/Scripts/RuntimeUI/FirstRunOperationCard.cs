@@ -62,14 +62,14 @@ namespace ShotField.RuntimeUI
             rt.localScale = Vector3.one * 0.001f;
 
             RuntimeUiFactory.CreatePanel(rt, "Glass", Glass, Vector2.zero, rt.sizeDelta);
-            RuntimeUiFactory.CreateTmpLabel(rt, "Title", "镜场 · 快速上手（3 步）", 22,
+            RuntimeUiFactory.CreateTmpLabel(rt, "Title", "镜场 - 快速上手 (3 步)", 22,
                 new Vector2(-60f, 76f), new Vector2(380f, 34f), Gold, FontStyle.Bold);
 
             CreateSkipButton(rt, new Vector2(205f, 76f), new Vector2(110f, 32f));
 
             for (int i = 0; i < 3; i++)
             {
-                _stepLabels[i] = RuntimeUiFactory.CreateTmpLabel(rt, "Step_" + i, "○ " + _stepTexts[i],
+                _stepLabels[i] = RuntimeUiFactory.CreateTmpLabel(rt, "Step_" + i, "[ ] " + _stepTexts[i],
                     17, new Vector2(0f, 22f - i * 42f), new Vector2(510f, 34f), DimColor);
             }
 
@@ -143,7 +143,7 @@ namespace ShotField.RuntimeUI
             _done[index] = true;
             if (_stepLabels[index] != null)
             {
-                _stepLabels[index].text = "✓ " + _stepTexts[index];
+                _stepLabels[index].text = "[v] " + _stepTexts[index];
                 _stepLabels[index].color = DoneColor;
             }
         }

@@ -56,6 +56,9 @@ namespace ShotField.RuntimeUI
             _nextScan = Time.time;
             if (tabletop != null)
             {
+                // 放在当前正前方 0.8m，避免左偏出视野导致闪烁
+                var cam = Camera.main;
+                if (cam != null) headAnchor = cam.transform;
                 PlaceAnchorInFrontOfHead();
                 tabletop.SwitchMode(TabletopDirector.ScaleMode.TabletopMini);
             }

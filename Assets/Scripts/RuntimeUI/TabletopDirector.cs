@@ -154,12 +154,9 @@ namespace ShotField.RuntimeUI
         {
             if (tabletopProxyRoot != null)
                 tabletopProxyRoot.gameObject.SetActive(active);
-            if (sceneRoot1to1 == null)
-            {
-                var blockout = GameObject.Find("SC01_Blockout");
-                if (blockout != null) sceneRoot1to1 = blockout.transform;
-            }
-            if (sceneRoot1to1 != null)
+            // 仅当真实存在非空沙盘代理节点时才隐藏 1:1 建筑，避免无代理时出现全灰屏
+            bool hasProxy = tabletopProxyRoot != null && tabletopProxyRoot.childCount > 0;
+            if (hasProxy && sceneRoot1to1 != null)
                 sceneRoot1to1.gameObject.SetActive(!active);
         }
     }
