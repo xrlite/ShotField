@@ -1,0 +1,14 @@
+{
+  "id": "sfpack_official_sc01_morning",
+  "title": "SC01_晨光排练_双机位",
+  "author": "ShotField 官方",
+  "version": "1.0.0",
+  "kind": 0,
+  "license": "CC0-1.0",
+  "tags": "晨光,双机位,跟焦,暖调",
+  "thumbnailRelPath": "",
+  "packageRelPath": "sc01_morning_rehearsal.sfpack.zip",
+  "sha256": "0e5e950764bf62269b8f33de19e75b98a43bf44e2517d0deee705da02a5768ad",
+  "createdAt": "2026-11-25T00:00:00Z",
+  "isOfficial": true
+}

@@ -67,6 +67,28 @@ namespace ShotField.RuntimeUI
             return true;
         }
 
+        /// <summary>
+        /// 80ms 弱网平滑插值落地（12.5f 指数阻尼），消除跨端 UDP/TCP 同步抖动。
+        /// </summary>
+        public static bool ApplyInterpolated(string actorId, Vector3 targetPos, Quaternion targetRot, float deltaTime, out string reason, float smoothSpeed = 12.5f)
+        {
+            var key = NormalizeId(actorId);
+            var actor = Find(actorId);
+            Transform target = actor != null ? actor.transform : null;
+            if (target == null && OverrideTransformResolver != null && key.Length > 0)
+                target = OverrideTransformResolver(key);
+            if (target == null) { reason = "actor-not-found"; return false; }
+
+            float t = 1f - Mathf.Exp(-Mathf.Max(0.1f, smoothSpeed) * Mathf.Max(0f, deltaTime));
+            Vector3 nextPos = Vector3.Lerp(target.position, targetPos, t);
+            Quaternion nextRot = Quaternion.Slerp(target.rotation, targetRot, t);
+            if (actor != null && actor.agent != null && actor.agent.isOnNavMesh) actor.Teleport(nextPos);
+            else target.position = nextPos;
+            target.rotation = nextRot;
+            reason = "interpolated";
+            return true;
+        }
+
         public static SceneEditData CaptureSceneEdit(ActorNavigator actor, int revision, string actionTag = "")
         {
             var t = actor.transform;

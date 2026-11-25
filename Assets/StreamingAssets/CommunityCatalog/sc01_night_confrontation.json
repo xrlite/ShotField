@@ -1,0 +1,14 @@
+{
+  "id": "sfpack_official_sc01_night",
+  "title": "SC01_客厅对峙_标准夜戏",
+  "author": "ShotField 官方",
+  "version": "1.0.0",
+  "kind": 0,
+  "license": "CC0-1.0",
+  "tags": "夜戏,双人对峙,正反打,冷调",
+  "thumbnailRelPath": "",
+  "packageRelPath": "sc01_night_confrontation.sfpack.zip",
+  "sha256": "570db2338fed7a0b20fdceb5288827fe29d4a8562431ed3d49a05a92e69a2f3e",
+  "createdAt": "2026-11-25T00:00:00Z",
+  "isOfficial": true
+}

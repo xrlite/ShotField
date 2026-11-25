@@ -1,0 +1,19 @@
+{
+  "packages": [
+    {
+      "id": "sfpack_official_sc01_night",
+      "manifestFileName": "sc01_night_confrontation.json",
+      "packageFileName": "sc01_night_confrontation.sfpack.zip"
+    },
+    {
+      "id": "sfpack_official_sc01_morning",
+      "manifestFileName": "sc01_morning_rehearsal.json",
+      "packageFileName": "sc01_morning_rehearsal.sfpack.zip"
+    },
+    {
+      "id": "sfpack_official_sc01_interrogation",
+      "manifestFileName": "sc01_interrogation_keylight.json",
+      "packageFileName": "sc01_interrogation_keylight.sfpack.zip"
+    }
+  ]
+}

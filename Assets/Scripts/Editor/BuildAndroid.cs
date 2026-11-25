@@ -19,7 +19,7 @@ public static class BuildAndroid
     // 改名成 SC01_Main 时只改这一行 + EditorBuildSettings，别再往下面几处补字面量。
     public const string ScenePath = "Assets/Scenes/SC01_Main.unity";
     const string PackageId = "com.haoyunlai.shotfield";
-    const string ProductName = "ShotField";
+    const string ProductName = "镜场 ShotField";
     // 默认输出到工程内 Build/。需要指定位置时，用环境变量 SHOTFIELD_OUT_APK 覆盖。
     const string OutApk = "Build/ShotField_lab.apk";
     const string OutApkRev1 = "Build/ShotField_rev1_lab.apk";

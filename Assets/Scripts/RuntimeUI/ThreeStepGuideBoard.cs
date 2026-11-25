@@ -59,7 +59,7 @@ namespace ShotField.RuntimeUI
             cardImages = new Image[3];
             cardTitleTexts = new Text[3];
             cardDescTexts = new Text[3];
-            string[] titles = { "① 选剧本", "② 摆机位", "③ 截图导出" };
+            string[] titles = { "1. 选剧本", "2. 摆机位", "3. 截图导出" };
             string[] descs = { "5幕故事圣经", "体感微调与构图", "生成分镜护照" };
             float[] posX = { -290f, 0f, 290f };
             var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");

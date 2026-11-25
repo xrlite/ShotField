@@ -18,4 +18,4 @@ MonoBehaviour:
   optimizeBufferDiscards: 1
   reprojectionMode: 0
   legacyEnableAppSpaceWarp: 0
-  systemSplashScreen: {fileID: 0}
+  systemSplashScreen: {fileID: 2800000, guid: 5e7d3510f5a2447dbd214de05d25c838, type: 3}

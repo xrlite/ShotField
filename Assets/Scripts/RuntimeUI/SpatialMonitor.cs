@@ -25,6 +25,7 @@ namespace ShotField.RuntimeUI
         private Quaternion lastRot;
         private float lastFov;
         private bool isDirty = true;
+        private float lastRenderTime;
 
         public Texture Feed => renderTexture;
         public bool IsPortrait => isPortrait;
@@ -36,23 +37,33 @@ namespace ShotField.RuntimeUI
             SetupRenderTexture(false);
         }
 
+        // 头显每帧都有亚毫米级抖动，用 != 判脏会变成「每帧重绘一次整个场景」——
+        // 真机上实测每帧都在 RenderFeed，白烧一份全场景渲染。改成带阈值的判脏。
+        const float PosEpsilon = 0.01f;      // 1 cm
+        const float RotEpsilonDeg = 0.5f;    // 0.5 度
+        const float FovEpsilon = 0.1f;
+        const float TimeEpsilon = 2f;        // 即便不动，2 秒也补一帧
+
         void LateUpdate()
         {
             if (sourceCamera != null)
             {
-                if (sourceCamera.transform.position != lastPos ||
-                    sourceCamera.transform.rotation != lastRot ||
-                    !Mathf.Approximately(sourceCamera.fieldOfView, lastFov))
+                var tr = sourceCamera.transform;
+                if ((tr.position - lastPos).sqrMagnitude > PosEpsilon * PosEpsilon
+                    || Quaternion.Angle(tr.rotation, lastRot) > RotEpsilonDeg
+                    || Mathf.Abs(sourceCamera.fieldOfView - lastFov) > FovEpsilon
+                    || Time.unscaledTime - lastRenderTime > TimeEpsilon)
                 {
                     isDirty = true;
-                    lastPos = sourceCamera.transform.position;
-                    lastRot = sourceCamera.transform.rotation;
+                    lastPos = tr.position;
+                    lastRot = tr.rotation;
                     lastFov = sourceCamera.fieldOfView;
                 }
             }
             if (isDirty)
             {
                 RenderFeed();
+                lastRenderTime = Time.unscaledTime;
                 isDirty = false;
             }
         }

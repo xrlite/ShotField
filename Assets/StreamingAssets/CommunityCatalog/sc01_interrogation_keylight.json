@@ -1,0 +1,14 @@
+{
+  "id": "sfpack_official_sc01_interrogation",
+  "title": "SC01_审讯强光_越轴教学",
+  "author": "ShotField 官方",
+  "version": "1.0.0",
+  "kind": 0,
+  "license": "CC0-1.0",
+  "tags": "顶光,戏剧性,轴线规则,特写",
+  "thumbnailRelPath": "",
+  "packageRelPath": "sc01_interrogation_keylight.sfpack.zip",
+  "sha256": "3ef44d62fc160162bdfe26028b30220bb0201700470aa6a86b21a6c49038b6f8",
+  "createdAt": "2026-11-25T00:00:00Z",
+  "isOfficial": true
+}
