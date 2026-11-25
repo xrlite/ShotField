@@ -14,6 +14,10 @@ namespace ShotField.EditorTools
         public static void Run()
         {
             int passed = 0;
+            // headless 启动不会自动载入主场景，先显式打开，避免"找不到组件"的假红。
+            if (Application.isBatchMode)
+                UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                    "Assets/Scenes/SC01_Main.unity", UnityEditor.SceneManagement.OpenSceneMode.Single);
             var prefab = Resources.Load<GameObject>("Stages/TianGong_Android");
             Check("Resources 天工预设存在", prefab != null, ref passed);
 

@@ -16,6 +16,10 @@ namespace ShotField.EditorTools
         public static void Run()
         {
             int passed = 0;
+            // headless 启动不会自动载入主场景，先显式打开，避免"找不到组件"的假红。
+            if (Application.isBatchMode)
+                UnityEditor.SceneManagement.EditorSceneManager.OpenScene(
+                    "Assets/Scenes/SC01_Main.unity", UnityEditor.SceneManagement.OpenSceneMode.Single);
             var settings = OpenXRSettings.ActiveBuildTargetInstance;
             var passthrough = settings.GetFeature<PassthroughFeature>();
             Check("Android PassthroughFeature 已启用", passthrough != null && passthrough.enabled, ref passed);

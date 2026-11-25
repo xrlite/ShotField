@@ -27,9 +27,7 @@ namespace ShotField.RuntimeUI
         [Header("Animator Parameters")]
         public string walkingBool = "Walking";
         public string runningBool = "Running";
-
-        [Tooltip("联机同步标识；留空则回退到实例名（大小写/下划线/actor 前缀均不敏感）。")]
-        public string actorId;
+        [Tooltip("联机同步标识；留空回退实例名（大小写/下划线/actor 前缀不敏感）")] public string actorId;
 
         public event Action<Vector3> OnDestinationSet;
         public event Action OnDestinationReached;
