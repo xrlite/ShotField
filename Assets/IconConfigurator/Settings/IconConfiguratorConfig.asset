@@ -1,0 +1,98 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 8db478ada19bb73408c92407695dba14, type: 3}
+  m_Name: IconConfiguratorConfig
+  m_EditorClassIdentifier: ByteDance.PICO.IconConfigurator.Editor::ByteDance.PICO.IconConfigurator.Editor.IconConfiguratorConfigAsset
+  m_lastMode: 0
+  m_previewYaw: 37
+  m_manual:
+    m_layers:
+    - m_layerKind: 0
+      m_assetGuid: c6f7ddf93cb449e88167188c4460de1a
+      m_assetPath: Assets/Art/LauncherIcon/icon_bg.png
+      m_originalFileName: 
+      m_contentHash: 
+      m_displayName: Background
+      m_sourceWidth: 0
+      m_sourceHeight: 0
+    - m_layerKind: 1
+      m_assetGuid: 949c78c1631e4950a0bed59fc1a9a0f4
+      m_assetPath: Assets/Art/LauncherIcon/icon_fg2.png
+      m_originalFileName: 
+      m_contentHash: 
+      m_displayName: Foreground1
+      m_sourceWidth: 0
+      m_sourceHeight: 0
+    - m_layerKind: 2
+      m_assetGuid: c307aea6f4ce4af0bf1f54422b801072
+      m_assetPath: Assets/Art/LauncherIcon/icon_fg3.png
+      m_originalFileName: 
+      m_contentHash: 
+      m_displayName: Foreground2
+      m_sourceWidth: 0
+      m_sourceHeight: 0
+  m_aiSplit:
+    m_flatSource:
+      m_layerKind: 3
+      m_assetGuid: 
+      m_assetPath: 
+      m_originalFileName: 
+      m_contentHash: 
+      m_displayName: 
+      m_sourceWidth: 0
+      m_sourceHeight: 0
+    m_background:
+      m_layerKind: 0
+      m_assetGuid: 
+      m_assetPath: 
+      m_originalFileName: 
+      m_contentHash: 
+      m_displayName: 
+      m_sourceWidth: 0
+      m_sourceHeight: 0
+    m_foreground1:
+      m_layerKind: 1
+      m_assetGuid: 
+      m_assetPath: 
+      m_originalFileName: 
+      m_contentHash: 
+      m_displayName: 
+      m_sourceWidth: 0
+      m_sourceHeight: 0
+    m_foreground2:
+      m_layerKind: 2
+      m_assetGuid: 
+      m_assetPath: 
+      m_originalFileName: 
+      m_contentHash: 
+      m_displayName: 
+      m_sourceWidth: 0
+      m_sourceHeight: 0
+    m_hasAcceptedTerms: 0
+    m_status: 0
+    m_errorMessage: 
+    m_errorType: 0
+    m_taskId: 
+    m_requestId: 
+    m_modelVersion: 
+    m_generatedAt: 
+    m_generatedLayers: []
+    m_generatedSdfs: []
+  m_localizations:
+  - m_localeCode: en-US
+    m_appName: ShotField
+    m_isDefault: 0
+    m_canRemove: 1
+  - m_localeCode: zh-CN
+    m_appName: "\u955C\u573A ShotField"
+    m_isDefault: 0
+    m_canRemove: 1
