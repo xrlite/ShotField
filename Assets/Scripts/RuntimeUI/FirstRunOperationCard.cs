@@ -103,11 +103,19 @@ namespace ShotField.RuntimeUI
                 var cam = Camera.main;
                 if (cam != null) _head = cam.transform;
             }
-            var cg = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+            if (_tabletop == null) _tabletop = FindAnyObjectByType<TabletopDirector>();
+            // Unity 重载了 ==，但 ?? 走真正的 null 判断：GetComponent 拿到的
+            // "伪 null" 会被当成非空，随后 .alpha 每帧抛 MissingComponentException。
+            var cg = GetComponent<CanvasGroup>();
+            if (cg == null) cg = gameObject.AddComponent<CanvasGroup>();
             bool yieldToAi = XrAiConnectionView.IsAnyPanelOpen;
-            cg.alpha = yieldToAi ? 0f : 1f;
-            cg.blocksRaycasts = !yieldToAi;
-            cg.interactable = !yieldToAi;
+            // 引导只在沙盘态出现：1:1 首帧要让开茶几与信封，不能横在拍摄视野正中。
+            bool tabletopMode = _tabletop == null ||
+                                _tabletop.currentMode == TabletopDirector.ScaleMode.TabletopMini;
+            bool visible = !yieldToAi && tabletopMode;
+            cg.alpha = visible ? 1f : 0f;
+            cg.blocksRaycasts = visible;
+            cg.interactable = visible;
             if (_completeTimer >= 0f)
             {
                 _completeTimer += Time.deltaTime;

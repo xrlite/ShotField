@@ -40,7 +40,25 @@ namespace ShotField.RuntimeUI
         {
             AutoWireReferences();
         }
+
+        void Start()
+        {
+            // 运行时对象（回放器 / 对比播放器 / 演员）可能晚于 Awake 创建，补一次。
+            AutoWireReferences();
+        }
+
         partial void AutoWireExtensions();
+
+        /// <summary>演员在沙盘态是 inactive，GameObject.Find 找不到；按根名在含 inactive 的集合里匹配。</summary>
+        private static ActorNavigator FindActorByRoot(string rootName)
+        {
+            foreach (var nav in FindObjectsByType<ActorNavigator>(FindObjectsInactive.Include))
+            {
+                if (nav == null) continue;
+                if (nav.transform.root.name == rootName) return nav;
+            }
+            return null;
+        }
 
         public void AutoWireReferences()
         {
@@ -48,16 +66,8 @@ namespace ShotField.RuntimeUI
             if (actorPlayer == null) actorPlayer = FindAnyObjectByType<ActorTakePlayer>();
             if (videoPlayer == null) videoPlayer = FindAnyObjectByType<VideoComparisonPlayer>();
             if (playableDirector == null) playableDirector = FindAnyObjectByType<UnityEngine.Playables.PlayableDirector>();
-            if (actorA == null)
-            {
-                var goA = GameObject.Find("SC01_Performer_A");
-                if (goA != null) actorA = goA.GetComponent<ActorNavigator>();
-            }
-            if (actorB == null)
-            {
-                var goB = GameObject.Find("SC01_Performer_B");
-                if (goB != null) actorB = goB.GetComponent<ActorNavigator>();
-            }
+            if (actorA == null) actorA = FindActorByRoot("SC01_Performer_A");
+            if (actorB == null) actorB = FindActorByRoot("SC01_Performer_B");
             AutoWireExtensions();
         }
 

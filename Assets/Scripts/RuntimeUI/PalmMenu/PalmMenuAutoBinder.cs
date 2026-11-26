@@ -28,6 +28,15 @@ namespace ShotField.RuntimeUI
         private static void Bootstrap()
         {
             if (FindAnyObjectByType<PalmMenuAutoBinder>() != null) return;
+
+            // 场景里 PalmMenuController 是零实例时，Bind() 会直接 return，
+            // 菜单永远不渲染——「上场演这镜」也就永远点不到（讲稿第三幕的唯一入口）。
+            if (FindAnyObjectByType<PalmMenuController>(FindObjectsInactive.Include) == null)
+            {
+                var menuGo = new GameObject("[PalmMenu]");
+                menuGo.AddComponent<PalmMenuController>();
+            }
+
             var go = new GameObject("[PalmMenuAutoBinder]");
             go.AddComponent<PalmMenuAutoBinder>();
         }

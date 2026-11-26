@@ -14,8 +14,11 @@ namespace ShotField.Core
         public string shotId = "SC01-S01";
         public string prompt = "低角度运镜，电影质感，低饱和度室内光，神秘紧张氛围";
         public string clayReferencePath = "";
-        public float durationSeconds = 3.0f;
+        public string modelId = "doubao-seedance-2-5-260628";
+        public string resolution = "1080p";
+        public float durationSeconds = 5.0f;
         public string aspectRatio = "16:9";
+        public bool generateAudio = true;
         public int cameraKeyframeCount = 0;
     }
 
@@ -36,7 +39,8 @@ namespace ShotField.Core
     /// </summary>
     public class SeedanceBridge
     {
-        public string ApiEndpoint { get; set; } = "";
+        public const string DefaultArkCreateEndpoint = "https://ark.cn-beijing.volces.com/api/v3/contents/generations/tasks";
+        public string ApiEndpoint { get; set; } = DefaultArkCreateEndpoint;
         public string ApiKey { get; set; } = "";
         public bool IsOfflineMock { get; set; } = true;
 
@@ -74,22 +78,30 @@ namespace ShotField.Core
         {
             try
             {
-                string payload = "{\"shot_id\":\"" + req.shotId + "\",\"prompt\":\"" + Escape(req.prompt) +
-                                 "\",\"duration\":" + req.durationSeconds + ",\"aspect\":\"" + req.aspectRatio + "\"}";
+                string model = string.IsNullOrEmpty(req.modelId) ? "doubao-seedance-2-5-260628" : req.modelId;
+                int dur = Mathf.Clamp(Mathf.RoundToInt(req.durationSeconds), 4, 30);
+                string imgPart = !string.IsNullOrEmpty(req.clayReferencePath) && req.clayReferencePath.StartsWith("http")
+                    ? $",{{\"type\":\"image_url\",\"image_url\":{{\"url\":\"{Escape(req.clayReferencePath)}\"}},\"role\":\"first_frame\"}}"
+                    : "";
+                string payload = $"{{\"model\":\"{Escape(model)}\",\"content\":[{{\"type\":\"text\",\"text\":\"{Escape(req.prompt)}\"}}{imgPart}],\"resolution\":\"{Escape(req.resolution)}\",\"ratio\":\"{Escape(req.aspectRatio)}\",\"duration\":{dur},\"generate_audio\":{(req.generateAudio ? "true" : "false")},\"output_format\":\"mp4\"}}";
                 using var content = new StringContent(payload, Encoding.UTF8, "application/json");
                 _client.DefaultRequestHeaders.Authorization =
                     new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ApiKey);
 
                 var resp = await _client.PostAsync(ApiEndpoint, content);
+                string body = await resp.Content.ReadAsStringAsync();
                 if (resp.IsSuccessStatusCode)
                 {
+                    var parsed = JsonUtility.FromJson<ArkTaskIdDto>(body);
+                    string id = !string.IsNullOrEmpty(parsed?.id) ? parsed.id : "seedance-" + DateTimeOffset.UtcNow.ToUnixTimeSeconds();
                     return new SeedanceTaskResult
                     {
-                        taskId = "seedance-" + DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                        taskId = id,
                         status = SeedanceTaskStatus.Running,
-                        message = "在线任务已提交至 Seedance 云渲染队列"
+                        message = "在线任务已提交至火山方舟 Seedance 队列"
                     };
                 }
+                return FailedResult($"Seedance HTTP {(int)resp.StatusCode}: {body}");
             }
             catch (Exception ex)
             {
@@ -98,6 +110,29 @@ namespace ShotField.Core
 
             return FailedResult("请求无法送达 Seedance 端点");
         }
+
+        public async Task<SeedanceTaskResult> PollTaskAsync(string taskId)
+        {
+            if (string.IsNullOrEmpty(ApiKey) || string.IsNullOrEmpty(taskId))
+                return FailedResult("缺少 ApiKey 或 taskId");
+            try
+            {
+                _client.DefaultRequestHeaders.Authorization =
+                    new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", ApiKey);
+                var resp = await _client.GetAsync($"{ApiEndpoint.TrimEnd('/')}/{taskId}");
+                string body = await resp.Content.ReadAsStringAsync();
+                return new SeedanceTaskResult
+                {
+                    taskId = taskId,
+                    status = resp.IsSuccessStatusCode ? SeedanceTaskStatus.Running : SeedanceTaskStatus.Failed,
+                    message = body
+                };
+            }
+            catch (Exception ex) { return FailedResult(ex.Message); }
+        }
+
+        [Serializable]
+        private class ArkTaskIdDto { public string id; }
 
         private static SeedanceTaskResult FailedResult(string reason)
         {

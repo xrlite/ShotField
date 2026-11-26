@@ -21,6 +21,8 @@ namespace ShotField.RuntimeUI
         {
             get
             {
+                var dock = FindAnyObjectByType<DirectorDockPanel>();
+                if (dock != null && dock.IsOpen) return true;
                 var view = FindAnyObjectByType<XrAiConnectionView>();
                 if (view == null) return false;
                 return (view._settings != null && view._settings.activeInHierarchy)

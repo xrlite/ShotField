@@ -13,6 +13,8 @@ namespace ShotField.RuntimeUI
     {
         private const float Distance = 1.05f;
         private const float DownOffset = -0.35f;
+        private const float ImmersiveDrop = -0.52f;
+        private const float ImmersiveDistance = 1.15f;
         private static readonly Color BgColor = new Color(0.96f, 0.93f, 0.86f, 0.68f);
         private static readonly Color GoldColor = new Color(0.79f, 0.66f, 0.38f, 1f);
         private static readonly Color SecondaryColor = new Color(0.22f, 0.25f, 0.30f, 1f);
@@ -21,6 +23,8 @@ namespace ShotField.RuntimeUI
         private StudioFadeTransition _fade;
         private Transform _head;
         private TMP_Text _modeLabel;
+        private TMP_Text _stabLabel;
+        private SteadicamDriver _steadicam;
         private TabletopDirector.ScaleMode _lastMode = (TabletopDirector.ScaleMode)(-1);
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -42,19 +46,26 @@ namespace ShotField.RuntimeUI
             _head = Camera.main != null ? Camera.main.transform : null;
 
             var rt = (RectTransform)transform;
-            rt.sizeDelta = new Vector2(526f, 68f);
+            rt.sizeDelta = new Vector2(780f, 68f);
             rt.localScale = Vector3.one * 0.001f;
 
             var capBg = RuntimeUiFactory.CreatePanel(rt, "CapsuleBg", BgColor, Vector2.zero, rt.sizeDelta);
             SpatialGlass.Apply(capBg.GetComponent<Image>(), BgColor, 32f);
             capBg.GetComponent<Image>().raycastTarget = false;
             _modeLabel = CreateButton(rt, "ToggleScaleBtn", "进入 1:1 片场", GoldColor, new Color(0.10f, 0.11f, 0.14f, 1f),
-                new Vector2(-125f, 0f), new Vector2(236f, 48f), OnToggleScaleClicked);
+                new Vector2(-260f, 0f), new Vector2(210f, 48f), OnToggleScaleClicked);
+            // 三档稳定：讲稿第四幕的能力，此前只有 Editor 验证器在调用，运行时缺入口。
+            _stabLabel = CreateButton(rt, "StabilizeBtn", "稳定:斯坦尼康", SecondaryColor, Color.white,
+                new Vector2(-80f, 0f), new Vector2(132f, 48f), OnStabilizeClicked);
+            if (_stabLabel != null) _stabLabel.fontSize = 15f;
             CreateButton(rt, "RecenterBtn", "重置面前", SecondaryColor, Color.white,
-                new Vector2(65f, 0f), new Vector2(116f, 48f), OnRecenterClicked);
+                new Vector2(48f, 0f), new Vector2(106f, 48f), OnRecenterClicked);
+            var dock = DirectorDockPanel.Create(rt);
             var settings = XrAiConnectionView.Create(rt);
+            CreateButton(rt, "DockBtn", "导演工作台", GoldColor, new Color(0.10f, 0.11f, 0.14f, 1f),
+                new Vector2(174f, 0f), new Vector2(126f, 48f), () => { if (XrAiConnectionView.IsAnyPanelOpen && !dock.IsOpen) settings.Toggle(); dock.Toggle(); });
             CreateButton(rt, "AiSettingsBtn", "AI 设置", SecondaryColor, Color.white,
-                new Vector2(191f, 0f), new Vector2(116f, 48f), settings.Toggle);
+                new Vector2(304f, 0f), new Vector2(114f, 48f), () => { if (dock.IsOpen) dock.Close(); settings.Toggle(); });
 
             PlaceInComfortZone();
         }
@@ -84,6 +95,16 @@ namespace ShotField.RuntimeUI
                     : TabletopDirector.ScaleMode.TabletopMini;
                 _tabletop.SwitchMode(next);
             }
+        }
+
+        private void OnStabilizeClicked()
+        {
+            ResolveRefs();
+            if (_steadicam == null) _steadicam = FindAnyObjectByType<SteadicamDriver>();
+            if (_steadicam == null) return;
+            string label = _steadicam.CycleMode();
+            if (_stabLabel != null) _stabLabel.text = "稳定:" + label;
+            Debug.Log("[UI-CLICK] StabilizeBtn -> " + label);
         }
 
         private void OnRecenterClicked()
@@ -116,7 +137,12 @@ namespace ShotField.RuntimeUI
             Vector3 fwd = new Vector3(_head.forward.x, 0f, _head.forward.z);
             if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
             fwd.Normalize();
-            Vector3 target = _head.position + fwd * Distance + Vector3.up * DownOffset;
+            // 1:1 首帧要让开茶几与信封：胶囊更靠下、稍退远，避免横在画面正中。
+            bool immersive = _tabletop != null &&
+                             _tabletop.currentMode == TabletopDirector.ScaleMode.Immersive1to1;
+            float dist = immersive ? ImmersiveDistance : Distance;
+            float drop = immersive ? ImmersiveDrop : DownOffset;
+            Vector3 target = _head.position + fwd * dist + Vector3.up * drop;
             transform.position = Vector3.Lerp(transform.position, target, Time.deltaTime * 8f);
             Vector3 look = transform.position - _head.position;
             if (look.sqrMagnitude > 0.001f) transform.rotation = Quaternion.LookRotation(look.normalized, Vector3.up);

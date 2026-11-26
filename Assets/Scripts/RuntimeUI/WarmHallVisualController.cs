@@ -43,11 +43,13 @@ namespace ShotField.RuntimeUI
         {
             if (!_dupSofaHidden && GameObject.Find("sofa_1") != null)
             {
-                var dupSofa = GameObject.Find("SC01_Blockout/Sofa");
+                // 去重方向此前是反的：sofa_1 是运行时拼出的重复沙发，默认位姿悬在
+                // Y=1.13 且横在观众位正前方 1.7 m；场景里的 SC01_Blockout/Sofa 位置正确。
+                // 保留场景沙发、收起重复件，1:1 首帧才不会糊住茶几与信封。
+                var dupSofa = GameObject.Find("sofa_1");
                 if (dupSofa != null)
                 {
-                    foreach (var r in dupSofa.GetComponentsInChildren<Renderer>(true))
-                        r.enabled = false;
+                    dupSofa.SetActive(false);
                     _dupSofaHidden = true;
                 }
             }

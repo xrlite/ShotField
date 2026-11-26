@@ -80,6 +80,10 @@ namespace ShotField.RuntimeUI
                 case PalmMenuActionKind.ToggleNetwork: ToggleNetwork(); return false;
                 case PalmMenuActionKind.PerformActorTake: ToggleActorPerform(); return false;
                 case PalmMenuActionKind.OpenCommunityCatalog: ToggleCommunity(); return false;
+                case PalmMenuActionKind.ToggleDirectorDock:
+                    UnityEngine.Object.FindAnyObjectByType<DirectorDockPanel>()?.Toggle();
+                    SetStatus("已切换导演工作台");
+                    return true;
                 default: return false;
             }
         }
@@ -167,6 +171,11 @@ namespace ShotField.RuntimeUI
                 Label = Community != null && Community.Visible ? "关闭社区案例库" : "社区案例库",
                 Active = Community != null && Community.Visible
             });
+            entries.Add(new PalmMenuEntry
+            {
+                Kind = PalmMenuActionKind.ToggleDirectorDock,
+                Label = "呼出/收起导演大屏"
+            });
         }
         private void ToggleMode()
         {
@@ -178,22 +187,9 @@ namespace ShotField.RuntimeUI
             SetStatus(Tabletop.LastModeNote);
         }
 
-        private void SaveSnapshot()
-        {
-            SetStatus(_snapshot.Save(Browser, _placedProps));
-        }
-
-        private void ReloadSnapshot()
-        {
-            SetStatus(_snapshot.Reload(Browser, _placedProps));
-        }
-
-        private void SetStatus(string message)
-        {
-            _status = message;
-            Notify();
-        }
-
+        private void SaveSnapshot() => SetStatus(_snapshot.Save(Browser, _placedProps));
+        private void ReloadSnapshot() => SetStatus(_snapshot.Reload(Browser, _placedProps));
+        private void SetStatus(string message) { _status = message; Notify(); }
         private void Notify() => Changed?.Invoke();
     }
 }

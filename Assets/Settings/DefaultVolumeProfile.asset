@@ -962,6 +962,19 @@ MonoBehaviour:
   m_Name: KwDupOverride
   m_EditorClassIdentifier: KitWright.Editor.Tests:KitWright.Editor.Tests.VolumeDupA:KwDupOverride
   active: 1
+--- !u!114 &-2255743335642589651
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: KwDupUrpPreferred
+  m_EditorClassIdentifier: KitWright.Editor.Tests:UnityEngine.Rendering.Universal:KwDupUrpPreferred
+  active: 1
 --- !u!114 &-2224068097849339650
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -1391,10 +1404,23 @@ MonoBehaviour:
   - {fileID: -6288072647309666549}
   - {fileID: 7518938298396184218}
   - {fileID: -1410297666881709256}
-  - {fileID: 1339929068618445918}
-  - {fileID: -752100123532226442}
-  - {fileID: -943764991528623373}
-  - {fileID: 145757533207080417}
+  - {fileID: 5641512469294975276}
+  - {fileID: 7716021857892101371}
+  - {fileID: 10302775264260090}
+  - {fileID: -2255743335642589651}
+--- !u!114 &10302775264260090
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: KwDupOverride
+  m_EditorClassIdentifier: KitWright.Editor.Tests:KitWright.Editor.Tests.VolumeDupA:KwDupOverride
+  active: 1
 --- !u!114 &145757533207080417
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -2225,6 +2251,19 @@ MonoBehaviour:
   m_Name: KwDupOverride
   m_EditorClassIdentifier: KitWright.Editor.Tests:KitWright.Editor.Tests.VolumeDupA:KwDupOverride
   active: 1
+--- !u!114 &5641512469294975276
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: KwDupUrpPreferred
+  m_EditorClassIdentifier: KitWright.Editor.Tests:KitWright.Editor.Tests.VolumeDupB:KwDupUrpPreferred
+  active: 1
 --- !u!114 &5729833403066961541
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -2516,6 +2555,19 @@ MonoBehaviour:
     m_OverrideState: 1
     m_Value: 1
 --- !u!114 &7554075029012493078
+MonoBehaviour:
+  m_ObjectHideFlags: 3
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: KwDupOverride
+  m_EditorClassIdentifier: KitWright.Editor.Tests:KitWright.Editor.Tests.VolumeDupB:KwDupOverride
+  active: 1
+--- !u!114 &7716021857892101371
 MonoBehaviour:
   m_ObjectHideFlags: 3
   m_CorrespondingSourceObject: {fileID: 0}
