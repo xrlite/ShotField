@@ -4,7 +4,7 @@
 
 [快速开始](#快速开始) · [核心能力与实测门禁](#核心能力与实测门禁) · [二次开发与扩展指南](#二次开发与扩展指南) · [六阶段端到端流程](#六阶段端到端全链路) · [Android 构建](#android-构建) · [许可证](#许可证与来源)
 
-![License](https://img.shields.io/badge/license-AGPL--3.0-blue) ![Unity](https://img.shields.io/badge/Unity-6000.6.5f1-blue) ![Platform](https://img.shields.io/badge/target-PICO%20Android%20ARM64-orange) ![OpenSource](https://img.shields.io/badge/PICO%20Space%20Program-2026%20Open%20Source-brightgreen) ![Entropy](https://img.shields.io/badge/entropy-345%20scripts%20%7C%200%20oversize-brightgreen)
+![Gates](https://img.shields.io/badge/gates-36%2F36%20PASS-brightgreen) ![License](https://img.shields.io/badge/license-AGPL--3.0-blue) ![Unity](https://img.shields.io/badge/Unity-6000.6.5f1-blue) ![Platform](https://img.shields.io/badge/target-PICO%20Android%20ARM64-orange) ![OpenSource](https://img.shields.io/badge/PICO%20Space%20Program-2026%20Open%20Source-brightgreen) ![Entropy](https://img.shields.io/badge/entropy-354%20scripts%20%7C%200%20oversize-brightgreen)
 
 > **工程透明承诺**：本项目严格区分「编辑器无头实测通过」「有接口待真机」「尚未实现」。代码存在不等于功能可用；所有测试结论均附可复现门禁脚本与日志，详见 **[VERIFICATION.md](VERIFICATION.md)**。
 
@@ -18,10 +18,10 @@
 | **创作资产社区（Android 兼容）** | 遵循依赖倒置 `ICommunityAssetRepository`，本地优先实现 `LocalCommunityAssetRepository`（通过 `catalog_index.json` + `UnityWebRequest` 兼容 Android APK 只读包）；内置 3 套官方 `.sfpack.zip` 案例包，掌心菜单**「社区案例库」**支持一键加载复用，并预留 `RemoteHttpCommunityRepository` 云端切换桩。 | `COMMUNITY-ASSET-RESULT=PASS (5/5)` |
 | **多人同室局域网协同** | `NetworkSessionController` + `LanRoomDiscovery`（UDP 7778 广播）支持免头显手敲 IP 自动发现房间、`VrNetworkPanel` 一键加入；`RemoteActorSync.ApplyInterpolated` 提供 80ms 指数阻尼平滑与分演员 revision 冲突仲裁（双真机现场同步待上机取证）。 | `NET-VERIFY-RESULT=PASS (13/13)`<br>`NET-RUNTIME-BINDING-RESULT=PASS (5/5)` |
 | **四格式剧本导入与 AI 四道闸** | 支持 `txt` / `md` / `docx` / 文本层 `pdf` 导入；接入 DeepSeek 拆解分镜，经四道闸流水线（Schema、机位边界、Ghost 虚影、物理 Transform 回读误差 $<0.001\text{m}$）落地，确认前零网络调用。 | `SCRIPT-IMPORT-RESULT=PASS (4/4)`<br>`SCENE-COMMAND-GATE-RESULT=PASS (15/15)` |
-| **MR 透视沙盘与三卡多窗口** | `PicoPlaneTabletopAligner` 对接 PICO MR 平面择优吸附实体桌面（无桌面优雅回退虚拟台），`StudioFadeTransition` 实现 1:20 沙盘 ↔ 1:1 片场平滑过渡；导演监视器、五轨时间轴、剧本资产抽屉三块独立 WorldSpace 窗口满足空间应用多窗口规范。 | `TABLETOP-SCALE-RESULT=PASS (14/14)`<br>`THREE-CARD-RESULT=PASS (13/13)`<br>`PALM-MENU-VR-RESULT=PASS (10/10)` |
+| **MR 透视沙盘与三卡多窗口** | `PicoPlaneTabletopAligner` 对接 PICO MR 平面择优吸附实体桌面（无桌面优雅回退虚拟台），`StudioFadeTransition` 实现 1:20 沙盘 ↔ 1:1 片场平滑过渡；运行时微缩片场提供地面、墙、门与核心家具，导演监视器、五轨时间轴、剧本资产抽屉三块独立 WorldSpace 窗口满足空间应用多窗口规范。监看卡可直接导出参考包/打开成片对照，时间轴卡可捕获分镜，资产卡可运行示例剧本提案。 | `TABLETOP-SCALE-RESULT=PASS (14/14)`<br>`THREE-CARD-RESULT=PASS (13/13)`<br>`PALM-MENU-VR-RESULT=PASS (10/10)` |
 | **斯坦尼康防抖与 5 轨空间探针** | `VirtualCameraStabilizer` 提供 Handheld / Steadicam / Dolly 三档增稳（One Euro 滤波 + 零横滚锁）；`DirectorTimeline` 同步调度 Camera / Actor / Prop / Audio / Light 五轨与零 GC 空间视锥探针。 | `STEADICAM-SYNC-RESULT=PASS (5/5)`<br>`DIRECTOR-TIMELINE-RESULT=PASS (5/5)` |
 | **Tripo 运行时 GLB 加载** | `RuntimeGltfImporter` 跨线程解析 GLB 并回主线程挂载骨骼/碰撞体与 NavMeshObstacle Carving。 | `TRIPO-RUNTIME-IMPORT=PASS (5/5)` |
-| **代码熵与安全守卫** | **345 个 C# 脚本 / 36,411 行**，严格 4 层单向依赖（`Core` 零反向引用），**0 个超 200 行文件**，**0 缺失 `.meta`**；`secret_scan` 实测 git 与 APK 均 0 真实密钥泄露；`console_clean` 如实记录 `Errors=0, Warnings=9`（PICO SDK 自身 Warning）。 | `entropy_check`: **0 oversize**<br>`credential_path`: **PASS (9/9)** |
+| **代码熵与安全守卫** | **354 个 C# 脚本 / 37,143 行**，严格 4 层单向依赖（`Core` 零反向引用），**0 个超 200 行文件**，**0 缺失 `.meta`**；`secret_scan` 实测 git 与 APK 均 0 真实密钥泄露；`console_clean` 如实记录 `Errors=0, Warnings=0`。 | `entropy_check`: **0 oversize**<br>`credential_path`: **PASS (9/9)** |
 
 ---
 
@@ -66,8 +66,8 @@ cd ShotField
 
 1. **环境要求**：Unity `6000.6.5f1`（需安装 Android Build Support、SDK 34、NDK 27、OpenJDK 17）。
 2. **工程路径**：必须放置在**纯 ASCII 路径**下（Android 构建工具链限制）。
-3. **唯一主场景**：打开 **`Assets/Scenes/SC01_Main.unity`** 即可直接运行或打包。
-4. **VR 交互入口**：运行时呼出左手**掌心菜单（PalmMenu）**，即可体验「上场演这镜」「社区案例库」「联机（含局域网发现）」与「三卡工作台」。
+3. **唯一主场景**：打开 **`Assets/Scenes/SC01_Main.unity`** 即可直接运行或打包。无头显 Editor Play 会自动启用 `PrevisSandboxCamera` 产品预览机位，不修改 XROrigin。
+4. **VR 交互入口**：运行时呼出左手**掌心菜单（PalmMenu）**，即可体验「上场演这镜」「社区案例库」「联机（含局域网发现）」与「三卡工作台」。资产抽屉的「AI 提案」可运行内置示例剧本并进入真实四道闸。
 
 ---
 

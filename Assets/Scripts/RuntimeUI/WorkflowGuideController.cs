@@ -20,7 +20,7 @@ namespace ShotField.RuntimeUI
         public ChainApplyReport LastReport { get; private set; }
         public string LastExportPath { get; private set; }
         public string LastError { get; private set; }
-        public string DraftScript { get; set; } = "";
+        public string DraftScript { get; set; } = ChainOrchestrator.DemoScript;
 
         public WorkflowStage Stage => _coordinator.CurrentStage;
         public bool IsFinished => _coordinator.IsFinished;

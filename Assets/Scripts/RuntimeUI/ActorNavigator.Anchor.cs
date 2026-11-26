@@ -61,7 +61,7 @@ namespace ShotField.RuntimeUI
             Vector3 p = transform.position;
             p.y = groundY - _minLocalY;
             transform.position = p;
-            if (agent != null && agent.isOnNavMesh) agent.Warp(p);
+            if (agent != null && agent.isOnNavMesh && !agent.hasPath) agent.Warp(p);
         }
 
         private float SampleGroundY()

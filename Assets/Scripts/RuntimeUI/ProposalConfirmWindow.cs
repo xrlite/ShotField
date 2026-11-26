@@ -22,7 +22,7 @@ namespace ShotField.RuntimeUI
 
         void OnGUI()
         {
-            if (!Visible || Proposal == null) return;
+            if (!Application.isEditor || !Visible || Proposal == null) return;
 
             float panelH = Mathf.Min(Screen.height - 24f, 720f);
             var panel = new Rect(12f, 70f, PanelW, panelH);

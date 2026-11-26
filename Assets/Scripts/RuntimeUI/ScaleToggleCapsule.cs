@@ -1,7 +1,6 @@
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace ShotField.RuntimeUI
@@ -13,8 +12,8 @@ namespace ShotField.RuntimeUI
     public sealed class ScaleToggleCapsule : MonoBehaviour
     {
         private const float Distance = 1.05f;
-        private const float DownOffset = -0.24f;
-        private static readonly Color BgColor = new Color(0.10f, 0.12f, 0.15f, 0.94f);
+        private const float DownOffset = -0.35f;
+        private static readonly Color BgColor = new Color(0.96f, 0.93f, 0.86f, 0.68f);
         private static readonly Color GoldColor = new Color(0.79f, 0.66f, 0.38f, 1f);
         private static readonly Color SecondaryColor = new Color(0.22f, 0.25f, 0.30f, 1f);
 
@@ -27,6 +26,7 @@ namespace ShotField.RuntimeUI
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
+            EditorCameraFallback.Ensure();
             if (FindAnyObjectByType<ScaleToggleCapsule>(FindObjectsInactive.Include) != null) return;
             if (Camera.main == null) return;
             var go = new GameObject("ScaleToggleCapsule",
@@ -42,14 +42,19 @@ namespace ShotField.RuntimeUI
             _head = Camera.main != null ? Camera.main.transform : null;
 
             var rt = (RectTransform)transform;
-            rt.sizeDelta = new Vector2(400f, 68f);
+            rt.sizeDelta = new Vector2(526f, 68f);
             rt.localScale = Vector3.one * 0.001f;
 
-            RuntimeUiFactory.CreatePanel(rt, "CapsuleBg", BgColor, Vector2.zero, rt.sizeDelta);
+            var capBg = RuntimeUiFactory.CreatePanel(rt, "CapsuleBg", BgColor, Vector2.zero, rt.sizeDelta);
+            SpatialGlass.Apply(capBg.GetComponent<Image>(), BgColor, 32f);
+            capBg.GetComponent<Image>().raycastTarget = false;
             _modeLabel = CreateButton(rt, "ToggleScaleBtn", "进入 1:1 片场", GoldColor, new Color(0.10f, 0.11f, 0.14f, 1f),
-                new Vector2(-62f, 0f), new Vector2(236f, 48f), OnToggleScaleClicked);
+                new Vector2(-125f, 0f), new Vector2(236f, 48f), OnToggleScaleClicked);
             CreateButton(rt, "RecenterBtn", "重置面前", SecondaryColor, Color.white,
-                new Vector2(128f, 0f), new Vector2(116f, 48f), OnRecenterClicked);
+                new Vector2(65f, 0f), new Vector2(116f, 48f), OnRecenterClicked);
+            var settings = XrAiConnectionView.Create(rt);
+            CreateButton(rt, "AiSettingsBtn", "AI 设置", SecondaryColor, Color.white,
+                new Vector2(191f, 0f), new Vector2(116f, 48f), settings.Toggle);
 
             PlaceInComfortZone();
         }
@@ -57,14 +62,12 @@ namespace ShotField.RuntimeUI
         private TMP_Text CreateButton(RectTransform root, string name, string text, Color bg, Color fg,
             Vector2 pos, Vector2 size, UnityEngine.Events.UnityAction onClick)
         {
-            var go = RuntimeUiFactory.CreatePanel(root, name, bg, pos, size);
+            var glassColor = new Color(bg.r, bg.g, bg.b, Mathf.Min(bg.a, 0.90f));
+            var go = RuntimeUiFactory.CreatePanel(root, name, glassColor, pos, size);
+            SpatialGlass.Apply(go.GetComponent<Image>(), glassColor, 20f);
             var btn = go.AddComponent<Button>();
             var lbl = RuntimeUiFactory.CreateTmpLabel(go.transform, "Label", text, 17, Vector2.zero, size, fg, FontStyle.Bold);
             btn.onClick.AddListener(onClick);
-            var col = go.AddComponent<BoxCollider>();
-            col.size = new Vector3(size.x, size.y, 12f);
-            var xri = go.AddComponent<XRSimpleInteractable>();
-            xri.selectEntered.AddListener(_ => onClick());
             go.AddComponent<UguiHoverEffect>();
             return lbl;
         }
@@ -72,6 +75,7 @@ namespace ShotField.RuntimeUI
         private void OnToggleScaleClicked()
         {
             ResolveRefs();
+            Debug.Log($"[UI-CLICK] ScaleToggleCapsule.ToggleScaleBtn currentMode={(_tabletop != null ? _tabletop.currentMode.ToString() : "null")}");
             if (_fade != null) { _fade.ToggleMode(); return; }
             if (_tabletop != null)
             {
@@ -85,6 +89,7 @@ namespace ShotField.RuntimeUI
         private void OnRecenterClicked()
         {
             ResolveRefs();
+            Debug.Log("[UI-CLICK] ScaleToggleCapsule.RecenterBtn clicked");
             if (_tabletop == null || _head == null) return;
             Vector3 fwd = new Vector3(_head.forward.x, 0f, _head.forward.z);
             if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
@@ -119,7 +124,8 @@ namespace ShotField.RuntimeUI
 
         private void ResolveRefs()
         {
-            if (_head == null && Camera.main != null) _head = Camera.main.transform;
+            if ((_head == null || _head.position.y < 0.30f) && Camera.main != null)
+                _head = Camera.main.transform;
             if (_tabletop == null) _tabletop = FindAnyObjectByType<TabletopDirector>();
             if (_fade == null) _fade = FindAnyObjectByType<StudioFadeTransition>();
         }

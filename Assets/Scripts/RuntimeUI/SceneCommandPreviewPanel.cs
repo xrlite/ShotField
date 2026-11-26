@@ -39,7 +39,9 @@ namespace ShotField.RuntimeUI
             _root = new GameObject("SceneCommandPreviewPanel", typeof(RectTransform), typeof(Canvas),
                 typeof(TrackedDeviceGraphicRaycaster), typeof(Image));
             _root.transform.SetParent(null, false);
-            _root.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
+            var canvas = _root.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+            canvas.worldCamera = Camera.main;
             _root.GetComponent<Image>().color = new Color(0.10f, 0.12f, 0.15f, 0.98f);
             var rt = (RectTransform)_root.transform;
             rt.sizeDelta = new Vector2(520f, 300f); rt.localScale = Vector3.one * 0.001f;

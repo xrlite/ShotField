@@ -11,14 +11,19 @@ namespace ShotField.RuntimeUI
     /// </summary>
     [RequireComponent(typeof(UnityEngine.UI.Button))]
     public sealed class UguiHoverEffect : MonoBehaviour,
-        IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler
+        IPointerEnterHandler, IPointerExitHandler, IPointerDownHandler, IPointerUpHandler, IPointerClickHandler
     {
         private Vector3 baseScale = Vector3.one;
         private float weight;
         private bool hovering;
         private bool pressed;
 
-        private void Awake() => baseScale = transform.localScale;
+        private void Awake()
+        {
+            baseScale = transform.localScale;
+            // 执行顺序不保证：若 XRI 的反馈已接管此对象，就不要两套同时写 localScale。
+            if (GetComponent<SpatialHoverEffect>() != null) enabled = false;
+        }
 
         private void OnDisable()
         {
@@ -33,8 +38,20 @@ namespace ShotField.RuntimeUI
             pressed = false;
         }
 
-        public void OnPointerDown(PointerEventData eventData) => pressed = true;
-        public void OnPointerUp(PointerEventData eventData) => pressed = false;
+        public void OnPointerDown(PointerEventData eventData)
+        {
+            pressed = true;
+            Debug.Log($"[UI-POINTER] Down {name} pointerId={eventData.pointerId} module={eventData.pointerCurrentRaycast.module}");
+        }
+
+        public void OnPointerUp(PointerEventData eventData)
+        {
+            pressed = false;
+            Debug.Log($"[UI-POINTER] Up {name} pointerId={eventData.pointerId}");
+        }
+
+        public void OnPointerClick(PointerEventData eventData) =>
+            Debug.Log($"[UI-POINTER] Click {name} pointerId={eventData.pointerId}");
 
         private void Update()
         {

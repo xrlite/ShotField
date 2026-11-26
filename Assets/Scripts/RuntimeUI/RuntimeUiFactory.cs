@@ -12,7 +12,10 @@ namespace ShotField.RuntimeUI
         private static TMP_FontAsset GetUiFont()
         {
             if (_cachedFont == null)
+            {
                 _cachedFont = Resources.Load<TMP_FontAsset>("Fonts/ShotFieldSansSC SDF");
+                if (_cachedFont != null) _cachedFont.isMultiAtlasTexturesEnabled = true;
+            }
             return _cachedFont;
         }
 
@@ -111,7 +114,9 @@ namespace ShotField.RuntimeUI
             var rt = (RectTransform)textGo.transform;
             rt.anchorMin = Vector2.zero; rt.anchorMax = Vector2.one;
             rt.offsetMin = new Vector2(10f, 5f); rt.offsetMax = new Vector2(-10f, -5f);
-            field.textComponent = text; field.lineType = TMP_InputField.LineType.SingleLine;
+            field.textViewport = (RectTransform)go.transform;
+            field.textComponent = text;
+            field.lineType = TMP_InputField.LineType.SingleLine;
             field.characterLimit = characterLimit; field.text = value;
             return field;
         }

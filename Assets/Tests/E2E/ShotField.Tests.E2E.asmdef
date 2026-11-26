@@ -1,0 +1,29 @@
+{
+  "name": "ShotField.Tests.E2E",
+  "rootNamespace": "ShotField.Tests.E2E",
+  "references": [
+    "ShotField.Core",
+    "ShotField.RuntimeUI",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner",
+    "UnityEngine.UI",
+    "Unity.InputSystem",
+    "Unity.XR.Interaction.Toolkit",
+    "Unity.XR.CoreUtils"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

@@ -1,4 +1,6 @@
 using System.Collections.Generic;
+using System.IO;
+using System.Xml.Linq;
 using ByteDance.PICO.IconConfigurator.Editor;
 using UnityEditor;
 using UnityEngine;
@@ -57,10 +59,11 @@ namespace ShotField.EditorTools
                 });
 
             var result = applyService.Apply(config, store.GetConfigGuid());
-            ApplySplashScreen();
+            StripInjectedLauncherActivity();
+            ApplySplashScreen(false);
             AssetDatabase.SaveAssets();
             AssetDatabase.Refresh();
-            Debug.Log($"[ShotFieldPicoIconApply] PICO 3D 分层图标与 Splash 应用完成，写入/更新文件数={result.OverwrittenPaths.Count}");
+            Debug.Log($"[ShotFieldPicoIconApply] PICO 3D 分层图标与清单守护完成，写入/更新文件数={result.OverwrittenPaths.Count}");
         }
 
         private static void EnsureReadable(string path)
@@ -83,8 +86,38 @@ namespace ShotField.EditorTools
             layers[idx].Texture = tex;
         }
 
-        private static void ApplySplashScreen()
+        private static void StripInjectedLauncherActivity()
         {
+            const string manifestPath = "Assets/Plugins/Android/launcherManifest.xml";
+            if (!File.Exists(manifestPath)) return;
+            var doc = XDocument.Load(manifestPath);
+            XNamespace android = "http://schemas.android.com/apk/res/android";
+            bool changed = false;
+            foreach (var act in new List<XElement>(doc.Descendants("activity")))
+            {
+                if ((string)act.Attribute(android + "name") == "com.unity3d.player.UnityPlayerActivity")
+                {
+                    act.Remove();
+                    changed = true;
+                }
+            }
+            if (changed) doc.Save(manifestPath);
+        }
+
+        private static void ApplySplashScreen(bool enableSplash = false)
+        {
+            if (!enableSplash)
+            {
+                PlayerSettings.virtualRealitySplashScreen = null;
+                var soCleared = new SerializedObject(AssetDatabase.LoadAllAssetsAtPath("ProjectSettings/ProjectSettings.asset")[0]);
+                var propCleared = soCleared.FindProperty("androidSplashScreen");
+                if (propCleared != null && propCleared.objectReferenceValue != null)
+                {
+                    propCleared.objectReferenceValue = null;
+                    soCleared.ApplyModifiedPropertiesWithoutUndo();
+                }
+                return;
+            }
             var splashTex = AssetDatabase.LoadAssetAtPath<Texture2D>(SplashPath);
             if (splashTex == null) { Debug.LogWarning("[ShotFieldPicoIconApply] 未找到启动图: " + SplashPath); return; }
             PlayerSettings.virtualRealitySplashScreen = splashTex;

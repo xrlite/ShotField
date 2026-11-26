@@ -2,7 +2,6 @@ using ShotField.Core;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
-using UnityEngine.XR.Interaction.Toolkit.Interactables;
 using UnityEngine.XR.Interaction.Toolkit.UI;
 
 namespace ShotField.RuntimeUI
@@ -14,10 +13,10 @@ namespace ShotField.RuntimeUI
     public sealed class FirstRunOperationCard : MonoBehaviour
     {
         private const string SeenKey = "ShotField.FirstRunCardSeen.v1";
-        private static readonly Color Glass = new Color(0.11f, 0.12f, 0.15f, 0.94f);
-        private static readonly Color Gold = new Color(0.79f, 0.66f, 0.38f, 1f);
-        private static readonly Color DoneColor = new Color(0.38f, 0.85f, 0.52f, 1f);
-        private static readonly Color DimColor = new Color(0.88f, 0.89f, 0.92f, 1f);
+        private static readonly Color Glass = new Color(0.96f, 0.93f, 0.86f, 0.68f);
+        private static readonly Color Gold = new Color(0.45f, 0.32f, 0.13f, 1f);
+        private static readonly Color DoneColor = new Color(0.16f, 0.45f, 0.24f, 1f);
+        private static readonly Color DimColor = new Color(0.16f, 0.15f, 0.14f, 1f);
 
         private readonly TMP_Text[] _stepLabels = new TMP_Text[3];
         private readonly bool[] _done = new bool[3];
@@ -41,6 +40,7 @@ namespace ShotField.RuntimeUI
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
+            EditorCameraFallback.Ensure();
             if (PlayerPrefs.GetInt(SeenKey, 0) == 1) return;
             if (FindAnyObjectByType<FirstRunOperationCard>(FindObjectsInactive.Include) != null) return;
             if (Camera.main == null) return;
@@ -61,7 +61,9 @@ namespace ShotField.RuntimeUI
             rt.sizeDelta = new Vector2(560f, 220f);
             rt.localScale = Vector3.one * 0.001f;
 
-            RuntimeUiFactory.CreatePanel(rt, "Glass", Glass, Vector2.zero, rt.sizeDelta);
+            var glass = RuntimeUiFactory.CreatePanel(rt, "Glass", Glass, Vector2.zero, rt.sizeDelta);
+            SpatialGlass.Apply(glass.GetComponent<Image>(), Glass, 32f);
+            glass.GetComponent<Image>().raycastTarget = false;
             RuntimeUiFactory.CreateTmpLabel(rt, "Title", "镜场 - 快速上手 (3 步)", 22,
                 new Vector2(-60f, 76f), new Vector2(380f, 34f), Gold, FontStyle.Bold);
 
@@ -80,19 +82,32 @@ namespace ShotField.RuntimeUI
 
         private void CreateSkipButton(RectTransform root, Vector2 pos, Vector2 size)
         {
-            var go = RuntimeUiFactory.CreatePanel(root, "SkipButton", new Color(0.24f, 0.27f, 0.32f, 1f), pos, size);
+            var go = RuntimeUiFactory.CreatePanel(root, "SkipButton", new Color(0.24f, 0.27f, 0.32f, 0.88f), pos, size);
+            SpatialGlass.Apply(go.GetComponent<Image>(), new Color(0.24f, 0.27f, 0.32f, 0.88f), 20f);
             var btn = go.AddComponent<Button>();
             RuntimeUiFactory.CreateTmpLabel(go.transform, "Label", "跳过引导", 14, Vector2.zero, size, Color.white);
-            btn.onClick.AddListener(CompleteAndClose);
-            var col = go.AddComponent<BoxCollider>();
-            col.size = new Vector3(size.x, size.y, 12f);
-            var xri = go.AddComponent<XRSimpleInteractable>();
-            xri.selectEntered.AddListener(_ => CompleteAndClose());
+            btn.onClick.AddListener(OnSkipClicked);
             go.AddComponent<UguiHoverEffect>();
+        }
+
+        private void OnSkipClicked()
+        {
+            Debug.Log("[UI-CLICK] FirstRunOperationCard.SkipButton clicked");
+            CompleteAndClose();
         }
 
         private void Update()
         {
+            if (_head == null || _head.position.y < 0.30f)
+            {
+                var cam = Camera.main;
+                if (cam != null) _head = cam.transform;
+            }
+            var cg = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+            bool yieldToAi = XrAiConnectionView.IsAnyPanelOpen;
+            cg.alpha = yieldToAi ? 0f : 1f;
+            cg.blocksRaycasts = !yieldToAi;
+            cg.interactable = !yieldToAi;
             if (_completeTimer >= 0f)
             {
                 _completeTimer += Time.deltaTime;
@@ -153,7 +168,7 @@ namespace ShotField.RuntimeUI
             if (_head == null) return;
             Vector3 fwd = new Vector3(_head.forward.x, 0f, _head.forward.z);
             if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
-            Vector3 target = _head.position + fwd.normalized * 1.15f + Vector3.up * 0.28f;
+            Vector3 target = _head.position + fwd.normalized * 1.35f + Vector3.up * 0.34f;
             transform.position = Vector3.Lerp(transform.position, target, Time.deltaTime * 6f);
             Vector3 look = transform.position - _head.position;
             if (look.sqrMagnitude > 0.001f) transform.rotation = Quaternion.LookRotation(look.normalized, Vector3.up);
@@ -161,6 +176,7 @@ namespace ShotField.RuntimeUI
 
         private void CompleteAndClose()
         {
+            Debug.Log("[UI-CLICK] FirstRunOperationCard.CompleteAndClose");
             PlayerPrefs.SetInt(SeenKey, 1);
             PlayerPrefs.Save();
             Destroy(gameObject);

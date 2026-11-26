@@ -73,21 +73,32 @@ namespace ShotField.RuntimeUI
                 return;
             }
 
-            Proposal = ProposalModel.BuildFromAnalysis(result, rawScript);
+            PublishProposal(ProposalModel.BuildFromAnalysis(result, rawScript), true);
+        }
 
+        private void PublishProposal(ChainProposalDto proposal, bool openDesktopWindow)
+        {
+            Proposal = proposal;
             if (_window != null)
             {
                 _window.Proposal = Proposal;
-                _window.Visible = true;
+                _window.Visible = openDesktopWindow;
             }
             OnProposalReady?.Invoke(Proposal);
         }
 
         /// <summary>把已接受提案送入四道闸队列；返回时只表示已入队，不代表已执行。</summary>
-        public ChainApplyReport ConfirmAndApply()
+        public ChainApplyReport ConfirmAndApply() => ConfirmAndApply(true);
+
+        public ChainApplyReport ConfirmAndApplyInTabletop() => ConfirmAndApply(false);
+
+        private ChainApplyReport ConfirmAndApply(bool enterStudio)
         {
             var report = new ChainApplyReport();
             if (Proposal == null) return report;
+            var tabletop = FindAnyObjectByType<TabletopDirector>();
+            if (enterStudio && tabletop != null && tabletop.currentMode != TabletopDirector.ScaleMode.Immersive1to1)
+                tabletop.SwitchMode(TabletopDirector.ScaleMode.Immersive1to1);
             EnsureWired();
             foreach (var item in Proposal.items)
             {

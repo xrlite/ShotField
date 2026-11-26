@@ -29,13 +29,15 @@ namespace ShotField.RuntimeUI
         }
         private void Build()
         {
-            var root = _card.ContentRoot; float w = _card.PixelSize.x - 32f;
-            RuntimeUiFactory.CreateTmpButton(root, "SourceGraybox", "灰盒", new Vector2(-w / 3f, 145f),
-                new Vector2(w / 3f - 8f, 44f), onClick: () => SelectSource("graybox"));
-            RuntimeUiFactory.CreateTmpButton(root, "SourceAssets", "现有资产", Vector2.zero,
-                new Vector2(w / 3f - 8f, 44f), onClick: () => SelectSource("assets"));
-            RuntimeUiFactory.CreateTmpButton(root, "SourceTripo", "Tripo", new Vector2(w / 3f, 145f),
-                new Vector2(w / 3f - 8f, 44f), onClick: () => SelectSource("tripo"));
+            var root = _card.ContentRoot; float w = _card.PixelSize.x - 32f; float q = w / 4f;
+            RuntimeUiFactory.CreateTmpButton(root, "SourceGraybox", "灰盒", new Vector2(-1.5f * q, 145f),
+                new Vector2(q - 8f, 44f), onClick: () => SelectSource("graybox"));
+            RuntimeUiFactory.CreateTmpButton(root, "SourceAssets", "现有资产", new Vector2(-0.5f * q, 145f),
+                new Vector2(q - 8f, 44f), onClick: () => SelectSource("assets"));
+            RuntimeUiFactory.CreateTmpButton(root, "SourceTripo", "Tripo", new Vector2(0.5f * q, 145f),
+                new Vector2(q - 8f, 44f), onClick: () => SelectSource("tripo"));
+            RuntimeUiFactory.CreateTmpButton(root, "DemoProposal", "AI 提案", new Vector2(1.5f * q, 145f),
+                new Vector2(q - 8f, 44f), onClick: ImportDemoProposal);
             _grayboxPanel = ModePanel(root, "GrayboxMode", new Color(0.15f, 0.16f, 0.18f, 0.96f), w);
             RuntimeUiFactory.CreateTmpLabel(_grayboxPanel.transform, "Hint", "运行时 Unity primitive | 放置于 spawnAnchor 前方",
                 14, new Vector2(0f, 62f), new Vector2(w - 24f, 30f));
@@ -75,6 +77,14 @@ namespace ShotField.RuntimeUI
         private static GameObject ModePanel(Transform root, string name, Color color, float width) => RuntimeUiFactory.CreatePanel(root, name, color, new Vector2(0f, 33f), new Vector2(width, 186f));
         private static TMP_Text Label(Transform parent, string name, string text, float y, float width, float height = 24f) =>
             RuntimeUiFactory.CreateTmpLabel(parent, name, text, 11, new Vector2(0f, y), new Vector2(width, height), new Color(0.72f, 0.75f, 0.80f));
+        private void ImportDemoProposal()
+        {
+            var orchestrator = FindAnyObjectByType<ChainOrchestrator>();
+            if (orchestrator == null) { LastError = "未找到 ChainOrchestrator"; Refresh(); return; }
+            orchestrator.ImportDemoAndApply();
+            LastError = ""; LastNote = "示例提案已送入四道闸"; Refresh();
+        }
+
         public bool SelectSource(string source)
         {
             string key = (source ?? "").Trim().ToLowerInvariant();

@@ -82,10 +82,32 @@ namespace ShotField.RuntimeUI
                 Debug.LogWarning($"[SpatialTrackingCoordinator] Hand tracking init failed: {ex.Message}");
             }
         }
+#elif ENABLE_PICO_OPENXR_SDK && XR_HAND
+        private void InitHandTrackingHardware()
+        {
+            try
+            {
+                var subsystems = new System.Collections.Generic.List<UnityEngine.XR.Hands.XRHandSubsystem>();
+                SubsystemManager.GetSubsystems(subsystems);
+                for (int i = 0; i < subsystems.Count; i++)
+                {
+                    if (subsystems[i] != null && subsystems[i].running)
+                    {
+                        IsHandTrackingActive = true;
+                        return;
+                    }
+                }
+                IsHandTrackingActive = subsystems.Count > 0;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"[SpatialTrackingCoordinator] OpenXR Hand tracking init failed: {ex.Message}");
+            }
+        }
 #else
         private void InitHandTrackingHardware()
         {
-            Debug.Log("[SpatialTrackingCoordinator] Hand tracking requires ENABLE_PICO_XR_SDK.");
+            Debug.Log("[SpatialTrackingCoordinator] Hand tracking requires ENABLE_PICO_XR_SDK or ENABLE_PICO_OPENXR_SDK + XR_HAND.");
         }
 #endif
 

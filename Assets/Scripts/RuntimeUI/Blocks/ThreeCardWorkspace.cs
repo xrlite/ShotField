@@ -33,14 +33,31 @@ namespace ShotField.RuntimeUI
         {
             BindPalmMenus();
             ApplyProductGates();
+            RebindEditorPreviewHead();
+        }
+
+        private void LateUpdate() => RebindEditorPreviewHead();
+
+        private void RebindEditorPreviewHead()
+        {
+            if (!Application.isEditor) return;
+            var cam = Camera.main;
+            if (cam == null || cam.name != "PrevisSandboxCamera" || _head == cam.transform) return;
+            _head = cam.transform;
+            if (_registry != null) _registry.headAnchor = _head;
+            foreach (var card in _cards.Values) card.RebindHead(_head);
+            Layout();
         }
         public void BuildCards()
         {
             if (_root != null) return;
             _registry = GetComponent<BlockPanelRegistry>() ?? FindAnyObjectByType<BlockPanelRegistry>();
-            _head = _registry != null ? _registry.headAnchor : null;
-            if (_head == null && Camera.main != null) _head = Camera.main.transform;
-            if (_registry != null && _registry.headAnchor == null) _registry.headAnchor = _head;
+            var previewCamera = Camera.main;
+            bool editorPreview = Application.isEditor && previewCamera != null &&
+                                 previewCamera.name == "PrevisSandboxCamera";
+            _head = !editorPreview && _registry != null ? _registry.headAnchor : null;
+            if (_head == null && previewCamera != null) _head = previewCamera.transform;
+            if (_registry != null) _registry.headAnchor = _head;
             _monitor = monitor; _timeline = timeline; _browser = browser; _scriptPanel = scriptPanel;
             if (useSceneDependencies)
             {
@@ -88,6 +105,7 @@ namespace ShotField.RuntimeUI
             AnyOpen = false;
             foreach (var c in _cards.Values) if (c != null && c.IsOpen) { AnyOpen = true; break; }
             LastNote = card.Title + (card.IsOpen ? " 已呼出" : " 已收纳");
+            Debug.Log($"[UI-CLICK] ThreeCardWorkspace.ToggleCard({id}) -> open={card.IsOpen}");
             Changed?.Invoke();
         }
         public void ShowCard(string id)
@@ -95,7 +113,9 @@ namespace ShotField.RuntimeUI
             var card = GetCard(id);
             if (card == null || card.IsOpen) return;
             card.SetOpen(true); _registry?.Layout(); AnyOpen = true;
-            LastNote = card.Title + " 已呼出"; Changed?.Invoke();
+            LastNote = card.Title + " 已呼出";
+            Debug.Log($"[UI-CLICK] ThreeCardWorkspace.ShowCard({id}) -> open=true");
+            Changed?.Invoke();
         }
         public void ShowAll()
         {
@@ -127,7 +147,8 @@ namespace ShotField.RuntimeUI
         {
             DevToolPanels.LegacyDesktopVisible = false; DevToolPanels.MonitorFeedVisible = false;
             DevToolPanels.MonitorScalerVisible = false; DevToolPanels.LightingConsoleVisible = false;
-            var guide = FindAnyObjectByType<WorkflowGuidePanel>(); if (guide != null) guide.enabled = false;
+            var guide = FindAnyObjectByType<WorkflowGuidePanel>();
+            if (guide != null) guide.enabled = Application.isEditor;
             string[] legacy = { "Spatial_Workbench_Canvas", "WindowA_Monitor", "WindowB_Controls", "WindowC_HUD", "WindowD_PropBrowser", "WindowE_Inspector", "WindowF_Timeline", "WindowD_Lighting" };
             foreach (var t in FindObjectsByType<Transform>(FindObjectsInactive.Include))
             {

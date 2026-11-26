@@ -52,32 +52,41 @@ namespace ShotField.EditorTools
                 VerifyAssert.Require("SimulateSpeechError triggers friendly notice '请导演再说一遍'",
                     !string.IsNullOrEmpty(receivedErrorNotice) && receivedErrorNotice.Contains("请导演再说一遍"), ref passed);
 
-                // 2. External Script Receiver Tests
-                var receiverGo = new GameObject("ExternalScriptReceiver_Test", typeof(ExternalScriptReceiver));
-                receiverGo.transform.SetParent(testRoot.transform);
-                var scriptReceiver = receiverGo.GetComponent<ExternalScriptReceiver>();
-
-                string importedEventScript = null;
-                ScriptAnalysisResult importedEventResult = null;
-                scriptReceiver.OnScriptImported += (script, result) =>
+                // 2. External Script Receiver Tests (force offline mock so configured DeepSeek keys do not trigger async HTTP)
+                bool prevOffline = LabFeatureFlags.OfflineDemo;
+                LabFeatureFlags.SetOfflineDemo(true);
+                try
                 {
-                    importedEventScript = script;
-                    importedEventResult = result;
-                };
+                    var receiverGo = new GameObject("ExternalScriptReceiver_Test", typeof(ExternalScriptReceiver));
+                    receiverGo.transform.SetParent(testRoot.transform);
+                    var scriptReceiver = receiverGo.GetComponent<ExternalScriptReceiver>();
 
-                const string testScript = "内景 客厅 日\n这是外部分享测试剧本，茶几上有信件。\n李导：准备开拍！";
-                bool shareResult = scriptReceiver.SimulateExternalShare(testScript);
+                    string importedEventScript = null;
+                    ScriptAnalysisResult importedEventResult = null;
+                    scriptReceiver.OnScriptImported += (script, result) =>
+                    {
+                        importedEventScript = script;
+                        importedEventResult = result;
+                    };
 
-                VerifyAssert.Require("SimulateExternalShare completes successfully and sets LastImportedScript",
-                    shareResult && scriptReceiver.LastImportedScript == testScript, ref passed);
+                    const string testScript = "内景 客厅 日\n这是外部分享测试剧本，茶几上有信件。\n李导：准备开拍！";
+                    bool shareResult = scriptReceiver.SimulateExternalShare(testScript);
 
-                VerifyAssert.Require("ExternalScriptReceiver parsed script contains valid scene beats and characters",
-                    scriptReceiver.LastParsedResult != null &&
-                    scriptReceiver.LastParsedResult.beats != null &&
-                    scriptReceiver.LastParsedResult.beats.Count > 0, ref passed);
+                    VerifyAssert.Require("SimulateExternalShare completes successfully and sets LastImportedScript",
+                        shareResult && scriptReceiver.LastImportedScript == testScript, ref passed);
 
-                VerifyAssert.Require("OnScriptImported event dispatches imported script text and structured analysis",
-                    importedEventScript == testScript && importedEventResult == scriptReceiver.LastParsedResult, ref passed);
+                    VerifyAssert.Require("ExternalScriptReceiver parsed script contains valid scene beats and characters",
+                        scriptReceiver.LastParsedResult != null &&
+                        scriptReceiver.LastParsedResult.beats != null &&
+                        scriptReceiver.LastParsedResult.beats.Count > 0, ref passed);
+
+                    VerifyAssert.Require("OnScriptImported event dispatches imported script text and structured analysis",
+                        importedEventScript == testScript && importedEventResult == scriptReceiver.LastParsedResult, ref passed);
+                }
+                finally
+                {
+                    LabFeatureFlags.SetOfflineDemo(prevOffline);
+                }
 
                 // 3. Spatial Tracking Coordinator Tests
                 var trackingGo = new GameObject("SpatialTrackingCoordinator_Test", typeof(SpatialTrackingCoordinator));

@@ -1,0 +1,32 @@
+{
+  "name": "ShotField.Tests.PlayMode",
+  "rootNamespace": "ShotField.Tests.PlayMode",
+  "references": [
+    "ShotField.Core",
+    "ShotField.Constraints",
+    "ShotField.RuntimeUI",
+    "UnityEngine.TestRunner",
+    "UnityEngine.UI",
+    "Unity.TextMeshPro",
+    "Unity.InputSystem",
+    "Unity.XR.Interaction.Toolkit",
+    "Unity.XR.CoreUtils",
+    "Unity.XR.Hands",
+    "Unity.AI.Navigation",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "ByteDance.PICO.XR"
+  ],
+  "includePlatforms": [],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

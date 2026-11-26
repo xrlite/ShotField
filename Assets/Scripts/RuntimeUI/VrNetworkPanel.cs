@@ -47,6 +47,7 @@ namespace ShotField.RuntimeUI
             _root.transform.SetParent(null, false);
             _canvas = _root.GetComponent<Canvas>();
             _canvas.renderMode = RenderMode.WorldSpace;
+            _canvas.worldCamera = Camera.main;
             _root.GetComponent<Image>().color = new Color(0.10f, 0.12f, 0.15f, 0.97f);
             var rt = (RectTransform)_root.transform;
             rt.sizeDelta = new Vector2(460f, 340f); rt.localScale = Vector3.one * 0.001f;

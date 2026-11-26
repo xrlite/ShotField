@@ -24,9 +24,7 @@ namespace ShotField.RuntimeUI
         public float stoppingDistance = 0.15f;
         public float turnSpeed = 10f;
 
-        [Header("Animator Parameters")]
-        public string walkingBool = "Walking";
-        public string runningBool = "Running";
+        [Header("Identity")]
         [Tooltip("联机同步标识；留空回退实例名（大小写/下划线/actor 前缀不敏感）")] public string actorId;
 
         public event Action<Vector3> OnDestinationSet;
@@ -45,6 +43,15 @@ namespace ShotField.RuntimeUI
             if (agent == null) agent = GetComponent<NavMeshAgent>();
             if (animator == null) animator = GetComponentInChildren<Animator>();
             ConfigureAgent();
+            // 走路动画必须由 ActorLocomotionAnimator 驱动：控制器参数名是 Walking/Running，
+            // 旧代码 SetFloat("Speed") 静默失效，导致"滑步木偶"。这里保证每个演员都挂上。
+            if (animator != null && animator.GetComponent<ActorLocomotionAnimator>() == null)
+            {
+                var driver = animator.gameObject.AddComponent<ActorLocomotionAnimator>();
+                var nav = GetComponent<NavMeshAgent>();
+                if (nav == null) nav = animator.GetComponent<NavMeshAgent>();
+                if (nav != null) driver.walkSpeed = Mathf.Max(0.1f, nav.speed);
+            }
         }
 
         public void ConfigureAgent()
@@ -85,8 +92,9 @@ namespace ShotField.RuntimeUI
 
         public bool NavigateTo(Vector3 target, bool run = false) => MoveTo(target, run);
 
-        public void Stop()
+        public void Stop(string reason = "manual")
         {
+            LastStopReason = reason;
             if (agent != null && agent.isOnNavMesh) agent.ResetPath();
             _isMoving = false;
             _isRunning = false;
@@ -120,14 +128,16 @@ namespace ShotField.RuntimeUI
             if (!_isMoving) return;
             if (!agent.isOnNavMesh || (!agent.pathPending && agent.pathStatus != NavMeshPathStatus.PathComplete))
             {
-                Stop();
+                Stop("path-invalid");
                 return;
             }
-            bool reached = !agent.pathPending && agent.remainingDistance <= agent.stoppingDistance &&
+            bool reached = !agent.pathPending &&
+                Vector3.Distance(transform.position, agent.destination) <= agent.stoppingDistance &&
+                (!agent.hasPath || agent.remainingDistance <= agent.stoppingDistance) &&
                 agent.velocity.sqrMagnitude < 0.01f;
             if (reached)
             {
-                Stop();
+                Stop("reached");
                 OnDestinationReached?.Invoke();
                 return;
             }
@@ -152,13 +162,6 @@ namespace ShotField.RuntimeUI
                     animator.speed = 1f;
                 }
             }
-        }
-
-        private void SetAnimatorBooleans(bool walk, bool run)
-        {
-            if (animator == null || animator.runtimeAnimatorController == null) return;
-            if (!string.IsNullOrEmpty(walkingBool)) animator.SetBool(walkingBool, walk);
-            if (!string.IsNullOrEmpty(runningBool)) animator.SetBool(runningBool, run);
         }
 
         private void SpawnOrUpdateMarker(Vector3 pos)
@@ -188,7 +191,5 @@ namespace ShotField.RuntimeUI
             if (targetMarker != null) targetMarker.gameObject.SetActive(false);
         }
 
-        public void OnFootstep(AnimationEvent evt) { }
-        public void OnLand(AnimationEvent evt) { }
     }
 }

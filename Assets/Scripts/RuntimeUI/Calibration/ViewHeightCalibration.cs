@@ -39,7 +39,7 @@ namespace ShotField.RuntimeUI
         public float crouchedDrop = 0.05f;
 
         [Header("沙盘锚点相对眼高的下降量（米）")]
-        public float tabletopDrop = 0.35f;
+        public float tabletopDrop = 0.60f;
 
         [Header("平滑")]
         [Range(1f, 30f)] public float followLerp = 6f;
@@ -68,6 +68,8 @@ namespace ShotField.RuntimeUI
 
         private void Update()
         {
+            if ((headAnchor == null || headAnchor.position.y < 0.30f) && Camera.main != null)
+                headAnchor = Camera.main.transform;
             if (headAnchor == null) return;
 
             _eyeHeight = headAnchor.position.y;

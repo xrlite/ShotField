@@ -16,13 +16,17 @@ namespace ShotField.RuntimeUI
         public bool Visible { get; private set; }
         public Transform PanelRoot => _root != null ? _root.transform : null;
 
-        private readonly LocalCommunityAssetRepository _repo = new LocalCommunityAssetRepository();
+        private LocalCommunityAssetRepository _repo;
         private readonly List<CommunityAssetManifest> _items = new List<CommunityAssetManifest>();
         private GameObject _root;
         private TMP_Text _status;
         private readonly TMP_Text[] _slotLabels = new TMP_Text[3];
 
-        private void Awake() => Build();
+        private void Awake()
+        {
+            if (_repo == null) _repo = new LocalCommunityAssetRepository();
+            Build();
+        }
 
         public void Toggle() => SetVisible(!Visible);
 
@@ -39,28 +43,33 @@ namespace ShotField.RuntimeUI
         {
             _root = new GameObject("VrCommunityPanel", typeof(RectTransform), typeof(Canvas),
                 typeof(TrackedDeviceGraphicRaycaster), typeof(Image));
-            _root.GetComponent<Canvas>().renderMode = RenderMode.WorldSpace;
-            _root.GetComponent<Image>().color = new Color(0.10f, 0.12f, 0.15f, 0.94f);
+            var canvas = _root.GetComponent<Canvas>();
+            canvas.renderMode = RenderMode.WorldSpace;
+            canvas.worldCamera = Camera.main;
+            SpatialGlass.Apply(_root.GetComponent<Image>(), new Color(0.96f, 0.93f, 0.86f, 0.70f), 32f);
             var rt = (RectTransform)_root.transform;
             rt.sizeDelta = new Vector2(480f, 360f); rt.localScale = Vector3.one * 0.001f;
 
             RuntimeUiFactory.CreateTmpLabel(rt, "Title", "社区案例库", 24, new Vector2(0f, 148f),
-                new Vector2(440f, 36f), Color.white);
+                new Vector2(456f, 36f), new Color(0.16f, 0.15f, 0.14f));
             _status = RuntimeUiFactory.CreateTmpLabel(rt, "Status", "点击下方案例一键加载", 14,
-                new Vector2(0f, 112f), new Vector2(440f, 32f));
+                new Vector2(0f, 112f), new Vector2(456f, 32f), new Color(0.25f, 0.24f, 0.22f));
 
             for (int i = 0; i < 3; i++)
             {
                 int idx = i;
                 var btn = RuntimeUiFactory.CreateTmpButton(rt, "Pkg_" + i, "加载中...",
-                    new Vector2(0f, 52f - i * 54f), new Vector2(420f, 44f), onClick: () => LoadItemAsync(idx));
+                    new Vector2(0f, 52f - i * 54f), new Vector2(456f, 44f), onClick: () => LoadItemAsync(idx));
+                SpatialGlass.Apply(btn.GetComponent<Image>(), new Color(0.30f, 0.29f, 0.27f, 0.86f), 20f);
                 _slotLabels[i] = btn.GetComponentInChildren<TMP_Text>();
             }
 
-            RuntimeUiFactory.CreateTmpButton(rt, "Refresh", "刷新", new Vector2(-100f, -124f),
+            var refresh = RuntimeUiFactory.CreateTmpButton(rt, "Refresh", "刷新", new Vector2(-100f, -124f),
                 new Vector2(140f, 38f), onClick: RefreshCatalogAsync);
-            RuntimeUiFactory.CreateTmpButton(rt, "Close", "关闭", new Vector2(100f, -124f),
+            SpatialGlass.Apply(refresh.GetComponent<Image>(), new Color(0.30f, 0.29f, 0.27f, 0.86f), 20f);
+            var close = RuntimeUiFactory.CreateTmpButton(rt, "Close", "关闭", new Vector2(100f, -124f),
                 new Vector2(140f, 38f), onClick: () => SetVisible(false));
+            SpatialGlass.Apply(close.GetComponent<Image>(), new Color(0.30f, 0.29f, 0.27f, 0.86f), 20f);
             _root.SetActive(false);
         }
 

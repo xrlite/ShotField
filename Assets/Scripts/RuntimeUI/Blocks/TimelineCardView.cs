@@ -68,7 +68,9 @@ namespace ShotField.RuntimeUI
             if (_card?.ContentRoot == null) { LastNote = "Card content missing"; return; }
             var root = _card.ContentRoot;
             for (int i = root.childCount - 1; i >= 0; i--) Remove(root.GetChild(i).gameObject);
-            Button(root, "Play", "播放", -180f, Play); Button(root, "Pause", "暂停", 0f, Pause); Button(root, "Stop", "停止", 180f, Stop);
+            Button(root, "Play", "播放", -180f, Play); Button(root, "Pause", "暂停", 0f, Pause); Button(root, "Stop", "停止", 120f, Stop);
+            RuntimeUiFactory.CreateTmpButton(root, "CaptureShot", "捕获分镜", new Vector2(240f, 132f),
+                new Vector2(100f, 38f), onClick: () => FindAnyObjectByType<SpatialWorkbench>()?.CaptureCurrentViewToShot());
             Label(root, "CameraLabel", "镜头", new Vector2(-260f, 20f), new Vector2(62f, 56f), 18);
             Label(root, "ActorLabel", "演员", new Vector2(-260f, -70f), new Vector2(62f, 56f), 18);
             BuildRuler(root);

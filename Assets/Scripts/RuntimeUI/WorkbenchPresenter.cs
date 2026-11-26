@@ -77,9 +77,8 @@ namespace ShotField.RuntimeUI
             LastExportPath = null;
             var shot = SelectedShot;
             if (shot == null) { ShowNotify("请先选择镜头"); return; }
-            var folder = Application.isEditor
-                ? Path.GetFullPath(Path.Combine(Application.dataPath, "../../../07_提交包"))
-                : Path.Combine(Application.persistentDataPath, "Exports");
+            var folder = Path.Combine(SceneEditStateStore.ResolveFolder(), "ReferencePackages");
+            Directory.CreateDirectory(folder);
             var path = Path.Combine(folder, $"ShotField_{DateTime.Now:yyyyMMdd_HHmm_ssfff}_{Guid.NewGuid():N}.zip");
             try
             {

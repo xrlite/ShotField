@@ -8,6 +8,7 @@ namespace ShotField.RuntimeUI
     {
         private SpatialBlockCard _card;
         private SpatialMonitor _monitor;
+        private SpatialWorkbench _workbench;
         private RawImage _display;
         private TMPro.TMP_Text _status;
 
@@ -36,15 +37,22 @@ namespace ShotField.RuntimeUI
             _display.color = Color.white;
             _display.raycastTarget = false;
 
+            _workbench = FindAnyObjectByType<SpatialWorkbench>();
             RuntimeUiFactory.CreateTmpButton(root, "AspectWide", "16:9",
-                new Vector2(-150f, -112f), new Vector2(140f, 48f),
+                new Vector2(-240f, -112f), new Vector2(108f, 48f),
                 onClick: () => _monitor?.SetAspect(false));
             RuntimeUiFactory.CreateTmpButton(root, "AspectPortrait", "9:16",
-                new Vector2(0f, -112f), new Vector2(140f, 48f),
+                new Vector2(-120f, -112f), new Vector2(108f, 48f),
                 onClick: () => _monitor?.SetAspect(true));
             RuntimeUiFactory.CreateTmpButton(root, "RefreshFeed", "刷新",
-                new Vector2(150f, -112f), new Vector2(140f, 48f),
+                new Vector2(0f, -112f), new Vector2(108f, 48f),
                 onClick: () => _monitor?.RequestRender());
+            RuntimeUiFactory.CreateTmpButton(root, "ExportReference", "导出参考包",
+                new Vector2(120f, -112f), new Vector2(108f, 48f),
+                onClick: () => _workbench?.ExportReferencePackage());
+            RuntimeUiFactory.CreateTmpButton(root, "ReviewVideo", "成片对照",
+                new Vector2(240f, -112f), new Vector2(108f, 48f),
+                onClick: () => _workbench?.PlayReviewVideo(_workbench.reviewVideoSource));
 
             _status = RuntimeUiFactory.CreateTmpLabel(root, "Status", "监看板", 18,
                 new Vector2(0f, -164f), new Vector2(560f, 32f),

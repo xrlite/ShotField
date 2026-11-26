@@ -96,7 +96,7 @@
 | `scene_command_gates` | `SCENE-COMMAND-GATE-RESULT=PASS (15/15)`：DeepSeek 场景命令四道闸（Gate 1 语法/防御/空参数拦截、Gate 2 视锥与遮挡空间几何、Gate 3 轴线法则与跳轴预警、Gate 4 执行失败回退原状态） |
 | `e2e_pipeline` | `E2E-PIPELINE-RESULT=PASS (6/6)`：六阶段端到端串联（①剧本导入→②AI四道闸**离线契约**→③资产对账与GLB加载→④沙盘双尺度过渡→⑤斯坦尼康5轨剪辑→⑥**导出规格/编码器在位，真编码 PENDING_APK**）。第②⑥步不调网络、不产视频，不得当作 AI 真调用或导出跑通 |
 
-**最近一次可复跑基线待重建。** 2026-11-24 22:14 那次 `33 run / 0 failed` 是在「`console_clean` 前置 `Clear()` + `E2E Step6` 依赖预置 17.8MB mp4」的旧实现下取得的，**不再作为当前口径**。当前代码已回退清屏、重写 Step6、删除预置 mp4 依赖，须在编辑器完成脚本编译后重跑 `verify_all.ps1`，以其新日志为准。2026-11-25 熵巡检另发现 `E2EWorkflowRunner.cs` 为 212 行、超预算 12 行（`entropy_20261125_0000.txt`）；不得沿用“323 文件零超行”的旧说法。
+**当前可复跑基线（2026-11-25 体验成品轮）**：清空 Console 后运行完整 `verify_all.ps1`，**36 run / 0 failed / 0 no-error，36/36 PASS**，日志 `gate_logs/verify_all_20261125_175433.log`；其中 `console_clean` 为 `Errors=0 Warnings=0`。熵巡检为 **354 文件 / 37,143 行 / 0 超预算 / 0 缺 meta**。不得沿用旧“323 文件零超行”或旧 33/33 口径。
 
 > ⚠️ **已知第三方污染**：`console_clean` 可能读到 1 条 `[KitWright MCP Server] Failed to start HTTP transport`，根因是开发期 MCP 工具与 gate bridge 争用 8765 端口，**非产品运行时错误**，该包不进 APK。是否在交付工程移除该开发期包，待项目负责人决定；在此之前门禁如实报 FAIL，不做白名单豁免。
 
@@ -143,6 +143,8 @@
 | mp4 导出链路 | 编辑器菜单自测 PASS；两条失败分支已验；验片脚本改为全帧运动/切镜扫描，`--pairs` 仅诊断 | 编辑器 | **Android 真编码 pending-APK** |
 | Console 长驻留归零 | `console_clean_dwell_20261123_135958.log`，`CONSOLE-CLEAN-RESULT=PASS Errors=0 Warnings=0`，300s 五次巡检全空 | 编辑器 Play 驻留 | 模拟器已验证（编辑器层） |
 | 模拟器装机运行 | `20261118_1752_模拟器_D包运行截图.png`、`emu_D_run_20261118_1752.log` | Swan 模拟器 | 已验证：装入成功、进程存活、崩溃缓冲区空、OpenXR 正常加载 |
+| 2026-11-25 体验成品轮 | `20261125_1705_体验成品_沙盘首屏.png`、`20261125_1705_体验成品_三卡工作台.png`、`20261125_1652_体验成品_四道闸确认.png`、`20261125_1654_体验成品_场景应用完成.png`、`20261125_ShotField_reference_package_v01.zip` | 编辑器 Play + Unity MCP | 已验证：无头显首屏、三卡入口、真实示例提案四道闸、分镜与 36 帧参考包 |
+| 2026-11-25 模拟器首帧 | `20261125_1755_模拟器_v03_首帧.png`、`20261125_ShotField_arm64_v03.apk`、`gate_logs/verify_all_20261125_175433.log` | PICO Emulator Swan x86_64 + 编辑器 36 门禁 | 模拟器已验证：安装成功、进程存活、三步卡/尺度胶囊/微缩片场正常出画；手柄点击与六步旅程 pending |
 
 ### ⚠️ 已作废的证据（不要再引用）
 

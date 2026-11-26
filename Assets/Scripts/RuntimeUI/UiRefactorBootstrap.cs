@@ -19,13 +19,16 @@ namespace ShotField.RuntimeUI
         private static void Apply()
         {
             var interactables = Object.FindObjectsByType<XRSimpleInteractable>(
-                FindObjectsInactive.Include, FindObjectsSortMode.None);
+                FindObjectsInactive.Include);
 
             int added = 0;
             for (int i = 0; i < interactables.Length; i++)
             {
                 var host = interactables[i];
                 if (host == null || host.GetComponent<SpatialHoverEffect>() != null) continue;
+                // 同一个按钮可能同时带 uGUI Button 与 XRSimpleInteractable，
+                // 且 Card/Capsule 已显式挂过 UguiHoverEffect。两套都写 localScale 会互相打架。
+                if (host.GetComponent<UguiHoverEffect>() != null) continue;
                 host.gameObject.AddComponent<SpatialHoverEffect>();
                 added++;
             }
@@ -33,7 +36,7 @@ namespace ShotField.RuntimeUI
             // uGUI Button 走 EventSystem 指针事件，不吃 XRI 的 hover 事件。
             // 首屏操作卡的「知道了」就是 Button，只覆盖 XRI 会让它完全没有手感。
             var buttons = Object.FindObjectsByType<Button>(
-                FindObjectsInactive.Include, FindObjectsSortMode.None);
+                FindObjectsInactive.Include);
             int uiAdded = 0;
             for (int i = 0; i < buttons.Length; i++)
             {

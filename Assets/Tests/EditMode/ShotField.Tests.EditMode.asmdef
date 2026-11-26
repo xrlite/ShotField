@@ -1,0 +1,38 @@
+{
+  "name": "ShotField.Tests.EditMode",
+  "rootNamespace": "ShotField.Tests.EditMode",
+  "references": [
+    "ShotField.Core",
+    "ShotField.Constraints",
+    "ShotField.RuntimeUI",
+    "ShotField.Editor",
+    "UnityEngine.TestRunner",
+    "UnityEditor.TestRunner",
+    "UnityEngine.UI",
+    "Unity.TextMeshPro",
+    "Unity.InputSystem",
+    "Unity.XR.Interaction.Toolkit",
+    "Unity.XR.CoreUtils",
+    "Unity.XR.Hands",
+    "Unity.XR.OpenXR",
+    "Unity.XR.OpenXR.Editor",
+    "Unity.AI.Navigation",
+    "Unity.RenderPipelines.Universal.Runtime",
+    "ByteDance.PICO.XR"
+  ],
+  "includePlatforms": [
+    "Editor"
+  ],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": true,
+  "precompiledReferences": [
+    "nunit.framework.dll"
+  ],
+  "autoReferenced": false,
+  "defineConstraints": [
+    "UNITY_INCLUDE_TESTS"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}

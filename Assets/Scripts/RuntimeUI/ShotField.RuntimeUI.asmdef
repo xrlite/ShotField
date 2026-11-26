@@ -12,6 +12,14 @@
     "Unity.XR.CoreUtils",
     "ByteDance.PICO.Platform",
     "ByteDance.PICO.XR",
+    "Unity.XR.Hands",
     "GUID:774f0e7b520e24644b448f5ac7fa5d94"
+  ],
+  "versionDefines": [
+    {
+      "name": "com.unity.xr.hands",
+      "expression": "1.3.0",
+      "define": "XR_HAND"
+    }
   ]
 }

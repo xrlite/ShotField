@@ -18,6 +18,7 @@ namespace ShotField.RuntimeUI
 
         private readonly RectTransform[] _arches = new RectTransform[3];
         private CanvasGroup _group;
+        private Canvas _canvas;
         private Texture2D _ringTex;
         private Sprite _ringSprite;
 
@@ -31,6 +32,8 @@ namespace ShotField.RuntimeUI
             var canvas = gameObject.AddComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
             canvas.sortingOrder = 10000;
+            canvas.enabled = false;   // 未播放时空 Canvas 不提交
+            _canvas = canvas;
             _group = gameObject.AddComponent<CanvasGroup>();
             _group.alpha = 0f;
             _group.blocksRaycasts = false;
@@ -55,6 +58,7 @@ namespace ShotField.RuntimeUI
             if (_group == null) return;
             float fade = Mathf.Sin(Mathf.Clamp01(t) * Mathf.PI);
             _group.alpha = fade;
+            if (_canvas != null) _canvas.enabled = fade > 0.001f;
 
             for (int i = 0; i < _arches.Length; i++)
             {

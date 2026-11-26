@@ -5,11 +5,11 @@ using UnityEngine.UI;
 namespace ShotField.RuntimeUI
 {
     /// <summary>
-    /// 沙盘 ⇄ 片场 的模式过渡：先淡出到实色，执行 FOV 呼吸与尺度插值，
+    /// 沙盘 ⇄ 片场 的模式过渡：先淡出到实色，
     /// 切换 <see cref="TabletopDirector"/> 模式并调演员预算，最后淡入。
     /// 遵循「同数据」原则，不重建对象、不重载场景。
     /// </summary>
-    public sealed class StudioFadeTransition : MonoBehaviour
+    public sealed partial class StudioFadeTransition : MonoBehaviour
     {
         [Header("绑定")]
         public TabletopDirector tabletop;
@@ -18,21 +18,13 @@ namespace ShotField.RuntimeUI
 
         [Header("过渡")]
         [Tooltip("单程淡入或淡出时长，秒。总时长约为它的两倍。")]
-        [Range(0.05f, 2f)] public float fadeDuration = 0.35f;
+        [Range(0.05f, 2f)] public float fadeDuration = 0.14f;
         public Color fadeColor = Color.black;
         [Range(0.05f, 0.5f)] public float overlayDistance = 0.12f;
 
-        [Header("平滑呼吸与尺度过渡")]
-        public bool enableFovBreathing = true;
-        [Range(0.5f, 8f)] public float fovBreathingDelta = 3f;
-        public bool enableScaleInterpolation = true;
-
         private CanvasGroup _group;
-        private ArchTunnelOverlay _archTunnel;
-        private Camera _headCamera;
-        private float _baseFov = 60f;
+        private Canvas _fadeCanvas;
         private bool _running;
-        private bool _entering1to1;
 
         public bool IsRunning => _running;
 
@@ -45,7 +37,6 @@ namespace ShotField.RuntimeUI
                 var cam = Camera.main;
                 headAnchor = cam != null ? cam.transform : null;
             }
-            CacheCamera();
             EnsureOverlay();
         }
 
@@ -54,7 +45,6 @@ namespace ShotField.RuntimeUI
             this.tabletop = tabletop;
             this.actorBudget = actorBudget;
             this.headAnchor = headAnchor;
-            CacheCamera();
             EnsureOverlay();
             if (_group == null) return;
             var parent = headAnchor != null ? headAnchor : transform;
@@ -80,117 +70,62 @@ namespace ShotField.RuntimeUI
         private IEnumerator Run(TabletopDirector.ScaleMode target)
         {
             _running = true;
-            _entering1to1 = target == TabletopDirector.ScaleMode.Immersive1to1;
-            CacheCamera();
-
-            yield return Fade(0f, 1f, true);
-
-            tabletop.SwitchMode(target);
-            if (actorBudget != null)
-                actorBudget.Apply(target == TabletopDirector.ScaleMode.TabletopMini);
-
-            if (enableScaleInterpolation && tabletop.tabletopProxyRoot != null)
+            try
             {
-                yield return InterpolateScale(target == TabletopDirector.ScaleMode.TabletopMini);
+                yield return Fade(0f, 1f);
+                tabletop.SwitchMode(target);
+                if (actorBudget != null)
+                    actorBudget.Apply(target == TabletopDirector.ScaleMode.TabletopMini);
+                yield return Fade(1f, 0f);
             }
-
-            yield return Fade(1f, 0f, false);
-
-            if (_headCamera != null) _headCamera.fieldOfView = _baseFov;
-            _running = false;
+            finally
+            {
+                _running = false;
+                ReleaseOverlay();
+            }
         }
 
-        private IEnumerator Fade(float from, float to, bool breathingIn)
+        private void OnDisable()
+        {
+            StopAllCoroutines();
+            _running = false;
+            ReleaseOverlay();
+        }
+
+        /// <summary>强制解锁全屏遮罩：alpha 归零、关 Canvas、放开射线。</summary>
+        public void ReleaseOverlay()
+        {
+            if (_group == null) return;
+            _group.alpha = 0f;
+            _group.blocksRaycasts = false;
+            _group.interactable = false;
+            if (_fadeCanvas != null) _fadeCanvas.enabled = false;
+        }
+
+        private IEnumerator Fade(float from, float to)
         {
             if (_group == null) yield break;
 
             float elapsed = 0f;
-            _group.alpha = from;
-            _group.blocksRaycasts = to > 0.5f;
-
+            ApplyFadeAlpha(from);
             while (elapsed < fadeDuration)
             {
-                elapsed += Time.deltaTime;
-                float t = Mathf.Clamp01(elapsed / fadeDuration);
-                _group.alpha = Mathf.Lerp(from, to, t);
-                if (_archTunnel != null)
-                {
-                    float tunnelT = breathingIn ? t * 0.5f : 0.5f + t * 0.5f;
-                    _archTunnel.SetProgress(tunnelT, _entering1to1);
-                }
-
-                if (enableFovBreathing && _headCamera != null)
-                {
-                    float factor = breathingIn ? t : (1f - t);
-                    _headCamera.fieldOfView = Mathf.Lerp(_baseFov, _baseFov - fovBreathingDelta, factor);
-                }
+                elapsed += Time.unscaledDeltaTime;
+                ApplyFadeAlpha(Mathf.Lerp(from, to, Mathf.Clamp01(elapsed / fadeDuration)));
                 yield return null;
             }
-
-            _group.alpha = to;
-            _group.blocksRaycasts = to > 0.5f;
+            ApplyFadeAlpha(to);
         }
 
-        private IEnumerator InterpolateScale(bool enteringMini)
+        /// <summary>alpha 归零时连 Canvas 一起关，避免空转的全屏 quad 被 XR 合成器反复抓取。</summary>
+        private void ApplyFadeAlpha(float a)
         {
-            var proxy = tabletop.tabletopProxyRoot;
-            if (proxy == null) yield break;
-
-            Vector3 startScale = enteringMini ? Vector3.one * 0.001f : Vector3.one;
-            Vector3 endScale = enteringMini ? Vector3.one : Vector3.one * 0.001f;
-            float duration = 0.08f;
-            float elapsed = 0f;
-
-            while (elapsed < duration)
-            {
-                elapsed += Time.deltaTime;
-                proxy.localScale = Vector3.Lerp(startScale, endScale, elapsed / duration);
-                yield return null;
-            }
-            proxy.localScale = Vector3.one;
+            if (_group == null) return;
+            _group.alpha = a;
+            if (_fadeCanvas != null) _fadeCanvas.enabled = a > 0.001f;
+            // 透明就等于不挡射线：这是设备端「点了没反应」最常见的一类原因。
+            if (a <= 0.001f) _group.blocksRaycasts = false;
         }
 
-        private void CacheCamera()
-        {
-            if (headAnchor != null) _headCamera = headAnchor.GetComponent<Camera>();
-            if (_headCamera == null) _headCamera = Camera.main;
-            if (_headCamera != null) _baseFov = _headCamera.fieldOfView;
-        }
-
-        private void EnsureOverlay()
-        {
-            if (_group != null) return;
-            var parent = headAnchor != null ? headAnchor : transform;
-
-            var go = new GameObject("StudioFadeOverlay",
-                typeof(RectTransform), typeof(Canvas), typeof(CanvasGroup), typeof(Image));
-            go.transform.SetParent(parent, false);
-
-            var canvas = go.GetComponent<Canvas>();
-            canvas.renderMode = RenderMode.WorldSpace;
-            canvas.sortingOrder = 9000;
-
-            var rt = (RectTransform)go.transform;
-            rt.localPosition = new Vector3(0f, 0f, overlayDistance);
-            rt.localRotation = Quaternion.identity;
-            rt.sizeDelta = new Vector2(1200f, 1200f);
-            rt.localScale = Vector3.one * 0.001f;
-
-            var img = go.GetComponent<Image>();
-            img.color = fadeColor;
-            img.raycastTarget = false;
-
-            _group = go.GetComponent<CanvasGroup>();
-            _group.alpha = 0f;
-            _group.blocksRaycasts = false;
-            _group.interactable = false;
-
-            if (_archTunnel == null)
-            {
-                var archGo = new GameObject("ArchTunnelOverlay");
-                _archTunnel = archGo.AddComponent<ArchTunnelOverlay>();
-                _archTunnel.Initialize(parent, overlayDistance + 0.04f);
-            }
-        }
     }
 }

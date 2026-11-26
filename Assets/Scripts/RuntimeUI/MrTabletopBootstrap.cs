@@ -17,7 +17,7 @@ namespace ShotField.RuntimeUI
         public Transform headAnchor;
 
         [Header("虚拟创作台回退")]
-        public float virtualDistance = 0.8f;
+        public float virtualDistance = 1.05f;
         public float virtualHeight = 0.75f;
 
         [Header("扫描")]
@@ -47,7 +47,7 @@ namespace ShotField.RuntimeUI
                 var cam = Camera.main;
                 headAnchor = cam != null ? cam.transform : transform;
             }
-            PassthroughFeature.EnableVideoSeeThrough = true;
+            if (!Application.isEditor) PassthroughFeature.EnableVideoSeeThrough = true;
         }
 
         private void Start()
@@ -58,7 +58,8 @@ namespace ShotField.RuntimeUI
             {
                 // 放在当前正前方 0.8m，避免左偏出视野导致闪烁
                 var cam = Camera.main;
-                if (cam != null) headAnchor = cam.transform;
+                if (cam != null && (headAnchor == null || headAnchor.position.y < 0.30f))
+                    headAnchor = cam.transform;
                 PlaceAnchorInFrontOfHead();
                 tabletop.SwitchMode(TabletopDirector.ScaleMode.TabletopMini);
             }
@@ -77,15 +78,19 @@ namespace ShotField.RuntimeUI
 
         private void Update()
         {
-            if (_placed || tabletop == null) return;
+            if ((headAnchor == null || headAnchor.position.y < 0.30f) && Camera.main != null)
+                headAnchor = Camera.main.transform;
+            if (_placed) return;
+            if (tabletop == null) return;
+            if (Time.time - _startedAt >= scanTimeout)
+            {
+                UseFallback(_subsystem == null ? "no-mesh-subsystem" : "no-horizontal-plane");
+                return;
+            }
             if (_subsystem == null)
             {
                 ResolveSubsystem();
-                if (_subsystem == null)
-                {
-                    if (Time.time - _startedAt >= scanTimeout) UseFallback("no-mesh-subsystem");
-                    return;
-                }
+                if (_subsystem == null) return;
                 _subsystem.SetBoundingVolume(headAnchor.position, new Vector3(2f, 1.5f, 2f));
             }
 
@@ -110,7 +115,6 @@ namespace ShotField.RuntimeUI
                     result => OnMeshReady(info.MeshId, result));
             }
 
-            if (Time.time - _startedAt >= scanTimeout) UseFallback("no-horizontal-plane");
         }
 
         private void ResolveSubsystem()
@@ -167,12 +171,7 @@ namespace ShotField.RuntimeUI
 
         private void UseFallback(string reason)
         {
-            var forward = headAnchor.forward;
-            forward.y = 0f;
-            if (forward.sqrMagnitude < 0.001f) forward = Vector3.forward;
-            tabletop.TabletopAnchor.position = headAnchor.position + forward.normalized * virtualDistance;
-            tabletop.TabletopAnchor.position = new Vector3(tabletop.TabletopAnchor.position.x,
-                virtualHeight, tabletop.TabletopAnchor.position.z);
+            PlaceAnchorInFrontOfHead();
             tabletop.SwitchMode(TabletopDirector.ScaleMode.TabletopMini);
             _placed = true;
             Status = reason;
@@ -183,7 +182,7 @@ namespace ShotField.RuntimeUI
         private void OnDestroy()
         {
             foreach (var mesh in _meshes.Values) if (mesh != null) Destroy(mesh);
-            PassthroughFeature.EnableVideoSeeThrough = false;
+            if (!Application.isEditor) PassthroughFeature.EnableVideoSeeThrough = false;
         }
     }
 }

@@ -22,6 +22,7 @@ namespace ShotField.RuntimeUI
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
         private static void Bootstrap()
         {
+            EditorCameraFallback.Ensure();
             var director = Object.FindAnyObjectByType<TabletopDirector>();
             if (director == null)
             {
@@ -32,6 +33,7 @@ namespace ShotField.RuntimeUI
 
             var host = director.gameObject;
 
+            Ensure<TabletopSetComposer>(host);
             var budget = Ensure<TabletopActorBudget>(host);
             if (budget.tabletop == null) budget.tabletop = director;
 

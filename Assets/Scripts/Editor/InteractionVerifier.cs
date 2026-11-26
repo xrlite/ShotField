@@ -174,7 +174,8 @@ namespace ShotField.EditorTools
             Debug.Log("[InteractionVerifier] " + result);
             Debug.Log("[InteractionVerifier] 口径：组件装配已验证；手柄射线与立体窗口 pending-真机。");
 
-            var path = "05_验证记录/2026-11/interaction_verify_last.log";
+            var path = System.IO.Path.GetFullPath(System.IO.Path.Combine(Application.dataPath, "../../../05_验证记录/2026-11/interaction_verify_last.log"));
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path));
             System.IO.File.WriteAllText(path, Report.ToString());
         }
     }

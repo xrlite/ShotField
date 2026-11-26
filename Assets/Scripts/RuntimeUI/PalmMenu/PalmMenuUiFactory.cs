@@ -62,6 +62,7 @@ namespace ShotField.RuntimeUI
 
             var canvas = root.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.WorldSpace;
+            canvas.worldCamera = Camera.main;
 
             var rootRt = (RectTransform)root.transform;
             rootRt.sizeDelta = new Vector2(PanelWidth, PanelHeight);

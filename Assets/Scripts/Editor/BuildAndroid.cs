@@ -12,7 +12,7 @@ using UnityEngine.SceneManagement;
 /// - 显式设置 productName
 /// - 主工程路径已改为纯英文，不再需要构建镜像
 /// </summary>
-public static class BuildAndroid
+public static partial class BuildAndroid
 {
     // 主场景唯一入口。以前这里指向白模底稿场景，打出来的包里既没有六色演员也没有轨迹，
     // 属于「装上去第一分钟就穿帮」那类缺陷（全库问题清单 A1）。

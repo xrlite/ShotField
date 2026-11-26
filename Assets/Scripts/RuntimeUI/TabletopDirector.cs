@@ -3,7 +3,7 @@ using ShotField.Core;
 
 namespace ShotField.RuntimeUI
 {
-    public class TabletopDirector : MonoBehaviour
+    public partial class TabletopDirector : MonoBehaviour
     {
         public enum ScaleMode { Immersive1to1, TabletopMini }
 
@@ -41,7 +41,11 @@ namespace ShotField.RuntimeUI
             }
         }
 
-        void Awake() => _ = TabletopAnchor;
+        void Awake()
+        {
+            _ = TabletopAnchor;
+            SetTabletopActive(currentMode == ScaleMode.TabletopMini);
+        }
 
         public void SwitchMode(ScaleMode targetMode)
         {
@@ -61,6 +65,7 @@ namespace ShotField.RuntimeUI
                 currentMode = ScaleMode.Immersive1to1;
                 SetTabletopActive(false);
             }
+            Debug.Log($"[TabletopDirector] SwitchMode -> {currentMode} ({LastModeNote})");
         }
 
         // 进入沙盘模式：仅独立观察相机走保存/移机位姿分支；头显或未配置相机一律不动相机
@@ -90,9 +95,11 @@ namespace ShotField.RuntimeUI
                 observerCamera.SetPositionAndRotation(savedImmersivePos, savedImmersiveRot);
                 hasSavedPose = false;
                 LastModeNote = "独立观察相机已恢复沉浸式位姿";
+                Debug.Log($"[TabletopDirector] {LastModeNote}");
                 return;
             }
             LastModeNote = "头显相机不受沙盘模式接管，未恢复任何位姿";
+            Debug.Log($"[TabletopDirector] {LastModeNote}");
         }
 
         /// <summary>
@@ -158,6 +165,7 @@ namespace ShotField.RuntimeUI
             bool hasProxy = tabletopProxyRoot != null && tabletopProxyRoot.childCount > 0;
             if (hasProxy && sceneRoot1to1 != null)
                 sceneRoot1to1.gameObject.SetActive(!active);
+            SetStageRootsActive(!active);
         }
     }
 }

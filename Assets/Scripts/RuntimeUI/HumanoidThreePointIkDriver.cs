@@ -27,6 +27,9 @@ namespace ShotField.RuntimeUI
         private Animator _animator;
         private Vector3 _lastRootPos;
 
+        /// <summary>本帧水平位移速度（m/s），仅供调试读取；动画参数由 ActorLocomotionAnimator 写入。</summary>
+        public float CurrentPlanarSpeed { get; private set; }
+
         public Animator Animator => _animator;
 
         private void Awake()
@@ -44,7 +47,10 @@ namespace ShotField.RuntimeUI
                 var delta = transform.position - _lastRootPos;
                 delta.y = 0f;
                 float speed = delta.magnitude / dt;
-                _animator.SetFloat("Speed", Mathf.Clamp01(speed / 2.0f));
+                // 注意：本工程控制器参数名是 Walking/Running，没有 Speed。
+                // 直接 SetFloat("Speed") 只会刷 warning 且动画永远停在 Idle（人物滑着走）。
+                // 移动动画统一交给 ActorLocomotionAnimator 驱动，这里仅保留读数。
+                CurrentPlanarSpeed = speed;
             }
             _lastRootPos = transform.position;
         }

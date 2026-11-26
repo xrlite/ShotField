@@ -25,14 +25,18 @@ namespace ShotField.EditorTools
             Report.Length = 0;
             EditorSceneManager.OpenScene(BuildAndroid.ScenePath);
 
-            var hands = Object.FindObjectsByType<TrackedPoseDriver>();
+            var hands = Object.FindObjectsByType<TrackedPoseDriver>(FindObjectsInactive.Include);
             var directs = Object.FindObjectsByType<XRDirectInteractor>();
             var rays = Object.FindObjectsByType<XRRayInteractor>();
             Check("two tracked controller poses", ControllerPoseCount(hands) == 2);
+            Check("controller ray aim poses", ControllerRayAimPoses());
             Check("two direct interactors", directs.Length == 2);
             Check("two ray interactors", rays.Length == 2);
+            Check("two hand-tracking anchors", HandAnchorCount() == 2);
+            Check("hand UI pinch bindings", AllHandRayBindings());
+            Check("hand ray pointer poses", AllHandPoses());
             Check("direct grip bindings", AllDirectBindings(directs));
-            Check("ray trigger UI bindings", AllRayBindings(rays));
+            Check("controller ray trigger UI bindings", AllRayBindings(rays));
             Check("two visible ray lines", Object.FindObjectsByType<XRInteractorLineVisual>().Length == 2);
             Check("XR UI input module", Object.FindAnyObjectByType<XRUIInputModule>() != null);
             Check("tracked-device canvas raycaster", Object.FindAnyObjectByType<TrackedDeviceGraphicRaycaster>() != null);
@@ -51,7 +55,7 @@ namespace ShotField.EditorTools
             for (int i = 0; i < poses.Length; i++)
             {
                 string n = poses[i].gameObject.name;
-                if (!n.StartsWith("XRController_")) continue;
+                if (!n.StartsWith("XRController_") || n.EndsWith("_Ray")) continue;
                 bool pos = XriInputBindings.HasBinding(poses[i].positionInput.action, "/devicePosition");
                 bool rot = XriInputBindings.HasBinding(poses[i].rotationInput.action, "/deviceRotation");
                 if (pos && rot) count++;
@@ -63,7 +67,7 @@ namespace ShotField.EditorTools
         {
             if (items.Length != 2) return false;
             for (int i = 0; i < items.Length; i++)
-                if (!XriInputBindings.HasBinding(items[i].selectInput.inputActionPerformed, "/gripPressed")) return false;
+                if (!XriInputBindings.HasBinding(items[i].selectInput, "/gripPressed")) return false;
             return true;
         }
 
@@ -71,20 +75,73 @@ namespace ShotField.EditorTools
         {
             if (items.Length != 2) return false;
             for (int i = 0; i < items.Length; i++)
-                if (!XriInputBindings.HasBinding(items[i].uiPressInput.inputActionPerformed, "/triggerPressed")) return false;
+                if (!XriInputBindings.HasBinding(items[i].uiPressInput, "/triggerPressed")) return false;
             return true;
+        }
+
+        private static bool ControllerRayAimPoses()
+        {
+            var poses = Object.FindObjectsByType<TrackedPoseDriver>();
+            int count = 0;
+            for (int i = 0; i < poses.Length; i++)
+            {
+                if (!poses[i].gameObject.name.StartsWith("XRController_") ||
+                    !poses[i].gameObject.name.EndsWith("_Ray")) continue;
+                count++;
+                if (!XriInputBindings.HasBinding(poses[i].positionInput.action, "/pointerPosition")) return false;
+                if (!XriInputBindings.HasBinding(poses[i].rotationInput.action, "/pointerRotation")) return false;
+            }
+            return count == 2;
+        }
+
+        private static int HandAnchorCount()
+        {
+            int count = 0;
+            var rays = Object.FindObjectsByType<XRRayInteractor>(FindObjectsInactive.Include);
+            for (int i = 0; i < rays.Length; i++)
+                if (rays[i].gameObject.name.StartsWith("XRHand_")) count++;
+            return count;
+        }
+
+        private static bool AllHandRayBindings()
+        {
+            var rays = Object.FindObjectsByType<XRRayInteractor>(FindObjectsInactive.Include);
+            int count = 0;
+            for (int i = 0; i < rays.Length; i++)
+            {
+                if (!rays[i].gameObject.name.StartsWith("XRHand_")) continue;
+                count++;
+                if (!XriInputBindings.HasBinding(rays[i].selectInput, "/pinchReady")) return false;
+                if (!XriInputBindings.HasBinding(rays[i].uiPressInput, "/pinchReady")) return false;
+                if (!XriInputBindings.HasBinding(rays[i].uiPressInput, "/pointerActivated")) return false;
+            }
+            return count == 2;
+        }
+
+        private static bool AllHandPoses()
+        {
+            var poses = Object.FindObjectsByType<TrackedPoseDriver>(FindObjectsInactive.Include);
+            int count = 0;
+            for (int i = 0; i < poses.Length; i++)
+            {
+                if (!poses[i].gameObject.name.StartsWith("XRHand_")) continue;
+                count++;
+                if (!XriInputBindings.HasBinding(poses[i].positionInput.action, "/pointer/position")) return false;
+                if (!XriInputBindings.HasBinding(poses[i].rotationInput.action, "/pointer/rotation")) return false;
+            }
+            return count == 2;
         }
 
         private static bool MoveBound()
         {
             var p = Object.FindAnyObjectByType<ContinuousMoveProvider>();
-            return p && XriInputBindings.HasBinding(p.leftHandMoveInput.inputAction, "{LeftHand}/primary2DAxis");
+            return p && XriInputBindings.HasBinding(p.leftHandMoveInput, "{LeftHand}/primary2DAxis");
         }
 
         private static bool TurnBound()
         {
             var p = Object.FindAnyObjectByType<SnapTurnProvider>();
-            return p && XriInputBindings.HasBinding(p.rightHandTurnInput.inputAction, "{RightHand}/primary2DAxis");
+            return p && XriInputBindings.HasBinding(p.rightHandTurnInput, "{RightHand}/primary2DAxis");
         }
 
         private static void Check(string label, bool ok)

@@ -43,15 +43,16 @@ namespace ShotField.RuntimeUI
         {
             Canvas = GetComponent<Canvas>();
             Canvas.renderMode = RenderMode.WorldSpace;
+            Canvas.worldCamera = Camera.main;
             Canvas.sortingOrder = 3200 + order;
             var rt = (RectTransform)transform;
             rt.sizeDelta = PixelSize; rt.localScale = Vector3.one * 0.001f; rt.pivot = new Vector2(0.5f, 0.5f);
             var background = GetComponent<Image>();
-            background.color = new Color(0.11f, 0.12f, 0.14f, 0.88f); background.raycastTarget = true;
+            background.color = new Color(0.11f, 0.12f, 0.14f, 0.88f); background.raycastTarget = false;
             Slot = GetComponent<BlockPanelSlot>(); Slot.panelId = CardId; Slot.sizeMeters = PixelSize * 0.001f; Slot.order = order;
             var body = GetComponent<Rigidbody>(); body.isKinematic = true; body.useGravity = false;
             var collider = GetComponent<BoxCollider>();
-            collider.size = new Vector3(PixelSize.x - 80f, PixelSize.y - 60f, 20f); collider.center = new Vector3(0f, -30f, 0f);
+            collider.size = new Vector3(PixelSize.x, 60f, 20f); collider.center = new Vector3(0f, (PixelSize.y - 60f) * 0.5f, 10f);
             _grab = GetComponent<XRGrabInteractable>();
             _grab.movementType = XRGrabInteractable.MovementType.Instantaneous; _grab.throwOnDetach = false;
             _grab.trackPosition = true; _grab.trackRotation = true;
@@ -121,6 +122,12 @@ namespace ShotField.RuntimeUI
             }
             SetDistance(nearest);
         }
+        public void RebindHead(Transform head)
+        {
+            HeadAnchor = head;
+            if (IsOpen) Layout();
+        }
+
         public void FaceHead()
         {
             if (HeadAnchor == null) return;

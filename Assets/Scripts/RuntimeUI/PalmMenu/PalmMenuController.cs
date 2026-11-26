@@ -51,36 +51,27 @@ namespace ShotField.RuntimeUI
             _haptics = new PalmMenuHaptics(leftController, rightController);
             _toggleAction.AddBinding("<XRController>{LeftHand}/menuPressed");
             _toggleAction.AddBinding("<XRController>{LeftHand}/primaryButtonPressed");
+            _toggleAction.AddBinding("<XRController>{LeftHand}/{Menu}");
+            _toggleAction.AddBinding("<XRController>{LeftHand}/{PrimaryButton}");
+            _toggleAction.AddBinding("<PICO4UltraController>{LeftHand}/menu");
+            _toggleAction.AddBinding("<PICO4UltraController>{LeftHand}/primaryButton");
             _state.Changed += Refresh;
             if (menuCanvas != null) menuCanvas.enabled = false;
         }
 
         public void RebindHaptics(HapticImpulsePlayer left, HapticImpulsePlayer right)
         {
-            leftController = left;
-            rightController = right;
+            leftController = left; rightController = right;
             _haptics = new PalmMenuHaptics(left, right);
         }
         private void OnEnable() => _toggleAction.Enable();
         private void OnDisable() => _toggleAction.Disable();
-        private void OnDestroy()
-        {
-            _toggleAction.Dispose();
-            if (_state != null) _state.Changed -= Refresh;
-        }
+        private void OnDestroy() { _toggleAction.Dispose(); if (_state != null) _state.Changed -= Refresh; }
         private void Update()
         {
-            if (_toggleAction.WasPressedThisFrame())
-            {
-                if (_state.IsOpen) Close();
-                else Open();
-            }
+            if (_toggleAction.WasPressedThisFrame()) { if (_state.IsOpen) Close(); else Open(); }
         }
-        private void LateUpdate()
-        {
-            if (_state == null || !_state.IsOpen) return;
-            FollowAnchor();
-        }
+        private void LateUpdate() { if (_state != null && _state.IsOpen) FollowAnchor(); }
         private void Open()
         {
             _state.SetOpen(true);
@@ -136,6 +127,7 @@ namespace ShotField.RuntimeUI
             _tabIndex++;
             btn.onClick.AddListener(() =>
             {
+                Debug.Log($"[UI-CLICK] PalmMenu.Tab({tab})");
                 _state.SelectTab(tab);
                 _haptics.PulseSelect();
             });
@@ -172,6 +164,7 @@ namespace ShotField.RuntimeUI
         }
         private void OnEntryClicked(PalmMenuEntry entry)
         {
+            Debug.Log($"[UI-CLICK] PalmMenu.Entry({entry.Label})");
             _haptics.PulseSelect();
             bool closesAfterExecute = _state.Execute(entry);
             _haptics.PulseConfirm();

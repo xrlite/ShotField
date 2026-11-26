@@ -64,7 +64,6 @@ namespace ShotField.RuntimeUI
                         filmCamera.aspect = ShotCameraState.DefaultAspect;
                         _current.expectedFieldOfView = p.fieldOfView;
                         LastExecutedObject = filmCamera.gameObject;
-                        _report.cameraApplied = true;
                         log = "ProposeShot " + p.shotId;
                         ok = true;
                         break;
@@ -86,7 +85,8 @@ namespace ShotField.RuntimeUI
                 Physics.SyncTransforms();
                 var post = SceneContextCapture.Capture(filmCamera);
                 var actual = SceneContextCapture.FindObject(post, _current.expectedObjectId);
-                ok = actual != null && actual.isActive &&
+                // The director camera is hidden in tabletop mode, but its pose is still writable and verifiable.
+                ok = actual != null && (actual.isActive || type == SceneCommandType.ProposeShot) &&
                     Vector3.Distance(actual.position, _current.expectedPosition) <= 0.02f &&
                     Quaternion.Angle(actual.rotation, _current.expectedRotation) <= 1f &&
                     (type != SceneCommandType.ProposeShot ||
@@ -99,7 +99,11 @@ namespace ShotField.RuntimeUI
                     _report.placementFailures.Add("Gate4 回读失败: " + _current.command.commandId);
                 }
             }
-            if (ok) _report.executedCount++;
+            if (ok)
+            {
+                _report.executedCount++;
+                if (type == SceneCommandType.ProposeShot) _report.cameraApplied = true;
+            }
             LastExecutionResult = new CommandExecutionResultDto(_current.command.commandId, ok, log);
             DestroyGhost(); _current = null;
             if (previewPanel != null) previewPanel.Hide();

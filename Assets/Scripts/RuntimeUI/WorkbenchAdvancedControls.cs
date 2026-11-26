@@ -29,13 +29,13 @@ namespace ShotField.RuntimeUI
             reviewProgressSlider.onValueChanged.AddListener(SeekReview);
             advancedControlsBound = true;
 
-            // M3 闭环前隐藏：Act2 大纲 / 参考包导出 / 成片播放 / 对照模式 / 进度滑杆对应能力
-            // 在冻结四支柱表中均为 🔴未做。控件与监听器保留不删，待 M3 关口再启用。
-            storyBtn.gameObject.SetActive(false);
-            exportBtn.gameObject.SetActive(false);
-            playReviewBtn.gameObject.SetActive(false);
-            compareBtn.gameObject.SetActive(false);
-            reviewProgressSlider.gameObject.SetActive(false);
+            // M3 已实现：参考包导出、成片回看与左右对照进入产品入口。
+            // 没有视频源时播放器会明确提示，不伪造成片或验收结果。
+            storyBtn.gameObject.SetActive(true);
+            exportBtn.gameObject.SetActive(true);
+            playReviewBtn.gameObject.SetActive(true);
+            compareBtn.gameObject.SetActive(true);
+            reviewProgressSlider.gameObject.SetActive(true);
         }
 
         public byte[] CaptureReferencePng() => RuntimeClayCapture.Capture(monitor);
