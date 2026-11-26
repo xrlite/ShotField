@@ -30,6 +30,7 @@ namespace ShotField.EditorTools
                 es = go.GetComponent<EventSystem>();
             }
             var ui = es.GetComponent<XRUIInputModule>() ?? es.gameObject.AddComponent<XRUIInputModule>();
+            ui.activeInputMode = XRUIInputModule.ActiveInputMode.InputSystemActions;
             ui.enableXRInput = true;
             ui.enableMouseInput = true;
             ui.enableBuiltinActionsAsFallback = true;

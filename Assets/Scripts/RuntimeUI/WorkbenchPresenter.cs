@@ -120,7 +120,7 @@ namespace ShotField.RuntimeUI
             if (historyText != null) historyText.text = HistoryState;
             if (library == null || library.Count == 0)
             {
-                WorkbenchStatus.UpdatePill(visibilityPill, visibilityStatusText, null, "信封");
+                WorkbenchStatus.UpdatePill(visibilityPill, visibilityStatusText, null, ResolveVisibilityLabel());
                 WorkbenchStatus.UpdatePill(axisPill, axisStatusText, null, "轴线");
                 if (shotTitleText != null) shotTitleText.text = "暂无镜头";
                 if (shotInfoText != null) shotInfoText.text = "点击下方按钮以当前机位创建分镜";
@@ -155,9 +155,44 @@ namespace ShotField.RuntimeUI
                 if (rule is VisibilityConstraint && vis == null) vis = result;
                 if (rule is AxisConstraint && axis == null) axis = result;
             }
-            WorkbenchStatus.UpdatePill(visibilityPill, visibilityStatusText, vis?.status, "信封");
+            WorkbenchStatus.UpdatePill(visibilityPill, visibilityStatusText, vis?.status, ResolveVisibilityLabel(vis));
             WorkbenchStatus.UpdatePill(axisPill, axisStatusText, axis?.status, "轴线");
             shot.checkedAt = System.DateTimeOffset.UtcNow.ToString("O");
+        }
+
+        private string ResolveVisibilityLabel(ConstraintResult vis = null)
+        {
+            if (vis != null && !string.IsNullOrEmpty(vis.targetId))
+            {
+                var m = SemanticMarker.Find(vis.targetId);
+                if (m != null && !string.IsNullOrEmpty(m.displayName)) return m.displayName;
+            }
+            if (rules != null)
+            {
+                for (int i = 0; i < rules.Length; i++)
+                {
+                    if (rules[i] is VisibilityConstraint vc && !string.IsNullOrEmpty(vc.targetMarkerId))
+                    {
+                        var m = SemanticMarker.Find(vc.targetMarkerId);
+                        if (m != null && !string.IsNullOrEmpty(m.displayName)) return m.displayName;
+                    }
+                }
+            }
+            var all = SemanticMarker.All();
+            SemanticMarker firstHidden = null;
+            int hiddenCount = 0;
+            for (int i = 0; i < all.Length; i++)
+            {
+                if (all[i] != null && all[i].criticalFaceMustStayHidden)
+                {
+                    if (firstHidden == null) firstHidden = all[i];
+                    hiddenCount++;
+                }
+            }
+            if (hiddenCount == 1 && !string.IsNullOrEmpty(firstHidden.displayName))
+                return firstHidden.displayName;
+            if (hiddenCount > 1) return $"关键面({hiddenCount})";
+            return "核心道具";
         }
     }
 }

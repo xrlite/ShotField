@@ -77,7 +77,7 @@ namespace ShotField.RuntimeUI
             RuntimeUiFactory.CreateTmpButton(root, "SaveKey", "保存密钥", new Vector2(190, 26),
                 new Vector2(116, 34), onClick: SaveKey);
             _script = RuntimeUiFactory.CreateTmpInputField(root, "Script",
-                "客厅里，林宁把信封放到茶几上。周哲走近，两人隔着茶几对话。",
+                "内景 客厅：主角把关键道具放到茶几上，另一人走近，两人隔着茶几对话。",
                 new Vector2(486, 34), 800);
             ((RectTransform)_script.transform).anchoredPosition = new Vector2(0, -18);
             RuntimeUiFactory.CreateTmpButton(root, "TestConnection", "测试连接", new Vector2(-110, -61),

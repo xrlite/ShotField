@@ -82,7 +82,7 @@ namespace ShotField.EditorTools
             RuntimeUiFactory.CreateTmpLabel(hudPanel.transform, "HUD_Title", "空间质检扫描", 16, new Vector2(0f, 75f), style: FontStyle.Bold);
 
             var visPill = RuntimeUiFactory.CreatePanel(hudPanel.transform, "VisPill", new Color(0.2f, 0.7f, 0.2f, 0.9f), new Vector2(0f, 25f), new Vector2(180f, 40f)).GetComponent<Image>();
-            var visTxt = RuntimeUiFactory.CreateTmpLabel(visPill.transform, "Txt", "信封正面 [安全]", 13, Vector2.zero);
+            var visTxt = RuntimeUiFactory.CreateTmpLabel(visPill.transform, "Txt", "核心道具 [待检测]", 13, Vector2.zero);
 
             var axisPill = RuntimeUiFactory.CreatePanel(hudPanel.transform, "AxisPill", new Color(0.2f, 0.7f, 0.2f, 0.9f), new Vector2(0f, -35f), new Vector2(180f, 40f)).GetComponent<Image>();
             var axisTxt = RuntimeUiFactory.CreateTmpLabel(axisPill.transform, "Txt", "轴线连续 [正常]", 13, Vector2.zero);

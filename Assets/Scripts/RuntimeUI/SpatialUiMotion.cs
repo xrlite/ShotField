@@ -8,6 +8,7 @@ namespace ShotField.RuntimeUI
     /// 以及按钮 UguiHoverEffect 自动挂载。
     /// </summary>
     [DisallowMultipleComponent]
+    [RequireComponent(typeof(CanvasGroup))]
     public sealed class SpatialUiMotion : MonoBehaviour
     {
         public float openDuration = 0.22f;
@@ -20,13 +21,15 @@ namespace ShotField.RuntimeUI
 
         private void Awake()
         {
-            _group = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+            _group = GetComponent<CanvasGroup>();
+            if (_group == null) _group = gameObject.AddComponent<CanvasGroup>();
             _targetScale = transform.localScale.sqrMagnitude > 0.0001f ? transform.localScale : Vector3.one;
         }
 
         private void OnEnable()
         {
-            if (_group == null) _group = GetComponent<CanvasGroup>() ?? gameObject.AddComponent<CanvasGroup>();
+            if (_group == null) _group = GetComponent<CanvasGroup>();
+            if (_group == null) _group = gameObject.AddComponent<CanvasGroup>();
             _elapsed = 0f;
             _opening = true;
             _group.alpha = 0f;

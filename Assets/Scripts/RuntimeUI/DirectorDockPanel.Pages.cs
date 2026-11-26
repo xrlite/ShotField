@@ -23,7 +23,7 @@ namespace ShotField.RuntimeUI
         {
             EnsureControllers();
             var script = RuntimeUiFactory.CreateTmpInputField(p, "DockScript",
-                "夜，客厅。林宁将信封放在茶几上，周哲走近拿起信封。", new Vector2(570f, 54f), 600);
+                "内景 客厅 日：主角将关键道具放在茶几上，另一人走近观察。", new Vector2(570f, 54f), 600);
             ((RectTransform)script.transform).anchoredPosition = new Vector2(0f, 66f);
             var info = RuntimeUiFactory.CreateTmpLabel(p, "BreakdownInfo",
                 "时间/地点/人物拆解结果将显示在此", 14, new Vector2(0f, 4f), new Vector2(570f, 54f));
