@@ -10,7 +10,7 @@ namespace ShotField.RuntimeUI
     public partial class ChainOrchestrator
     {
         public const string DemoScript =
-            "雨夜，ActorA 在客厅拆开信封，走到门口，拿起桌上的茶杯。";
+            "内景 客厅 日\nActorA 在茶几旁放置关键道具，走到门口，拿起桌上的茶杯。";
 
         public void ImportDemoAndApply()
         {
