@@ -30,7 +30,8 @@ namespace ShotField.EditorTools
             var cR = BuildHand(origin.transform, manager, "XRController_Right", new Vector3(0.22f, 1.2f, 0.25f));
             var hL = XriRigPrefabBuilder.EnsureHandAnchor(origin.transform, manager, "XRHand_Left", true);
             var hR = XriRigPrefabBuilder.EnsureHandAnchor(origin.transform, manager, "XRHand_Right", false);
-            XriRigPrefabBuilder.WireModality(origin, cL, cR, hL, hR);
+            var gaze = XriRigPrefabBuilder.EnsureGazeRay(origin, manager);
+            XriRigPrefabBuilder.WireModality(origin, cL, cR, hL, hR, gaze);
             AttachGrabbables(root.transform);
             UpgradeWorkbenchCanvas();
             BuildPlacement(root.transform);

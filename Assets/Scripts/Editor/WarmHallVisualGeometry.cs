@@ -24,11 +24,26 @@ namespace ShotField.EditorTools
             Ring(root, "Dais_GoldLine", 1.500f, 1.450f, 0.080f, gold);
         }
 
+        [MenuItem("ShotField/Warm Hall/Refresh logo arches")]
+        private static void RefreshLogoArches()
+        {
+            var hall = GameObject.Find(RootName);
+            var root = hall != null ? hall.transform.Find("HallEnvironment") : null;
+            if (root == null) return;
+            var outer = root.Find("Arch_Outer");
+            var middle = root.Find("Arch_Middle");
+            var inner = root.Find("Arch_Inner");
+            if (outer == null || middle == null || inner == null) return;
+            BuildArches(root, outer.GetComponent<Renderer>().sharedMaterial,
+                middle.GetComponent<Renderer>().sharedMaterial, inner.GetComponent<Renderer>().sharedMaterial);
+            UnityEditor.SceneManagement.EditorSceneManager.MarkSceneDirty(root.gameObject.scene);
+        }
+
         private static void BuildArches(Transform root, Material dark, Material gray, Material gold)
         {
             Arch(root, "Arch_Outer", 2.05f, 0.42f, 0.075f, 2.30f, dark);
             Arch(root, "Arch_Middle", 1.72f, 0.42f, 0.065f, 2.02f, gray);
-            Arch(root, "Arch_Inner", 1.39f, 0.42f, 0.140f, 1.74f, gold);
+            Arch(root, "Arch_Inner", 1.39f, 0.42f, 0.052f, 1.74f, gold);
         }
 
         private static void Arch(Transform root, string name, float radius, float spring,
@@ -36,13 +51,21 @@ namespace ShotField.EditorTools
         {
             var points = new List<Vector3>();
             const int arc = 56;
+            for (int i = 8; i > 0; i--)
+            {
+                float t = i / 8f;
+                points.Add(new Vector3(radius + tube * 2f * t * t, spring * (1f - t), 0f));
+            }
             for (int i = 0; i <= arc; i++)
             {
                 float a = Mathf.PI * i / arc;
                 points.Add(new Vector3(Mathf.Cos(a) * radius, spring + Mathf.Sin(a) * radius, 0f));
             }
-            for (int i = 1; i <= 8; i++) points.Add(new Vector3(-radius, spring * (1f - i / 8f), 0f));
-            for (int i = 1; i <= 8; i++) points.Add(new Vector3(radius, spring * (1f - i / 8f), 0f));
+            for (int i = 1; i <= 8; i++)
+            {
+                float t = i / 8f;
+                points.Add(new Vector3(-radius - tube * 2f * t * t, spring * (1f - t), 0f));
+            }
             var go = MeshObject(root, name, ArchMesh(points, tube), mat, new Vector3(0f, 0.08f, z));
             go.transform.localScale = new Vector3(1f, 1f, 0.45f);
             go.GetComponent<Renderer>().shadowCastingMode = ShadowCastingMode.On;

@@ -41,7 +41,11 @@ namespace ShotField.EditorTools
             if (settings == null) return;
             foreach (var f in settings.GetFeatures<OpenXRFeature>())
             {
-                if (f is HandCommonPosesInteraction || f is MicrosoftHandInteraction)
+                if (f is EyeGazeInteraction)
+                {
+                    if (!f.enabled) { f.enabled = true; EditorUtility.SetDirty(settings); }
+                }
+                if (f is HandCommonPosesInteraction || f.GetType().Name == "MicrosoftHandInteraction")
                 {
                     if (f.enabled)
                     {

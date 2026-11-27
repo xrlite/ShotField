@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace ShotField.RuntimeUI
 {
@@ -10,6 +11,17 @@ namespace ShotField.RuntimeUI
         private ActorNpcRoamController _roam;
         private ActorPerformancePanel _perf;
         private ExportAndSeedancePanel _export;
+        private TMP_InputField _scriptField;
+        private TMP_Text _breakdownInfo;
+        private Button _parseScriptButton;
+
+        public void OpenScriptInput(string scriptText, string infoHint = null)
+        {
+            OpenTab(0);
+            if (_scriptField != null) _scriptField.text = scriptText ?? string.Empty;
+            if (_breakdownInfo != null && !string.IsNullOrEmpty(infoHint)) _breakdownInfo.text = infoHint;
+            if (!string.IsNullOrEmpty(infoHint)) SetStatus(infoHint);
+        }
 
         private void EnsureControllers()
         {
@@ -22,15 +34,28 @@ namespace ShotField.RuntimeUI
         private void BuildPage1ScriptAndScene(Transform p)
         {
             EnsureControllers();
-            var script = RuntimeUiFactory.CreateTmpInputField(p, "DockScript",
-                "内景 客厅 日：主角将关键道具放在茶几上，另一人走近观察。", new Vector2(570f, 54f), 600);
-            ((RectTransform)script.transform).anchoredPosition = new Vector2(0f, 66f);
-            var info = RuntimeUiFactory.CreateTmpLabel(p, "BreakdownInfo",
+            _scriptField = RuntimeUiFactory.CreateTmpInputField(p, "DockScript",
+                WelcomeHubProjectState.PendingScriptText, new Vector2(570f, 54f), 600);
+            ((RectTransform)_scriptField.transform).anchoredPosition = new Vector2(0f, 66f);
+            var ph = RuntimeUiFactory.CreateTmpLabel(_scriptField.transform, "Placeholder",
+                "在此输入你的创意或剧本（支持科幻、仙侠、城市追车、室内剧情等任意题材）…",
+                13, Vector2.zero, new Vector2(550f, 44f), new Color(0.62f, 0.65f, 0.70f, 0.72f));
+            ph.alignment = TextAlignmentOptions.Left;
+            _scriptField.placeholder = ph;
+            _breakdownInfo = RuntimeUiFactory.CreateTmpLabel(p, "BreakdownInfo",
                 "时间/地点/人物拆解结果将显示在此", 14, new Vector2(0f, 4f), new Vector2(570f, 54f));
-            RuntimeUiFactory.CreateTmpButton(p, "ParseScriptBtn", "1. 拆解时间/地点/人物", new Vector2(-180f, -66f), new Vector2(180f, 40f),
-                onClick: () => { _assembler.AnalyzeScript(script.text); info.text = _assembler.LastStatus; SetStatus(_assembler.LastStatus); });
+            _parseScriptButton = RuntimeUiFactory.CreateTmpButton(p, "ParseScriptBtn", "1. 拆解时间/地点/人物", new Vector2(-180f, -66f), new Vector2(180f, 40f),
+                onClick: async () =>
+                {
+                    if (_assembler.IsAnalyzing) return;
+                    _parseScriptButton.interactable = false;
+                    SetStatus("正在拆解剧本…");
+                    try { _breakdownInfo.text = await _assembler.AnalyzeScriptAsync(_scriptField.text); }
+                    finally { _parseScriptButton.interactable = true; }
+                    SetStatus(_breakdownInfo.text);
+                });
             RuntimeUiFactory.CreateTmpButton(p, "GenSceneBtn", "2. AI 生成/落场道具", new Vector2(10f, -66f), new Vector2(180f, 40f),
-                onClick: async () => { SetStatus("正在调用 AI 建景…"); info.text = await _assembler.GenerateOrSpawnScenePropAsync(_assembler.ScenePrompt); SetStatus(info.text); });
+                onClick: async () => { SetStatus("正在调用 AI 建景…"); _breakdownInfo.text = await _assembler.GenerateOrSpawnScenePropAsync(_assembler.ScenePrompt); SetStatus(_breakdownInfo.text); });
             RuntimeUiFactory.CreateTmpButton(p, "GoStep2Btn", "下一步: 沙盘 →", new Vector2(200f, -66f), new Vector2(150f, 40f), TabActive, () => SelectTab(1));
         }
 
@@ -44,7 +69,15 @@ namespace ShotField.RuntimeUI
             RuntimeUiFactory.CreateTmpButton(p, "MoveActorBtn", "指派 ActorA 走位", new Vector2(20f, -20f), new Vector2(170f, 44f),
                 onClick: () => { SetStatus(_perf.TriggerActionKeyframe("walk")); });
             RuntimeUiFactory.CreateTmpButton(p, "Enter1to1Btn", "进入 1:1 拍摄 →", new Vector2(205f, -20f), new Vector2(160f, 44f), TabActive,
-                () => { FindAnyObjectByType<TabletopDirector>()?.SwitchMode(TabletopDirector.ScaleMode.Immersive1to1); SelectTab(2); });
+                () =>
+                {
+                    var tabletop = FindAnyObjectByType<TabletopDirector>();
+                    if (tabletop == null) { SetStatus("找不到 1:1 片场"); return; }
+                    var transition = FindAnyObjectByType<StudioFadeTransition>();
+                    if (transition != null) transition.TransitionTo(TabletopDirector.ScaleMode.Immersive1to1);
+                    else tabletop.SwitchMode(TabletopDirector.ScaleMode.Immersive1to1);
+                    SelectTab(2);
+                });
         }
 
         private void BuildPage3Performance(Transform p)
@@ -55,7 +88,15 @@ namespace ShotField.RuntimeUI
             RuntimeUiFactory.CreateTmpButton(p, "PossessBtn", "附身录制 / 停止回放", new Vector2(-160f, 4f), new Vector2(210f, 42f), TabActive,
                 () => { info.text = _perf.TogglePossessRecord(); SetStatus(info.text); });
             RuntimeUiFactory.CreateTmpButton(p, "CaptureTakeBtn", "开拍入轨 (+1镜)", new Vector2(130f, 4f), new Vector2(200f, 42f), TabActive,
-                () => { FindAnyObjectByType<SpatialWorkbench>()?.CaptureCurrentViewToShot(); info.text = "已捕获当前机位并写入轨道"; SetStatus(info.text); });
+                () =>
+                {
+                    var workbench = FindAnyObjectByType<SpatialWorkbench>();
+                    int before = workbench?.library?.Count ?? 0;
+                    workbench?.CaptureCurrentViewToShot();
+                    info.text = (workbench?.library?.Count ?? 0) > before
+                        ? "已保存当前机位到分镜库" : "未保存机位，请检查摄影机";
+                    SetStatus(info.text);
+                });
             RuntimeUiFactory.CreateTmpButton(p, "KfWalkBtn", "关键帧:走近", new Vector2(-210f, -60f), new Vector2(126f, 38f), onClick: () => SetStatus(_perf.TriggerActionKeyframe("walk")));
             RuntimeUiFactory.CreateTmpButton(p, "KfTurnBtn", "关键帧:转身", new Vector2(-70f, -60f), new Vector2(126f, 38f), onClick: () => SetStatus(_perf.TriggerActionKeyframe("turn")));
             RuntimeUiFactory.CreateTmpButton(p, "KfGrabBtn", "关键帧:拿取", new Vector2(70f, -60f), new Vector2(126f, 38f), onClick: () => SetStatus(_perf.TriggerActionKeyframe("grab")));

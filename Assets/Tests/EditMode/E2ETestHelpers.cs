@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
 using ShotField.Core;
+using UnityEditor;
 using UnityEngine;
 
 namespace ShotField.Tests.EditMode
@@ -25,18 +26,10 @@ namespace ShotField.Tests.EditMode
         public static Type FindTypeByName(string typeName)
         {
             if (string.IsNullOrEmpty(typeName)) return null;
-            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var t in TypeCache.GetTypesDerivedFrom<object>())
             {
-                Type[] types;
-                try { types = asm.GetTypes(); }
-                catch (System.Reflection.ReflectionTypeLoadException ex) { types = ex.Types; }
-                if (types == null) continue;
-                for (int i = 0; i < types.Length; i++)
-                {
-                    var t = types[i];
-                    if (t != null && (t.Name == typeName || t.FullName == typeName))
-                        return t;
-                }
+                if (t != null && (t.Name == typeName || t.FullName == typeName))
+                    return t;
             }
             return null;
         }

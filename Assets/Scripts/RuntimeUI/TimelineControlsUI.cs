@@ -96,8 +96,14 @@ namespace ShotField.RuntimeUI
 
         private Vector3 ResolveTargetPosition()
         {
-            var env = SemanticMarker.Find("envelope");
-            return env != null ? env.transform.position : new Vector3(1.5f, 0.46f, 2.15f);
+            foreach (var m in SemanticMarker.All())
+            {
+                if (m != null && m.kind == SemanticMarker.Kind.KeyProp)
+                    return m.transform.position;
+            }
+            if (actorPlayer != null && actorPlayer.actorTransform != null)
+                return actorPlayer.actorTransform.position;
+            return new Vector3(1.5f, 0.46f, 2.15f);
         }
 
         private void RefreshStatus()

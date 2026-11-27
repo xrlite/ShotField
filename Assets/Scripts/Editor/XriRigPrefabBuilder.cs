@@ -30,7 +30,6 @@ namespace ShotField.EditorTools
                 es = go.GetComponent<EventSystem>();
             }
             var ui = es.GetComponent<XRUIInputModule>() ?? es.gameObject.AddComponent<XRUIInputModule>();
-            ui.activeInputMode = XRUIInputModule.ActiveInputMode.InputSystemActions;
             ui.enableXRInput = true;
             ui.enableMouseInput = true;
             ui.enableBuiltinActionsAsFallback = true;
@@ -74,7 +73,8 @@ namespace ShotField.EditorTools
                 var hL = EnsureHandAnchor(offsetGo.transform, mgr, "XRHand_Left", true);
                 var hR = EnsureHandAnchor(offsetGo.transform, mgr, "XRHand_Right", false);
                 AddCompensator(cL); AddCompensator(cR); AddCompensator(hL); AddCompensator(hR);
-                WireModality(originGo, cL, cR, hL, hR);
+                var gaze = EnsureGazeRay(originGo, mgr);
+                WireModality(originGo, cL, cR, hL, hR, gaze);
                 PrefabUtility.SaveAsPrefabAsset(originGo, PrefabPath);
                 Debug.Log("[XriRigPrefabBuilder] Saved prefab: " + PrefabPath);
             }
@@ -98,7 +98,7 @@ namespace ShotField.EditorTools
             XriInputBindings.AttachInputActionManager(originGo);
             XriInputBindings.BindHeadset(offsetTf.Find("XR_Headset")?.gameObject ?? GameObject.Find("XR_Headset"));
             XriInputBindings.BindLocomotion(Object.FindAnyObjectByType<SnapTurnProvider>(), Object.FindAnyObjectByType<ContinuousMoveProvider>());
-            SceneXriRigBuilder.RemoveDirectDuplicates(originGo.transform, offsetTf, "XRController_Left", "XRController_Right", "XRHand_Left", "XRHand_Right");
+            SceneXriRigBuilder.RemoveDirectDuplicates(originGo.transform, offsetTf, "XRController_Left", "XRController_Right", "XRHand_Left", "XRHand_Right", "XREyeGaze_Ray");
             var ctrlL = UpgradeController(offsetTf, manager, "XRController_Left", true);
             var ctrlR = UpgradeController(offsetTf, manager, "XRController_Right", false);
             var handL = EnsureHandAnchor(offsetTf, manager, "XRHand_Left", true);
@@ -111,7 +111,7 @@ namespace ShotField.EditorTools
                 if (child.gameObject == ctrlL || child.gameObject == ctrlR || child.gameObject == handL || child.gameObject == handR) continue;
                 Object.DestroyImmediate(child.gameObject);
             }
-            WireModality(originGo, ctrlL, ctrlR, handL, handR);
+            WireModality(originGo, ctrlL, ctrlR, handL, handR, EnsureGazeRay(originGo, manager));
             var placement = Object.FindAnyObjectByType<PropPlacementInteractor>();
             var rightRay = ctrlR != null ? ctrlR.transform.Find("XRController_Right_Ray")?.GetComponent<XRRayInteractor>() : null;
             if (placement != null && rightRay != null) placement.rayInteractor = rightRay;

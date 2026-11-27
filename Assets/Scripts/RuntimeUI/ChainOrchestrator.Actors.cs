@@ -106,8 +106,23 @@ namespace ShotField.RuntimeUI
         internal bool TryResolveAnchor(ActorNavigator fallbackActor, out Vector3 anchor)
         {
             if (anchorTransform != null) { anchor = anchorTransform.position; return true; }
-            var marker = SemanticMarker.Find("envelope", FindObjectsInactive.Include);
-            if (marker != null) { anchor = marker.transform.position; return true; }
+            var markers = SemanticMarker.All(FindObjectsInactive.Include);
+            SemanticMarker keyProp = null;
+            foreach (var m in markers)
+            {
+                if (m == null) continue;
+                if (m.kind == SemanticMarker.Kind.KeyProp && m.gameObject.activeInHierarchy)
+                { keyProp = m; break; }
+                if (keyProp == null && m.kind == SemanticMarker.Kind.KeyProp) keyProp = m;
+            }
+            if (keyProp != null) { anchor = keyProp.transform.position; return true; }
+            var actors = UnityEngine.Object.FindObjectsByType<ActorNavigator>(FindObjectsInactive.Exclude);
+            if (actors != null && actors.Length > 0)
+            {
+                Vector3 sum = Vector3.zero; int count = 0;
+                foreach (var a in actors) { if (a != null) { sum += a.transform.position; count++; } }
+                if (count > 0) { anchor = sum / count; return true; }
+            }
             if (fallbackActor != null) { anchor = fallbackActor.transform.position; return true; }
             anchor = Vector3.zero; return false;
         }

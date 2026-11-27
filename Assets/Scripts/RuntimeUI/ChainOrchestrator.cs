@@ -129,7 +129,17 @@ namespace ShotField.RuntimeUI
                 return "";
             }
             var snapshot = _pipeline != null ? _pipeline.ProposalSnapshot : Proposal;
+            if (snapshot == null || snapshot.items == null || snapshot.items.Count == 0)
+            {
+                OnError?.Invoke("没有可导出的镜头，请先拆解并确认剧本");
+                return "";
+            }
             if (TimelineModel == null) TimelineModel = TimelineChainModel.FromProposal(snapshot);
+            if (TimelineModel == null || TimelineModel.Count == 0)
+            {
+                OnError?.Invoke("没有已接受的镜头，请先在提案中确认镜头");
+                return "";
+            }
             var manifest = ChainExporter.BuildManifest(TimelineModel, snapshot, packageId);
             string path = ChainExporter.SaveManifest(manifest);
             OnExported?.Invoke(path);

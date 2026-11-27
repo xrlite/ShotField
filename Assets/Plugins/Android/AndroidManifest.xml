@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools" package="com.haoyunlai.shotfield">
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
+  <uses-permission android:name="com.picovr.permission.EYE_TRACKING" />
   <application>
     <activity android:name="com.haoyunlai.shotfield.ShotFieldUnityActivity" android:theme="@style/UnityThemeSelector" android:configChanges="mcc|mnc|locale|touchscreen|keyboard|keyboardHidden|navigation|orientation|screenLayout|uiMode|screenSize|smallestScreenSize|fontScale|layoutDirection|density" android:hardwareAccelerated="false" android:launchMode="singleTask" android:exported="true">
       <intent-filter>

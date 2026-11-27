@@ -18,7 +18,7 @@ namespace ShotField.EditorTools
             if (fillTf != null) Object.DestroyImmediate(fillTf.gameObject);
             light.type = LightType.Spot;
             light.color = new Color(1f, 0.82f, 0.59f);
-            light.intensity = 160f;
+            light.intensity = 55f;
             light.range = 12f;
             light.spotAngle = 74f;
             light.innerSpotAngle = 46f;
@@ -31,7 +31,7 @@ namespace ShotField.EditorTools
             var fl = fill.AddComponent<Light>();
             fl.type = LightType.Point;
             fl.color = new Color(1f, 0.72f, 0.42f);
-            fl.intensity = 26f;
+            fl.intensity = 8f;
             fl.range = 7f;
             fl.shadows = LightShadows.None;
             Primitive(root.transform, "CeilingFixture", PrimitiveType.Cylinder,

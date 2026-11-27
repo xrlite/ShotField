@@ -1,27 +1,31 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
 using UnityEngine.Subsystems;
 using UnityEngine.XR.Hands;
 
 namespace ShotField.RuntimeUI
 {
     /// <summary>
-    /// PICO OS 6 眼手模式兜底：XR Hands 报到手部已跟踪时，优先启用手部射线。
-    /// XRInputModalityManager 在模拟器仍暴露控制器设备时可能一直选手柄，导致捏合命中不了应用 UI。
-    /// 本组件只在手部确实跟踪时接管对应侧，不干预普通手柄模式。
+    /// OS 6 input router: when hands are tracked, the UI ray uses the Eye Gaze pose
+    /// (the same target as the system gaze dot) and either-hand pinch confirms it.
+    /// Falls back to the hand pointer ray only when eye gaze is unavailable.
     /// </summary>
-    [DefaultExecutionOrder(100)]
+    [DefaultExecutionOrder(1000)]
     public sealed class HandTrackingModeRouter : MonoBehaviour
     {
         private static readonly List<XRHandSubsystem> Subsystems = new List<XRHandSubsystem>();
         private XRHandSubsystem _hands;
         private bool _leftHand;
         private bool _rightHand;
+        private int _mode;
 
         public GameObject leftController;
         public GameObject rightController;
         public GameObject leftHand;
         public GameObject rightHand;
+        public GameObject gazeRay;
 
         public bool LeftHandActive => _leftHand;
         public bool RightHandActive => _rightHand;
@@ -36,20 +40,26 @@ namespace ShotField.RuntimeUI
 
             bool left = _hands != null && _hands.leftHand.isTracked;
             bool right = _hands != null && _hands.rightHand.isTracked;
-            if (left != _leftHand)
-            {
-                _leftHand = left;
-                SetActive(leftController, !left);
-                SetActive(leftHand, left);
-                Debug.Log($"[InputModeRouter] Left={(left ? "Hand" : "Controller")} tracked={left}");
-            }
-            if (right != _rightHand)
-            {
-                _rightHand = right;
-                SetActive(rightController, !right);
-                SetActive(rightHand, right);
-                Debug.Log($"[InputModeRouter] Right={(right ? "Hand" : "Controller")} tracked={right}");
-            }
+            _leftHand = left;
+            _rightHand = right;
+            bool gaze = GazeTracked();
+            int next = left || right ? (gaze ? 2 : 1) : 0;
+            if (next == _mode) return;
+            _mode = next;
+            SetActive(leftController, next == 0);
+            SetActive(rightController, next == 0);
+            SetActive(leftHand, next == 1 && left);
+            SetActive(rightHand, next == 1 && right);
+            SetActive(gazeRay, next == 2);
+            Debug.Log($"[InputModeRouter] mode={(next == 2 ? "GazePinch" : next == 1 ? "HandPointer" : "Controller")} left={left} right={right} gaze={gaze}");
+        }
+
+        private bool GazeTracked()
+        {
+            if (gazeRay == null) return false;
+            var pose = gazeRay.GetComponent<TrackedPoseDriver>();
+            var action = pose != null ? pose.trackingStateInput.action : null;
+            return action != null && action.enabled && action.ReadValue<float>() > 0.5f;
         }
 
         private static void SetActive(GameObject go, bool active)

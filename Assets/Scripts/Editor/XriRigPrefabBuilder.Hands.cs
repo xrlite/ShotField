@@ -1,8 +1,11 @@
 #if UNITY_EDITOR
 using ShotField.RuntimeUI;
 using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.InputSystem.XR;
 using UnityEngine.XR.Interaction.Toolkit;
 using UnityEngine.XR.Interaction.Toolkit.Inputs;
+using UnityEngine.XR.Interaction.Toolkit.Inputs.Readers;
 using UnityEngine.XR.Interaction.Toolkit.Interactors;
 using UnityEngine.XR.Interaction.Toolkit.Interactors.Visuals;
 
@@ -56,6 +59,9 @@ namespace ShotField.EditorTools
             else
             {
                 ConfigureVisuals(line, vis);
+                // Hand rays are interaction-only in OS 6 gaze mode; the system owns the visible gaze dot.
+                line.enabled = false;
+                if (vis != null) vis.enabled = false;
                 if (vis != null)
                 {
                     line.widthMultiplier = 0.0015f;
@@ -73,8 +79,42 @@ namespace ShotField.EditorTools
             return handGo;
         }
 
+        internal static GameObject EnsureGazeRay(GameObject origin, XRInteractionManager manager)
+        {
+            var tf = origin.transform.Find("XREyeGaze_Ray");
+            var go = tf != null ? tf.gameObject : new GameObject("XREyeGaze_Ray");
+            if (tf == null) go.transform.SetParent(origin.transform, false);
+            var ray = go.GetComponent<XRRayInteractor>() ?? go.AddComponent<XRRayInteractor>();
+            ray.interactionManager = manager;
+            ray.handedness = InteractorHandedness.None;
+            ray.maxRaycastDistance = 10f;
+            ray.enableUIInteraction = true;
+            var pose = go.GetComponent<TrackedPoseDriver>() ?? go.AddComponent<TrackedPoseDriver>();
+            pose.trackingType = TrackedPoseDriver.TrackingType.RotationAndPosition;
+            pose.positionInput = new InputActionProperty(GazeInput("Gaze Position", InputActionType.Value, "Vector3", "<EyeGaze>/pose/position"));
+            pose.rotationInput = new InputActionProperty(GazeInput("Gaze Rotation", InputActionType.Value, "Quaternion", "<EyeGaze>/pose/rotation"));
+            pose.trackingStateInput = new InputActionProperty(GazeInput("Gaze Tracked", InputActionType.Value, "Boolean", "<EyeGaze>/pose/isTracked"));
+            var pinch = GazeInput("Gaze Pinch", InputActionType.Button, "Button",
+                "<HandInteraction>{LeftHand}/pinchReady", "<HandInteraction>{RightHand}/pinchReady");
+            var reader = new XRInputButtonReader("Gaze Pinch", inputSourceMode: XRInputButtonReader.InputSourceMode.InputAction);
+            reader.inputActionPerformed = pinch;
+            ray.selectInput = reader;
+            ray.uiPressInput = reader;
+            ray.activateInput = reader;
+            go.SetActive(false);
+            return go;
+        }
+
+        private static InputAction GazeInput(string name, InputActionType type, string expected, params string[] paths)
+        {
+            var action = new InputAction(name, type);
+            foreach (var path in paths) action.AddBinding(path);
+            action.Enable();
+            return action;
+        }
+
         internal static void WireModality(GameObject originGo, GameObject ctrlL, GameObject ctrlR,
-            GameObject handL, GameObject handR)
+            GameObject handL, GameObject handR, GameObject gazeRay)
         {
             var mod = originGo.GetComponent<XRInputModalityManager>() ?? originGo.AddComponent<XRInputModalityManager>();
             mod.leftController = ctrlL;
@@ -86,6 +126,7 @@ namespace ShotField.EditorTools
             router.rightController = ctrlR;
             router.leftHand = handL;
             router.rightHand = handR;
+            router.gazeRay = gazeRay;
         }
 
         private static void AddCompensator(GameObject go)

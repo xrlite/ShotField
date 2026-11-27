@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using ShotField.Core;
@@ -35,13 +36,29 @@ namespace ShotField.RuntimeUI
 
         public string ExportLocalReferencePackage()
         {
-            var lib = FindAnyObjectByType<ShotLibrary>();
-            int count = lib != null ? lib.Count : 0;
+            var workbench = FindAnyObjectByType<SpatialWorkbench>();
+            var shot = workbench != null ? workbench.SelectedShot : null;
+            if (shot == null)
+                return LastStatus = "导出失败：请先在拍摄页保存至少一个镜头";
+            if (workbench.monitor == null)
+                return LastStatus = "导出失败：找不到监看相机，无法生成参考帧";
+
             string outDir = Path.Combine(Application.persistentDataPath, "Exports");
             Directory.CreateDirectory(outDir);
-            string manifest = Path.Combine(outDir, "shotfield_export_manifest.json");
-            File.WriteAllText(manifest, $"{{\"shots\":{count},\"resolution\":\"1080p\",\"ratio\":\"16:9\",\"model\":\"{ModelId}\"}}");
-            return LastStatus = $"已导出 1080p 参考包 ({count} 镜) -> {outDir}";
+            string path = Path.Combine(outDir,
+                $"ShotField_{shot.shotId}_{DateTime.Now:yyyyMMdd_HHmm_ssfff}.zip");
+            try
+            {
+                string message = SpatialStudioLayout.ExportDynamicOrStatic(workbench, shot, workbench.monitor, path);
+                if (!ShotPackageExporter.VerifyZipPackage(path, out var entries) ||
+                    !File.Exists(path) || new FileInfo(path).Length == 0 || entries.Count < 3)
+                    return LastStatus = "导出失败：参考包校验未通过（缺少护照、清单或参考帧）";
+                return LastStatus = $"{message}\n镜头 {shot.shotId} / 包内 {entries.Count} 项 / 1080p 监看源";
+            }
+            catch (System.Exception ex)
+            {
+                return LastStatus = $"导出失败：{ex.Message}";
+            }
         }
 
         public async Task<string> SubmitOrPreviewSeedanceAsync(string prompt)

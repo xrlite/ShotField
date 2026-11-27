@@ -18,12 +18,16 @@ namespace ShotField.RuntimeUI
         private Vector3 _targetScale = Vector3.one;
         private float _elapsed;
         private bool _opening;
+        private bool _blocksRaycasts;
+        private bool _interactable;
 
         private void Awake()
         {
             _group = GetComponent<CanvasGroup>();
             if (_group == null) _group = gameObject.AddComponent<CanvasGroup>();
-            _targetScale = transform.localScale.sqrMagnitude > 0.0001f ? transform.localScale : Vector3.one;
+            _targetScale = transform.localScale;
+            _blocksRaycasts = _group.blocksRaycasts;
+            _interactable = _group.interactable;
         }
 
         private void OnEnable()
@@ -33,7 +37,15 @@ namespace ShotField.RuntimeUI
             _elapsed = 0f;
             _opening = true;
             _group.alpha = 0f;
+            _group.blocksRaycasts = false;
+            _group.interactable = false;
             transform.localScale = _targetScale * startScale;
+        }
+
+        private void OnDisable()
+        {
+            _opening = false;
+            transform.localScale = _targetScale;
         }
 
         private void Update()
@@ -47,7 +59,12 @@ namespace ShotField.RuntimeUI
             if (t >= 1f)
             {
                 transform.localScale = _targetScale;
-                if (_group != null) _group.alpha = 1f;
+                if (_group != null)
+                {
+                    _group.alpha = 1f;
+                    _group.blocksRaycasts = _blocksRaycasts;
+                    _group.interactable = _interactable;
+                }
                 _opening = false;
             }
         }

@@ -84,7 +84,7 @@ namespace ShotField.EditorTools
             controller.legacyStageRoots = legacy.ToArray();
 
             RenderSettings.ambientMode = AmbientMode.Flat;
-            RenderSettings.ambientLight = new Color(0.16f, 0.135f, 0.11f);
+            RenderSettings.ambientLight = new Color(0.07f, 0.06f, 0.05f);
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
             RenderSettings.fogColor = new Color(0.227f, 0.196f, 0.161f);
@@ -172,7 +172,7 @@ namespace ShotField.EditorTools
             var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
             if (mat == null) { mat = new Material(Shader.Find("ShotField/WarmHallBeam")); AssetDatabase.CreateAsset(mat, path); }
             mat.shader = Shader.Find("ShotField/WarmHallBeam");
-            mat.SetColor("_BeamColor", new Color(1f, 0.79f, 0.48f, 0.055f));
+            mat.SetColor("_BeamColor", new Color(1f, 0.79f, 0.48f, 0.025f));
             mat.renderQueue = 3020;
             EditorUtility.SetDirty(mat);
             return mat;

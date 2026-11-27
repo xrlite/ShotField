@@ -108,7 +108,7 @@ namespace ShotField.RuntimeUI
             // "伪 null" 会被当成非空，随后 .alpha 每帧抛 MissingComponentException。
             var cg = GetComponent<CanvasGroup>();
             if (cg == null) cg = gameObject.AddComponent<CanvasGroup>();
-            bool yieldToAi = XrAiConnectionView.IsAnyPanelOpen;
+            bool yieldToAi = XrAiConnectionView.IsAnyPanelOpen || WelcomeHubOverlay.IsOpen;
             // 引导只在沙盘态出现：1:1 首帧要让开茶几与信封，不能横在拍摄视野正中。
             bool tabletopMode = _tabletop == null ||
                                 _tabletop.currentMode == TabletopDirector.ScaleMode.TabletopMini;

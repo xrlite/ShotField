@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using ShotField.RuntimeUI;
+using UnityEditor;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.XR.Interaction.Toolkit.UI;
@@ -46,17 +47,10 @@ namespace ShotField.Tests.PlayMode
 
         public static Type FindTypeByName(string typeName)
         {
-            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            foreach (var t in TypeCache.GetTypesDerivedFrom<object>())
             {
-                Type[] types;
-                try { types = asm.GetTypes(); }
-                catch (System.Reflection.ReflectionTypeLoadException ex) { types = ex.Types; }
-                if (types == null) continue;
-                for (int i = 0; i < types.Length; i++)
-                {
-                    if (types[i] != null && (types[i].Name == typeName || types[i].FullName == typeName))
-                        return types[i];
-                }
+                if (t != null && (t.Name == typeName || t.FullName == typeName))
+                    return t;
             }
             return null;
         }
