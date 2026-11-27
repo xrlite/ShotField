@@ -6,7 +6,7 @@ using UnityEngine;
 namespace ShotField.Core
 {
     /// <summary>
-    /// AI 剧本结构化编排层。在线 DeepSeek：配置装载 -> <see cref="DeepSeekClient"/> 发请求 -> 解析 JSON。
+    /// AI 剧本结构化编排层。在线大模型：配置装载 -> OpenAI 兼容客户端发请求 -> 解析 JSON。
     /// 在线失败 / 超时 / 非 2xx / JSON 不可解析 / 空条目 -> 抛 <see cref="ScriptParseException"/>，
     /// 绝不用 mock 数据冒充成功。旧契约链路见 <see cref="AiScriptParser"/> 的 Legacy 分部。
     /// </summary>
@@ -53,7 +53,7 @@ namespace ShotField.Core
         public static ProposalContractDto ParseProposalContent(string content)
         {
             if (string.IsNullOrWhiteSpace(content))
-                throw new ScriptParseException(ScriptParseErrorCode.EmptyContent, "DeepSeek 返回提案内容为空");
+                throw new ScriptParseException(ScriptParseErrorCode.EmptyContent, "大模型返回提案内容为空");
 
             string cleaned = StripJsonFence(content);
             ProposalContractDto contract;
@@ -97,10 +97,11 @@ namespace ShotField.Core
             var config = DeepSeekConfig.Load();
             var apiKey = string.IsNullOrEmpty(ApiKey) ? config.ApiKey : ApiKey;
             var endpoint = string.IsNullOrEmpty(Endpoint) ? config.Endpoint : Endpoint;
-            if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(endpoint))
-                throw new ScriptParseException(ScriptParseErrorCode.NotConfigured, "未配置 DeepSeek ApiKey / Endpoint，AI 未接通");
+            if (string.IsNullOrEmpty(apiKey) || string.IsNullOrEmpty(endpoint) || string.IsNullOrEmpty(config.Model))
+                throw new ScriptParseException(ScriptParseErrorCode.NotConfigured, "未配置大模型密钥、接口地址或模型名，AI 未接通");
 
-            var live = new DeepSeekConfig(endpoint, config.Model, apiKey, config.TimeoutSeconds, config.MaxRetries);
+            var live = new DeepSeekConfig(endpoint, config.Model, apiKey, config.TimeoutSeconds, config.MaxRetries,
+                config.ProviderId, config.ProviderName, config.UseJsonMode);
             return new DeepSeekClient(live, _httpClient);
         }
 

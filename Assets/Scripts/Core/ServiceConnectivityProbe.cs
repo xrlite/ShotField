@@ -19,29 +19,32 @@ namespace ShotField.Core
     }
 
     /// <summary>
-    /// 服务商连通性自检：DeepSeek 走一次最小补全，Tripo 走余额接口。
+    /// 服务连通性自检：大模型走一次最小补全，Tripo 走余额接口。
     /// 探针不缓存、不写配置；报错只给人话原因，绝不把 Key 带进日志或文案。
     /// </summary>
     public static class ServiceConnectivityProbe
     {
-        public static async Task<ProbeResult> ProbeDeepSeekAsync(DeepSeekConfig config)
+        public static Task<ProbeResult> ProbeDeepSeekAsync(DeepSeekConfig config) => ProbeLlmAsync(config);
+
+        public static async Task<ProbeResult> ProbeLlmAsync(DeepSeekConfig config)
         {
             if (config == null || !config.IsConfigured)
-                return new ProbeResult(false, "未配置 Key 或端点");
+                return new ProbeResult(false, "未配置密钥、接口地址或模型名");
 
             try
             {
                 using var client = new DeepSeekClient(config);
-                await client.CompleteAsync("只回复 ok", "ping");
-                return new ProbeResult(true, "已连接");
+                var reply = await client.CompleteAsync("Reply with JSON: {\"ok\":true}", "ping");
+                if (reply?.choices == null || reply.choices.Count == 0 || string.IsNullOrWhiteSpace(reply.choices[0]?.message?.content)) return new ProbeResult(false, "服务返回空响应");
+                return new ProbeResult(true, $"已连接 {config.DisplayName}");
             }
             catch (ScriptParseException ex)
             {
-                return new ProbeResult(false, HumanizeDeepSeek(ex));
+                return new ProbeResult(false, HumanizeLlm(ex));
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[Probe] DeepSeek 自检异常: {ex.GetType().Name}");
+                Debug.LogWarning($"[Probe] 大模型自检异常: {ex.GetType().Name}");
                 return new ProbeResult(false, "网络异常，连不上服务");
             }
         }
@@ -86,11 +89,11 @@ namespace ShotField.Core
             }
         }
 
-        private static string HumanizeDeepSeek(ScriptParseException ex)
+        private static string HumanizeLlm(ScriptParseException ex)
         {
             switch (ex.ErrorCode)
             {
-                case ScriptParseErrorCode.NotConfigured: return "未配置 Key 或端点";
+                case ScriptParseErrorCode.NotConfigured: return "未配置密钥、接口地址或模型名";
                 case ScriptParseErrorCode.Network: return "网络异常，连不上服务";
                 case ScriptParseErrorCode.Timeout: return "连接超时";
                 case ScriptParseErrorCode.HttpError: return $"服务返回 HTTP {ex.HttpStatus}";

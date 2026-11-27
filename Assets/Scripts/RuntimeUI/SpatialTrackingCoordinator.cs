@@ -97,7 +97,7 @@ namespace ShotField.RuntimeUI
                         return;
                     }
                 }
-                IsHandTrackingActive = subsystems.Count > 0;
+                IsHandTrackingActive = false;
             }
             catch (Exception ex)
             {

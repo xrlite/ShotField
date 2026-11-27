@@ -48,11 +48,11 @@ namespace ShotField.Core
             LastUsage = response?.usage;
             var result = ParseContent(PickContent(response));
             if (result == null || result.beats == null || result.beats.Count == 0)
-                throw new ScriptParseException(ScriptParseErrorCode.EmptyContent, "DeepSeek 返回内容不可解析或无镜头条目");
+                throw new ScriptParseException(ScriptParseErrorCode.EmptyContent, "大模型返回内容不可解析或无镜头条目");
             return result;
         }
 
-        /// <summary>解析 DeepSeek 响应包装体（编辑器验证器复用）；不可解析返回 null，不造 mock 产物。</summary>
+        /// <summary>解析 OpenAI 兼容响应包装体（编辑器验证器复用）；不可解析返回 null，不造 mock 产物。</summary>
         public ScriptAnalysisResult ParseDeepSeekResponse(string rawJson)
         {
             if (string.IsNullOrWhiteSpace(rawJson)) return null;

@@ -80,11 +80,43 @@ namespace ShotField.RuntimeUI
                 });
         }
 
+        private PicoSpeechService _speech;
+        private void ToggleSpeech()
+        {
+            if (_speech == null)
+            {
+                _speech = FindAnyObjectByType<PicoSpeechService>();
+                if (_speech == null) _speech = gameObject.AddComponent<PicoSpeechService>();
+                _speech.OnTranscriptionResult += ShowTranscript;
+                _speech.OnSpeechErrorNotice += SetStatus;
+            }
+            if (_speech.IsMockMode) { SetStatus("本机未接通 PICO 原生语音；飞书转写待接入"); return; }
+            if (_speech.IsListening) { _speech.StopListening(); SetStatus("已停止转写"); }
+            else { _speech.StartListening(); SetStatus("请说话，再点一次可停止"); }
+        }
+
+        private void ShowTranscript(string words, bool final) => SetStatus(words);
+        private void OnDestroy()
+        {
+            if (_speech == null) return;
+            _speech.OnTranscriptionResult -= ShowTranscript;
+            _speech.OnSpeechErrorNotice -= SetStatus;
+        }
+
+        private void ShowTracking()
+        {
+            var tracker = FindAnyObjectByType<SpatialTrackingCoordinator>();
+            SetStatus("体感 " + (tracker != null && tracker.IsMotionTrackerActive ? "已启动" : "未启动") +
+                " · 眼手与透视待真机验证 · 表情及 PICO Avatar 待接入");
+        }
         private void BuildPage3Performance(Transform p)
         {
             EnsureControllers();
             var info = RuntimeUiFactory.CreateTmpLabel(p, "PerfInfo",
                 "1:1 片场：支持真人头手附身录制，或一键添加自然动作关键帧", 15, new Vector2(0f, 64f), new Vector2(560f, 40f));
+            RuntimeUiFactory.CreateTmpLabel(p, "HandGuide", "放下手柄启用手势，捏合停止录制。手指表演待真机验证。", 14, new Vector2(0, 34), new Vector2(580, 24));
+            RuntimeUiFactory.CreateTmpButton(p, "SpeechLab", "[测试] 语音转写", new Vector2(-155,-100), new Vector2(180,30), onClick: ToggleSpeech);
+            RuntimeUiFactory.CreateTmpButton(p, "TrackingLab", "追踪能力状态", new Vector2(65,-100), new Vector2(180,30), onClick: ShowTracking);
             RuntimeUiFactory.CreateTmpButton(p, "PossessBtn", "附身录制 / 停止回放", new Vector2(-160f, 4f), new Vector2(210f, 42f), TabActive,
                 () => { info.text = _perf.TogglePossessRecord(); SetStatus(info.text); });
             RuntimeUiFactory.CreateTmpButton(p, "CaptureTakeBtn", "开拍入轨 (+1镜)", new Vector2(130f, 4f), new Vector2(200f, 42f), TabActive,

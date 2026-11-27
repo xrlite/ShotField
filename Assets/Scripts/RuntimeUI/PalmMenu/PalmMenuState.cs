@@ -156,7 +156,7 @@ namespace ShotField.RuntimeUI
             entries.Add(new PalmMenuEntry
             {
                 Kind = PalmMenuActionKind.ToggleNetwork,
-                Label = Network != null && Network.Visible ? "关闭联机" : "联机",
+                Label = Network != null && Network.Visible ? "关闭联机" : "[测试] 联机",
                 Active = Network != null && Network.Visible
             });
             entries.Add(new PalmMenuEntry

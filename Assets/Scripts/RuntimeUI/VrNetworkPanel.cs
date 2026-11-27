@@ -51,7 +51,7 @@ namespace ShotField.RuntimeUI
             _root.GetComponent<Image>().color = new Color(0.10f, 0.12f, 0.15f, 0.97f);
             var rt = (RectTransform)_root.transform;
             rt.sizeDelta = new Vector2(460f, 340f); rt.localScale = Vector3.one * 0.001f;
-            RuntimeUiFactory.CreateTmpLabel(rt, "Title", "联机", 26, new Vector2(0f, 140f),
+            RuntimeUiFactory.CreateTmpLabel(rt, "Title", "[测试] 联机", 26, new Vector2(0f, 140f),
                 new Vector2(420f, 40f), Color.white);
             _status = RuntimeUiFactory.CreateTmpLabel(rt, "Status", "未连接", 14, new Vector2(0f, 104f),
                 new Vector2(420f, 44f));
