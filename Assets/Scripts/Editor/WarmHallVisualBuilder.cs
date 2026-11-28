@@ -46,7 +46,7 @@ namespace ShotField.EditorTools
             AssetDatabase.Refresh();
             var charcoal = Lit("MAT_WarmHall_Charcoal", Charcoal, 0.05f, 0.42f, 0f);
             var ivory = Lit("MAT_WarmHall_Ivory", Ivory, 0f, 0.52f, 0.16f);
-            var gold = Lit("MAT_WarmHall_Gold", Gold, 0.72f, 0.30f, 0.5f);
+            var gold = Lit("MAT_WarmHall_Gold", Gold, 0.90f, 0.62f, 0.5f);
             var archGray = Lit("MAT_WarmHall_ArchGray", WarmGray, 0.08f, 0.34f, 0.10f);
             var fixture = Lit("MAT_WarmHall_Fixture", Ivory, 0f, 0.30f, 2.0f);
             var daisSurface = Unlit("MAT_WarmHall_DaisSurface", new Color(0.78f, 0.73f, 0.65f));
@@ -85,7 +85,7 @@ namespace ShotField.EditorTools
 
             RenderSettings.ambientMode = AmbientMode.Flat;
             RenderSettings.ambientLight = new Color(0.07f, 0.06f, 0.05f);
-            RenderSettings.fog = true;
+            RenderSettings.fog = false;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
             RenderSettings.fogColor = new Color(0.227f, 0.196f, 0.161f);
             RenderSettings.fogDensity = 0.026f;

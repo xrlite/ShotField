@@ -113,18 +113,36 @@ namespace ShotField.EditorTools
 
         private static Light MakeSpot(Transform parent, string name, Vector3 pos, Transform focus)
         {
+            // 去重保护：本工具重跑时若再无条件 new GameObject(name)，会凭空多出 FillLight_A /
+            // FillLight_B 两盏默认 enabled=true / intensity=2.0 / spot=40 的重复灯，直接毁掉
+            // WarmHall 的 A2（那两盏的 Light 组件已被有意禁用）。已存在则原样复用：不新建、
+            // 不改它的 enabled / intensity / spotAngle / range / color。
+            var existing = GameObject.Find(name);
+            if (existing != null)
+            {
+                var reused = existing.GetComponent<Light>();
+                if (reused != null) return reused;
+                reused = existing.AddComponent<Light>();
+                ApplySpotDefaults(reused, focus);
+                return reused;
+            }
             var go = new GameObject(name);
             go.transform.SetParent(parent, false);
             go.transform.position = pos;
             var light = go.AddComponent<Light>();
+            ApplySpotDefaults(light, focus);
+            return light;
+        }
+
+        private static void ApplySpotDefaults(Light light, Transform focus)
+        {
             light.type = LightType.Spot;
             light.color = Color.HSVToRGB(0.3f, 0.3f, 1f);
             light.intensity = 2.0f;
             light.range = 5.0f;
             light.spotAngle = 40f;
             light.shadows = LightShadows.Soft;
-            if (focus != null) go.transform.LookAt(focus.position);
-            return light;
+            if (focus != null) light.transform.LookAt(focus.position);
         }
     }
 }

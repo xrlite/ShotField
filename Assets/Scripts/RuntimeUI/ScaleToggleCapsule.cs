@@ -15,7 +15,10 @@ namespace ShotField.RuntimeUI
         private const float DownOffset = -0.35f;
         private const float ImmersiveDrop = -0.52f;
         private const float ImmersiveDistance = 1.15f;
-        private static readonly Color BgColor = new Color(0.96f, 0.93f, 0.86f, 0.68f);
+        // B3：底板 alpha 0.68 → 0.94，胶囊栏不再透出后面的场景。
+        // 注意本值只经 SpatialGlass.Apply 进材质 _BaseColor.a（Image.color 会被它改写成纯白），
+        // 不走 CreateButton 里 Mathf.Min(bg.a, 0.90f) 那道钳制。
+        private static readonly Color BgColor = new Color(0.96f, 0.93f, 0.86f, 0.94f);
         private static readonly Color GoldColor = new Color(0.79f, 0.66f, 0.38f, 1f);
         private static readonly Color SecondaryColor = new Color(0.22f, 0.25f, 0.30f, 1f);
 
@@ -62,7 +65,10 @@ namespace ShotField.RuntimeUI
                 new Vector2(48f, 0f), new Vector2(106f, 48f), OnRecenterClicked);
             var dock = DirectorDockPanel.Create(rt);
             var settings = XrAiConnectionView.Create(rt);
-            CreateButton(rt, "DockBtn", "导演工作台", GoldColor, new Color(0.10f, 0.11f, 0.14f, 1f),
+            // B3：胶囊栏只留 ToggleScaleBtn 一个金按钮；DockBtn 降为 SecondaryColor。
+            // 深墨字(0.10,0.11,0.14)压在深蓝灰底上看不见，前景同步改 Color.white，与
+            // StabilizeBtn / RecenterBtn / AiSettingsBtn 一致。
+            CreateButton(rt, "DockBtn", "导演工作台", SecondaryColor, Color.white,
                 new Vector2(174f, 0f), new Vector2(126f, 48f), () => { if (XrAiConnectionView.IsAnyPanelOpen && !dock.IsOpen) settings.Toggle(); dock.Toggle(); });
             CreateButton(rt, "AiSettingsBtn", "AI 设置", SecondaryColor, Color.white,
                 new Vector2(304f, 0f), new Vector2(114f, 48f), () => { if (dock.IsOpen) dock.Close(); settings.Toggle(); });

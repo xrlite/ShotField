@@ -121,13 +121,11 @@ namespace ShotField.RuntimeUI
             if (visible != _lastHallVisible)
             {
                 _lastHallVisible = visible;
-                RenderSettings.fog = visible;
-                if (visible)
-                {
-                    RenderSettings.fogMode = FogMode.ExponentialSquared;
-                    RenderSettings.fogColor = new Color(0.04f, 0.045f, 0.055f, 1f);
-                    RenderSettings.fogDensity = 0.032f;
-                }
+                // A1 关雾：雾在暖调礼堂里只负责洗白暗部。此前切到 visible 时会把 fogColor
+                // 改成蓝灰 (0.04,0.045,0.055)、density 改成 0.032，既与暖调冲突，也覆写了
+                // 场景作者值 0.026。现恒为关闭，且不再改写 fogMode/fogColor/fogDensity，
+                // 1:1 与 VST 互切时雾不会重新打开。
+                RenderSettings.fog = false;
                 Debug.Log($"[WarmHall] environment={(visible ? "VR" : tabletopMode ? "VST" : "STUDIO")} requested={requested} extensionReady={extensionReady}");
             }
         }

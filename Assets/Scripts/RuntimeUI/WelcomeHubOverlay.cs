@@ -44,14 +44,18 @@ namespace ShotField.RuntimeUI
 
             var rt = (RectTransform)transform;
             rt.sizeDelta = new Vector2(760f, 410f);
-            rt.localScale = Vector3.one * 0.001f;
+            // B1：0.001 → 0.00135，面板世界尺寸 760×410 → 1.026×0.5535 m。
+            // 锚位/重贴判据（45°/0.8s/1.5m/0.5m）全走世界坐标与度，不依赖本缩放，故无需联动改。
+            rt.localScale = Vector3.one * 0.00135f;
 
             _panel = RuntimeUiFactory.CreatePanel(rt, "WelcomePanel", BgColor, Vector2.zero, rt.sizeDelta);
             SpatialGlass.Apply(_panel.GetComponent<Image>(), BgColor, 28f);
             _panel.AddComponent<SpatialUiMotion>();
 
             var root = _panel.transform;
-            RuntimeUiFactory.CreateTmpLabel(root, "Title", "欢迎来到镜场", 28, new Vector2(0f, 162f), new Vector2(680f, 40f), GoldText, FontStyle.Bold);
+            // B1 实测修正：28 号 Bold 的行高需 40.6 px，原框高 40 差 0.6 px，TMP(Truncate) 直接
+            // 生成 0 个字符 → 整条标题不显示。框高提到 44（实测 need 40.6），横向仍 680。
+            RuntimeUiFactory.CreateTmpLabel(root, "Title", "欢迎来到镜场", 28, new Vector2(0f, 162f), new Vector2(680f, 44f), GoldText, FontStyle.Bold);
             RuntimeUiFactory.CreateTmpLabel(root, "Subtitle", "从一个想法开始，或者继续你已经开始的故事。", 16, new Vector2(0f, 126f), new Vector2(680f, 28f), SubInk);
 
             BuildMainEntries(root);

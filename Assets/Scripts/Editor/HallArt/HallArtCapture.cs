@@ -31,7 +31,9 @@ namespace ShotField.EditorTools
                 probe.RenderProbe();
                 RenderSettings.defaultReflectionMode = UnityEngine.Rendering.DefaultReflectionMode.Custom;
                 RenderSettings.customReflectionTexture = probe.texture;
-                RenderSettings.fog = true;
+                // A1 关雾：这是最后一个会把雾重新打开的代码点。雾在暖调礼堂里只负责洗白暗部，
+                // 与本轮美术方向相反，故恒关闭。下面 4 行 fog 参数保留（fog=false 时不生效）。
+                RenderSettings.fog = false;
                 RenderSettings.fogMode = FogMode.Linear;
                 RenderSettings.fogColor = new Color(0.10f, 0.088f, 0.072f);
                 RenderSettings.fogStartDistance = 7f;

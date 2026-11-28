@@ -18,10 +18,10 @@ namespace ShotField.EditorTools
             if (fillTf != null) Object.DestroyImmediate(fillTf.gameObject);
             light.type = LightType.Spot;
             light.color = new Color(1f, 0.82f, 0.59f);
-            light.intensity = 55f;
+            light.intensity = 360f;
             light.range = 12f;
-            light.spotAngle = 74f;
-            light.innerSpotAngle = 46f;
+            light.spotAngle = 28f;
+            light.innerSpotAngle = 18f;
             light.shadows = LightShadows.Soft;
             light.shadowStrength = 0.82f;
             lightGo.transform.LookAt(new Vector3(0f, 0.75f, 0f));
