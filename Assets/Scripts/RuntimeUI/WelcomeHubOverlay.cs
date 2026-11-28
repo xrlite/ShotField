@@ -10,7 +10,7 @@ namespace ShotField.RuntimeUI
     /// 启动时引导用户选择「我有一个创意」「从案例开始」或「继续我的项目」，
     /// 不破坏既有场景层级与射线配置，选定后平滑让位。
     /// </summary>
-    public sealed class WelcomeHubOverlay : MonoBehaviour
+    public sealed partial class WelcomeHubOverlay : MonoBehaviour
     {
         private static readonly Color BgColor = new Color(0.08f, 0.09f, 0.12f, 0.94f);
         private static readonly Color GoldBg = new Color(0.79f, 0.66f, 0.38f, 0.95f);
@@ -58,12 +58,18 @@ namespace ShotField.RuntimeUI
             BuildCasesView(root);
             _casesGroup.SetActive(false);
 
-            _statusLabel = RuntimeUiFactory.CreateTmpLabel(root, "HubStatus", "请选择创作入口 · 支持手柄射线与鼠标点击", 14, new Vector2(-80f, -168f), new Vector2(520f, 30f), GoldText);
-            CreateEntryButton(root, "SkipHubBtn", "暂跳过 · 看沙盘", SlateBg, SubInk, new Vector2(280f, -168f), new Vector2(148f, 34f), 13, CloseOverlay);
+            _statusLabel = RuntimeUiFactory.CreateTmpLabel(root, "HubStatus", "请选择创作入口 支持手柄射线与鼠标点击", 14, new Vector2(-80f, -168f), new Vector2(520f, 30f), GoldText);
+            CreateEntryButton(root, "SkipHubBtn", "暂跳过 看沙盘", SlateBg, SubInk, new Vector2(280f, -168f), new Vector2(148f, 34f), 13, CloseOverlay);
+            // 重置召回（C-1）：hub 开着时胶囊栏被 SetSuppressed 收起，那个「重置面前」点不到，故在 hub 上补一个。
+            CreateEntryButton(root, "ResetHubBtn", "重置 召回面板", SlateBg, SubInk, new Vector2(282f, -134f), new Vector2(144f, 30f), 13, RecallToFront);
 
             SpatialUiMotion.AttachButtonMotion(_panel);
             IsOpen = true;
             UpdatePose(true);
+            PlayRevealThenLock();
+            var introFade = FindAnyObjectByType<StudioFadeTransition>();
+            if (introFade != null) { introFade.PlayIntro(IntroHoldSeconds); StudioIntroLights.Play(IntroHoldSeconds); }
+            DiagBuild();
         }
 
         private void BuildMainEntries(Transform root)
@@ -71,7 +77,7 @@ namespace ShotField.RuntimeUI
             _mainGroup = RuntimeUiFactory.CreatePanel(root, "MainGroup", Color.clear, new Vector2(0f, -14f), new Vector2(710f, 250f));
             _mainGroup.GetComponent<Image>().raycastTarget = false;
             bool hasSaved = WelcomeHubProjectState.HasSavedProject();
-            CreateCard(_mainGroup.transform, "NewIdeaBtn", "我有一个创意", "直接输入你的故事剧本\n不加载默认案例 · 支持任意题材",
+            CreateCard(_mainGroup.transform, "NewIdeaBtn", "我有一个创意", "直接输入你的故事剧本\n不加载默认案例 支持任意题材",
                 !hasSaved ? GoldBg : SlateBg, !hasSaved ? DarkInk : Color.white, new Vector2(-228f, 4f), OnNewIdeaClicked);
             CreateCard(_mainGroup.transform, "CasesBtn", "从案例开始", "体验示范作品《桌上的信》\n及科幻 / 仙侠 / 城市题材示例",
                 !hasSaved ? GoldSoftBg : SlateBg, !hasSaved ? GoldText : Color.white, new Vector2(0f, 4f), () => ShowCasesView(true));
@@ -87,10 +93,10 @@ namespace ShotField.RuntimeUI
             var t = _casesGroup.transform;
             CreateEntryButton(t, "BackBtn", "← 返回入口", SlateBg, SubInk, new Vector2(-276f, 98f), new Vector2(124f, 34f), 14, () => ShowCasesView(false));
             RuntimeUiFactory.CreateTmpLabel(t, "CasesHeader", "选择示范案例或题材占位（随时可切回自由创作）", 15, new Vector2(70f, 98f), new Vector2(520f, 32f), SubInk);
-            CreateEntryButton(t, "CaseLetterBtn", "《桌上的信》 · 室内悬疑示范案例（含客厅微缩与双人对手戏）", GoldBg, DarkInk, new Vector2(0f, 36f), new Vector2(660f, 52f), 16, OnSelectLetterDemo);
-            CreateEntryButton(t, "CaseSciFiBtn", "《星轨漂流》 · 科幻太空（示例占位 · 点击切换通用基座开拍）", GoldSoftBg, GoldText, new Vector2(0f, -26f), new Vector2(660f, 44f), 14, () => OnSelectGenreStarter("外景 科幻太空舱：宇航员在失重走廊交接能源核心。"));
-            CreateEntryButton(t, "CaseXianxiaBtn", "《云巅问道》 · 仙侠古风（示例占位 · 点击切换通用基座开拍）", SlateBg, SubInk, new Vector2(-168f, -82f), new Vector2(322f, 42f), 13, () => OnSelectGenreStarter("外景 仙侠山巅：剑修在云海悬崖前拔剑对峙。"));
-            CreateEntryButton(t, "CaseChaseBtn", "《霓虹极速》 · 城市追车（示例占位 · 点击切换通用基座开拍）", SlateBg, SubInk, new Vector2(168f, -82f), new Vector2(322f, 42f), 13, () => OnSelectGenreStarter("外景 城市夜街追车：两辆车在立交桥下高速交错。"));
+            CreateEntryButton(t, "CaseLetterBtn", "《桌上的信》 室内悬疑示范案例（含客厅微缩与双人对手戏）", GoldBg, DarkInk, new Vector2(0f, 36f), new Vector2(660f, 52f), 16, OnSelectLetterDemo);
+            CreateEntryButton(t, "CaseSciFiBtn", "《星轨漂流》 科幻太空（示例占位 点击切换通用基座开拍）", GoldSoftBg, GoldText, new Vector2(0f, -26f), new Vector2(660f, 44f), 14, () => OnSelectGenreStarter("外景 科幻太空舱：宇航员在失重走廊交接能源核心。"));
+            CreateEntryButton(t, "CaseXianxiaBtn", "《云巅问道》 仙侠古风（示例占位 点击切换通用基座开拍）", SlateBg, SubInk, new Vector2(-168f, -82f), new Vector2(322f, 42f), 13, () => OnSelectGenreStarter("外景 仙侠山巅：剑修在云海悬崖前拔剑对峙。"));
+            CreateEntryButton(t, "CaseChaseBtn", "《霓虹极速》 城市追车（示例占位 点击切换通用基座开拍）", SlateBg, SubInk, new Vector2(168f, -82f), new Vector2(322f, 42f), 13, () => OnSelectGenreStarter("外景 城市夜街追车：两辆车在立交桥下高速交错。"));
         }
 
         private static void CreateCard(Transform parent, string name, string title, string sub,
@@ -122,7 +128,7 @@ namespace ShotField.RuntimeUI
             if (_mainGroup != null) _mainGroup.SetActive(!show);
             if (_casesGroup != null) _casesGroup.SetActive(show);
             if (_statusLabel != null)
-                _statusLabel.text = show ? "选择《桌上的信》进入完整示范，或点示例题材以通用基座开拍" : "请选择创作入口 · 支持手柄射线与鼠标点击";
+                _statusLabel.text = show ? "选择《桌上的信》进入完整示范，或点示例题材以通用基座开拍" : "请选择创作入口 支持手柄射线与鼠标点击";
         }
 
         private void OnNewIdeaClicked()
@@ -177,12 +183,7 @@ namespace ShotField.RuntimeUI
         private void UpdatePose(bool snap)
         {
             if (_head == null) return;
-            Vector3 fwd = new Vector3(_head.forward.x, 0f, _head.forward.z);
-            if (fwd.sqrMagnitude < 0.001f) fwd = Vector3.forward;
-            Vector3 target = _head.position + fwd.normalized * 1.25f + Vector3.up * 0.08f;
-            transform.position = snap ? target : Vector3.Lerp(transform.position, target, Time.deltaTime * 6f);
-            Vector3 look = transform.position - _head.position;
-            if (look.sqrMagnitude > 0.001f) transform.rotation = Quaternion.LookRotation(look.normalized, Vector3.up);
+            TickPanelPose(snap);   // 锁位/重贴全在 WelcomeHubOverlay.Anchor.cs
         }
     }
 }

@@ -9,7 +9,7 @@ namespace ShotField.RuntimeUI
     /// 视野下方舒适区常驻胶囊栏（1.05m 距、下倾 13°）：
     /// 提供「进入 1:1 片场 ⇄ 回到 1:20 沙盘」与「重置面前」两个高频按钮，支持手柄射线/手势捏合/鼠标点击。
     /// </summary>
-    public sealed class ScaleToggleCapsule : MonoBehaviour
+    public sealed partial class ScaleToggleCapsule : MonoBehaviour
     {
         private const float Distance = 1.05f;
         private const float DownOffset = -0.35f;
@@ -122,6 +122,10 @@ namespace ShotField.RuntimeUI
         private void LateUpdate()
         {
             ResolveRefs();
+            // 首屏只留一条路：欢迎浮层存在期间胶囊栏闭嘴（它自己 Bootstrap、无延迟，否则第 0 秒就能点到
+            // 「回到 1:20 沙盘」，比主入口早两秒多）。用 IsOpen 自检，避免两家 Bootstrap 顺序不确定。
+            bool hubOpen = WelcomeHubOverlay.IsOpen;
+            if (hubOpen != _suppressed) SetSuppressed(hubOpen);
             if (_tabletop != null && _tabletop.currentMode != _lastMode)
             {
                 _lastMode = _tabletop.currentMode;

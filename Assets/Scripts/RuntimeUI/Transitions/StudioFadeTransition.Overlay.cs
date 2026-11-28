@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -38,6 +39,30 @@ namespace ShotField.RuntimeUI
             _group.blocksRaycasts = false;
             _group.interactable = false;
 
+        }
+
+        /// <summary>
+        /// 开场：黑幕先盖住首帧，hold 秒后 0.14s 退去，露出已经亮着的片场。
+        /// 解决「静默 2 秒画面毫无变化 = 以为卡死」。灯逐盏亮起属灯光层，不在这里冒充。
+        /// </summary>
+        public void PlayIntro(float holdSeconds = 1.2f)
+        {
+            if (headAnchor == null && Camera.main != null) headAnchor = Camera.main.transform;
+            EnsureOverlay();
+            if (_group == null) return;
+            StopAllCoroutines();
+            _running = true;
+            if (_fadeCanvas != null) _fadeCanvas.enabled = true;
+            ApplyFadeAlpha(1f);
+            StartCoroutine(IntroRoutine(holdSeconds));
+        }
+
+        private IEnumerator IntroRoutine(float hold)
+        {
+            if (hold > 0f) yield return new WaitForSecondsRealtime(hold);
+            yield return Fade(1f, 0f);
+            ReleaseOverlay();
+            _running = false;
         }
     }
 }

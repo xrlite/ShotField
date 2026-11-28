@@ -8,7 +8,7 @@ namespace ShotField.RuntimeUI
         public enum ScaleMode { Immersive1to1, TabletopMini }
 
         [Header("沙盘配置")]
-        public ScaleMode currentMode = ScaleMode.Immersive1to1;
+        public ScaleMode currentMode = ScaleMode.TabletopMini;
         public float miniScale = 0.05f; // 1:20 缩放比
         public Transform tabletopAnchor; // 沙盘桌面中心锚点
 
